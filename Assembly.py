@@ -3468,9 +3468,9 @@ def plastic_analysis(X, T, K, Fb, Nincr, limit, angles, thickness, pos, Q):
 
             theta = angles[i]
 
-            Tr = np.array([[m.cos(theta)**2,               m.sin(theta)**2,         2*m.sin(theta)*m.cos(theta)]
-                           [m.sin(theta)**2,               m.cos(theta)**2,         -2*m.sin(theta)*m.cos(theta)]
-                           [-m.sin(theta)*m.cos(theta)],   m.sin(theta)*m.cos(theta), (m.cos(theta)**2)-m.sin(theta)**2])
+            Tr = np.array([[m.cos(theta)**2,               m.sin(theta)**2,         2*m.sin(theta)*m.cos(theta)],
+                           [m.sin(theta)**2,               m.cos(theta)**2,         -2*m.sin(theta)*m.cos(theta)],
+                           [-m.sin(theta)*m.cos(theta),   m.sin(theta)*m.cos(theta), (m.cos(theta)**2)-m.sin(theta)**2]])
 
 
             #Finding the new tangent matrix
