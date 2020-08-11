@@ -22,13 +22,13 @@
 <br />
 <p align="center">
   <a href="https://github.com/azzeddinetiba/FeCLAP">
-    <img src="logo/logo_logo.png" alt="Logo" width="80" height="80">
+    <img src="logo/logo_logo.png" alt="Logo" width="200" height="200">
   </a>
 
   <h3 align="center">FeCLAP</h3>
 
   <p align="center">
-    YOUR_SHORT_DESCRIPTION
+    A simple solver for laminate composite plates
     <br />
     <a href="https://github.com/azzeddinetiba/FeCLAP"><strong>Explore the docs »</strong></a>
     <br />
