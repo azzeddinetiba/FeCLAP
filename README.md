@@ -70,7 +70,7 @@ This solver support **static, modal, transient and non linear analysis** using t
 ## Getting Started
 
 To get a local copy up and running follow these simple steps.
-Further explanations about usr inputs and results will be available soon.
+Further explanations about user inputs and results will be available soon.
 
 ### Prerequisites
 
