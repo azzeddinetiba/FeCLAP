@@ -21,7 +21,7 @@ print(
     'ENSAM CASABLANCA \nENSAM Sciences et Technologies\n\nA code for the linear static and modal analysis of laminate composite plates using the Kirchoff-Love theory of thin plates and the lmainate composites theory\nThe supported geometry is a rectangular plate with or without one hole\n\nTIBA Azzeddine  -  2020\n')
 
 
-"""
+""" Part Allowing the user to input the geometry and materials
 x1=float(input('coordinate of the left border x1= '))
 y1=float(input('coordinate of the lower border y1= '))
 x2=float(input('coordinate of the right border x2= '))
@@ -34,6 +34,7 @@ if radius !=0:
     yh=float(input('y of the center of the hole: '))
 """
 
+#Example Part
 xh=yh=0
 x1 = 0
 y1 = 0

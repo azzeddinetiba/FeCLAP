@@ -2,7 +2,7 @@ from numpy.testing import assert_array_equal
 import numpy as np
 import NonLinearModule
 
-def show_the_fucking_matrix():
+def show_the_matrix():
         x = 1e9*np.array([0,0, 0])
         Tr= np.eye(3)
         limit=(1/(50e6))*Tr
@@ -19,4 +19,4 @@ def show_the_fucking_matrix():
 
 
 if __name__ == '__main__':
-    show_the_fucking_matrix()
+    show_the_matrix()
