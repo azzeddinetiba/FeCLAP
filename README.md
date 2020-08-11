@@ -28,7 +28,7 @@
   <h3 align="center">FeCLAP</h3>
 
   <p align="center">
-    YOUR_SHORT_DESCRIPTION
+    A simple solver for laminate composite plates
     <br />
     <a href="https://github.com/azzeddinetiba/FeCLAP"><strong>Explore the docs »</strong></a>
     <br />
