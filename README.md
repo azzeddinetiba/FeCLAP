@@ -149,7 +149,7 @@ Project Link: [FeCLAP Github Link](https://github.com/azzeddinetiba/FeCLAP)
 ## Acknowledgements
 
 * [P.-O. Persson, G. Strang, A Simple Mesh Generator in MATLAB. SIAM Review, Volume 46 (2), pp. 329-345, June 2004](https://github.com/bfroehle/pydistmesh)
-* [KRISTIAN KRABBENHØFT, BASIC COMPUTATIONAL PLASTICITY, June 2002]()
+* [KRISTIAN KRABBENHØFT, BASIC COMPUTATIONAL PLASTICITY, June 2002](http://homes.civil.aau.dk/lda/continuum/)
 
 
 
