@@ -3419,15 +3419,19 @@ def animate_transient(SOL, p, t, delta_T):
     return ani
 
 
-def plastic_analysis(X, T, K, Fb, Nincr, limit, angles, thickness, pos, Q):
+def plastic_analysis(X, T, K, Fb, Nincr, limit, angles, thickness, pos, Q, init_sigma):
 
     TT=T.shape[0]
     Nplies = len(angles)
-
+    i=0
+    while i<Nplies:
+        if pos[i]*(pos[i]+thickness[i])<=0:
+            mid_lay = i
+            break
+        i +=1
 
     #The load is divided on equal incremental loads
     deltaFb = Fb/Nincr
-    Total_Fb = Fb
     residual = deltaFb
     deltaU = []
     epsxx = []
@@ -3440,7 +3444,6 @@ def plastic_analysis(X, T, K, Fb, Nincr, limit, angles, thickness, pos, Q):
 
     while i<Nincr:
 
-        #Tangent_Stiffness from Q from file
         #residual from internal_forces
         dU = np.linalg.solve(K, residual)
         deltaU_step = deltaU_step + dU
@@ -3455,32 +3458,117 @@ def plastic_analysis(X, T, K, Fb, Nincr, limit, angles, thickness, pos, Q):
         STRAINyy = []
         STRAINxy = []
 
-        j=0
+        SIGMAXX = []
+        SIGMAYY = []
+        SIGMAXY = []
 
-        while j<Nplies:
+        STRAIN = np.zeros((3,1))
 
-            th = pos[j] + thickness[j]/2
-            thSTRAINxx, thSTRAINyy, thSTRAINxy = strain_calc_thick(X,T,u,v,w,thetax,thetay,th)
+        thSTRAINxx = np.zeros((3,1))
+        thSTRAINyy = np.zeros((3,1))
+        thSTRAINxy = np.zeros((3,1))
 
-            STRAINxx.append(thSTRAINxx)
-            STRAINyy.append(thSTRAINyy)
-            STRAINxy.append(thSTRAINxy)
 
-            theta = angles[i]
+        k = 0
+        while k<TT:
+
+            strainxx = []
+            strainyy = []
+            strainxy = []
+
+            sigmaxx = []
+            sigmayy = []
+            sigmxy = []
+
+
+            xe = X[T[k, :], :]
+            b = np.zeros((1, 3))
+            b[0, 0] = xe[1, 1] - xe[2, 1]
+            b[0, 1] = xe[2, 1] - xe[0, 1]
+            b[0, 2] = xe[0, 1] - xe[1, 1]
+
+            c = np.zeros((1, 3))
+            c[0, 0] = xe[2, 0] - xe[1, 0]
+            c[0, 1] = xe[0, 0] - xe[2, 0]
+            c[0, 2] = xe[1, 0] - xe[0, 0]
+
+            delta = 0.5 * (b[0, 0] * c[0, 1] - b[0, 1] * c[0, 0])
+            dN1dx = b[0, 0] / (2 * delta)
+            dN1dy = c[0, 0] / (2 * delta)
+            dN2dx = b[0, 1] / (2 * delta)
+            dN2dy = c[0, 1] / (2 * delta)
+            dN3dx = b[0, 2] / (2 * delta)
+            dN3dy = c[0, 2] / (2 * delta)
+
+            STRAIN = np.array(
+                [[dN1dx * u[T[k, 0]] + dN2dx * u[T[k, 1]] + dN3dx * u[T[k, 2]]],
+                 [(dN1dy * v[T[k, 0]] + dN2dy * v[T[k, 1]] + dN3dy * v[T[k, 2]])],
+                 [(dN1dy * u[T[k, 0]] + dN2dy * u[T[k, 1]] + dN3dy * u[T[k, 2]] + dN1dx * v[T[k, 0]] + dN2dx * v[
+                     T[k, 1]] + dN3dx * v[T[k, 2]])]])
+
+            kappa = k_calc(X,T,w,thetax,thetay,k)
+
+            layer_STRAINxx = []
+            layer_STRAINyy = []
+            layer_STRAINxy = []
+
+            layer_SIGMAXX = []
+            layer_SIGMAYY = []
+            layer_SIGMAXY = []
+
+            yieldval = np.zeros((1,Nplies))
+
+            j=0
+
+            while j<Nplies:
+
+                th = pos[j] + thickness[j]/2
+                thSTRAINxx[0] = STRAIN[0] + th * kappa[0]
+                thSTRAINxx[1] = STRAIN[0] + th * kappa[3]
+                thSTRAINxx[2] = STRAIN[0] + th * kappa[6]
+
+                thSTRAINyy[0] = STRAIN[1] + th * kappa[1]
+                thSTRAINyy[1] = STRAIN[1] + th * kappa[4]
+                thSTRAINyy[2] = STRAIN[1] + th * kappa[7]
+
+                thSTRAINxy[0] = STRAIN[2] + th * kappa[2]
+                thSTRAINxy[1] = STRAIN[2] + th * kappa[5]
+                thSTRAINxy[2] = STRAIN[2] + th * kappa[8]
+
+
+                layer_STRAINxx.append(thSTRAINxx)
+                layer_STRAINyy.append(thSTRAINyy)
+                layer_STRAINxy.append(thSTRAINxy)
+
+                thSTRAIN = np.array([[thSTRAINxx[i, j]], [thSTRAINyy[i, j]], [thSTRAINxy[i, j]]])
+                thstress = np.dot(Qprime[3 * ply:3 * ply + 3, :], thSTRAIN)
+
+            # ?
+            STRAINxx.append(layer_STRAINxx[chosen_layer])
+            STRAINyy.append(layer_STRAINyy[chosen_layer])
+            STRAINxy.append(layer_STRAINxy[chosen_layer])
+
+            theta = angles[chosen_layer]
 
             Tr = np.array([[m.cos(theta)**2,               m.sin(theta)**2,         2*m.sin(theta)*m.cos(theta)],
                            [m.sin(theta)**2,               m.cos(theta)**2,         -2*m.sin(theta)*m.cos(theta)],
                            [-m.sin(theta)*m.cos(theta),   m.sin(theta)*m.cos(theta), (m.cos(theta)**2)-m.sin(theta)**2]])
 
+            # Checking the one that has the biggest yield function
+
+            #get the strain of that layer
+
+        # Tangent_Stiffness from Q from file
+
 
             #Finding the new tangent matrix
 
-    #the file Returns also the sigma state to compute
-    #the internal forces
-    deltaU.append(deltaU)
-    epsxx.append(STRAINxx)
-    epsyy.append(STRAINyy)
-    epsxy.append(STRAINxy)
+            #the file Returns also the sigma state to compute
+            #the internal forces
+        deltaU.append(deltaU_step)
+        epsxx.append(STRAINxx)
+        epsyy.append(STRAINyy)
+        epsxy.append(STRAINxy)
 
     return 0
 
