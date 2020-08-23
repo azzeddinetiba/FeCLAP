@@ -62,8 +62,8 @@
 
 [![Product Name Screen Shot][product-screenshot]]()
 
-This is a small solver for the finite element analysis of laminar composite plates with a rectangular geometries.
-This solver support **static, modal, transient and non linear analysis** using the perfectly plastic model.
+This is a personal project small solver for the **F**inite **e**lement analysis of **C**omposite **L**aminate **P**lates = **_FeCLAP_** for rectangular geometries.
+This solver supports **static, modal, transient and non linear analysis** using a perfectly elasto-plastic model.
 
 
 <!-- GETTING STARTED -->
