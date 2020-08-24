@@ -1,24 +1,22 @@
 # -*- coding: utf-8 -*-
 # -*-coding:Latin-1 -*
 
-import os
-import numpy as np
-import math as m
-import os
-from Assembly import *
+
+from src_code import *
 import matplotlib.pyplot as plt
 import time
 import matplotlib.animation as animation
 import matplotlib as mpl
-
-mpl.rcParams['animation.ffmpeg_path'] = 'C:\\ffmpeg\\bin\\ffmpeg.exe'
-import cv2
-import pylab
-import scipy
 from mpl_toolkits.mplot3d import Axes3D
 
+mpl.rcParams['animation.ffmpeg_path'] = 'C:\\ffmpeg\\bin\\ffmpeg.exe'
+
+#import cv2
+#import pylab
+#import scipy
+
 print(
-    'ENSAM CASABLANCA \nENSAM Sciences et Technologies\n\nA code for the linear static and modal analysis of laminate composite plates using the Kirchoff-Love theory of thin plates and the lmainate composites theory\nThe supported geometry is a rectangular plate with or without one hole\n\nTIBA Azzeddine  -  2020\n')
+    '\nA code for the static (linear and perfectly plastic) modal and transient analysis of laminate composite plates using the Kirchoff-Love theory of thin plates and the lmainate composites theory\nThe supported geometry is a rectangular plate with or without one hole\n\nTIBA Azzeddine  -  2020\n')
 
 
 """ Part Allowing the user to input the geometry and materials
