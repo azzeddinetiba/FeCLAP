@@ -95,6 +95,16 @@ pip install cython
 pip install eigency
 ```
 
+* distmesh
+```sh
+pip install distmesh
+```
+
+* cv2
+```sh
+pip install opencv-python
+```
+
 ### Installation
  
 * Clone the FeCLAP
