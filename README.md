@@ -10,7 +10,7 @@
 <!--
 
 -->
-[![Contributors][contributors-shield]][contributors-url]
+[![Code Size][codesize-shield]][codesize-url]
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
 [![LinkedIn][linkedin-shield]][linkedin-url]
@@ -62,7 +62,7 @@
 
 [![Product Name Screen Shot][product-screenshot]]()
 
-This is a personal project small solver for the **F**inite **e**lement analysis of **C**omposite **L**aminate **P**lates = **_FeCLAP_** for rectangular geometries.
+This is a personal project small solver for the **F**inite **e**lement analysis of **C**omposite **LA**minate **P**lates = **_FeCLAP_** for rectangular geometries.
 This solver supports **static, modal, transient and non linear analysis** using a perfectly elasto-plastic model.
 
 
@@ -98,11 +98,6 @@ pip install eigency
 * distmesh
 ```sh
 pip install distmesh
-```
-
-* cv2
-```sh
-pip install opencv-python
 ```
 
 ### Installation
@@ -167,11 +162,11 @@ Project Link: [FeCLAP Github Link](https://github.com/azzeddinetiba/FeCLAP)
 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-[contributors-shield]: https://img.shields.io/github/contributors/othneildrew/Best-README-Template.svg?style=flat-square
-[contributors-url]: https://github.com/azzeddinetiba/FeCLAP/graphs/contributors
-[stars-shield]: https://img.shields.io/github/stars/othneildrew/Best-README-Template.svg?style=flat-square
+[codesize-shield]:  https://img.shields.io/github/languages/code-size/azzeddinetiba/FeCLAP
+[codesize-url]: https://github.com/azzeddinetiba/FeCLAP/
+[stars-shield]: https://img.shields.io/github/stars/azzeddinetiba/FeCLAP.svg?style=flat-square
 [stars-url]: https://github.com/azzeddinetiba/FeCLAP/stargazers
-[issues-shield]: https://img.shields.io/github/issues/othneildrew/Best-README-Template.svg?style=flat-square
+[issues-shield]: https://img.shields.io/github/issues/azzeddinetiba/FeCLAP.svg?style=flat-square
 [issues-url]: https://github.com/azzeddinetiba/FeCLAP/issues
 [license-shield]: https://img.shields.io/github/license/othneildrew/Best-README-Template.svg?style=flat-square
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=flat-square&logo=linkedin&colorB=555
