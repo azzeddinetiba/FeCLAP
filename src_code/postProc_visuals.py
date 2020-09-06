@@ -5,6 +5,9 @@ import matplotlib.pyplot as plt
 import os
 import math as m
 from matplotlib.animation import FuncAnimation
+import matplotlib.animation as animation
+import matplotlib as mpl
+from mpl_toolkits.mplot3d import Axes3D
 
 script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 results_dir = os.path.join(script_dir, 'Results/')
@@ -39,9 +42,7 @@ def show_deformation(p,t,u, v, w, thetax, thetay):
             plt.colorbar()
             plt.title(titledef)
             fig6.savefig(results_dir + titledef + ' .png')
-            #img = cv2.imread(titledef + ' .png')
-            #cv2.imshow(titledef, img)
-            #cv2.waitKey(0)
+
             plt.show()
             print('press any key to continue')
 
@@ -58,7 +59,6 @@ def show_deformation(p,t,u, v, w, thetax, thetay):
                     exx = np.around(exx, decimals=10)
                     plt.tricontourf(p[t[i, :], 0], p[t[i, :], 1], exx, levels, cmap="jet")
                     i+=1
-                    #plt.tricontourf(p[:, 0], p[:, 1], t, thSTRAINxx, 500, cmap="jet")
             elif component == 2:
                 levels = np.linspace(np.min(thSTRAINyy),np.max(thSTRAINyy),100)
                 i=0
@@ -67,7 +67,6 @@ def show_deformation(p,t,u, v, w, thetax, thetay):
                     eyy = np.around(eyy, decimals=10)
                     plt.tricontourf(p[t[i, :], 0], p[t[i, :], 1], eyy, levels, cmap="jet")
                     i+=1
-                    #plt.tricontourf(p[:, 0], p[:, 1], t, thSTRAINyy, 500, cmap="jet")
             else:
                 levels = np.linspace(np.min(thSTRAINxy),np.max(thSTRAINxy),100)
                 i=0
@@ -76,14 +75,11 @@ def show_deformation(p,t,u, v, w, thetax, thetay):
                     exy = np.around(exy, decimals=10)
                     plt.tricontourf(p[t[i, :], 0], p[t[i, :], 1], exy, levels, cmap="jet")
                     i+=1
-                    #plt.tricontourf(p[:, 0], p[:, 1], t, thSTRAINxy, 500, cmap="jet")
 
             plt.colorbar()
             plt.title(titledef)
             fig7.savefig(results_dir + titledef + ' .png')
-            #img = cv2.imread(titledef + ' .png')
-            #cv2.imshow(titledef, img)
-            #cv2.waitKey(0)
+
             plt.show()
             print('press any key to continue')
 
@@ -115,9 +111,7 @@ def show_stress(p,t,u, v, w, thetax, thetay, pos, Qprime, thickness):
             plt.colorbar()
             plt.title(titledef)
             fig8.savefig(results_dir + titledef + ' .png')
-            #img = cv2.imread(titledef + ' .png')
-            #cv2.imshow(titledef, img)
-            #cv2.waitKey(0)
+
             plt.show()
             print('press any key to continue')
 
@@ -134,7 +128,6 @@ def show_stress(p,t,u, v, w, thetax, thetay, pos, Qprime, thickness):
                     exx = np.around(exx, decimals=10)
                     plt.tricontourf(p[t[i, :], 0], p[t[i, :], 1], exx, levels, cmap="jet")
                     i+=1
-                    #plt.tricontourf(p[:, 0], p[:, 1], t, thSTRAINxx, 500, cmap="jet")
             elif component == 2:
                 levels = np.linspace(np.min(syy),np.max(syy),100)
                 i=0
@@ -143,7 +136,6 @@ def show_stress(p,t,u, v, w, thetax, thetay, pos, Qprime, thickness):
                     eyy = np.around(eyy, decimals=10)
                     plt.tricontourf(p[t[i, :], 0], p[t[i, :], 1], eyy, levels, cmap="jet")
                     i+=1
-                    #plt.tricontourf(p[:, 0], p[:, 1], t, thSTRAINyy, 500, cmap="jet")
             else:
                 levels = np.linspace(np.min(sxy),np.max(sxy),100)
                 i=0
@@ -152,15 +144,12 @@ def show_stress(p,t,u, v, w, thetax, thetay, pos, Qprime, thickness):
                     exy = np.around(exy, decimals=10)
                     plt.tricontourf(p[t[i, :], 0], p[t[i, :], 1], exy, levels, cmap="jet")
                     i+=1
-                    #plt.tricontourf(p[:, 0], p[:, 1], t, thSTRAINxy, 500, cmap="jet")
 
 
             plt.colorbar()
             plt.title(titledef)
             fig9.savefig(results_dir + titledef + ' .png')
-            #img = cv2.imread(titledef + ' .png')
-            #cv2.imshow(titledef, img)
-            #cv2.waitKey(0)
+
             plt.show()
             print('press any key to continue')
 
@@ -204,9 +193,7 @@ def show_displacement_thickness(p,u, v, thetax, thetay, pos, thickness, N):
         plt.legend(loc='best')
         plt.title(titledef)
         fig10.savefig(results_dir + titledef + ' .png')
-        #img = cv2.imread(titledef + ' .png')
-        #cv2.imshow(titledef, img)
-        #cv2.waitKey(0)
+
         plt.show()
         print('press any key to continue')
 
@@ -265,9 +252,7 @@ def show_strain_thickness(p,t,u, v, w, thetax, thetay, pos, thickness, N):
         plt.legend(loc='best')
         plt.title(titledef)
         fig11.savefig(results_dir + titledef + ' .png')
-        #img = cv2.imread(titledef + ' .png')
-        #cv2.imshow(titledef, img)
-        #cv2.waitKey(0)
+
         plt.show()
         print('press any key to continue')
 
@@ -386,9 +371,7 @@ def show_stress_thickness(p,t,u, v, w, thetax, thetay, pos, Qprime, thickness, N
         plt.legend(loc='best')
         plt.title(titledef)
         fig11.savefig(results_dir + titledef + ' .png')
-        #img = cv2.imread(titledef + ' .png')
-        #cv2.imshow(titledef, img)
-        #cv2.waitKey(0)
+
         plt.show()
         print('press any key to continue')
 
@@ -423,9 +406,7 @@ def show_deformation_LT(p,t,u, v, w, thetax, thetay,pos,thickness, angles):
             plt.colorbar()
             plt.title(titledef)
             fig12.savefig(results_dir + titledef + ' .png')
-            #img = cv2.imread(titledef + ' .png')
-            #cv2.imshow(titledef, img)
-            #cv2.waitKey(0)
+
             plt.show()
             print('press any key to continue')
 
@@ -442,7 +423,6 @@ def show_deformation_LT(p,t,u, v, w, thetax, thetay,pos,thickness, angles):
                     exx = np.around(exx, decimals=10)
                     plt.tricontourf(p[t[i, :], 0], p[t[i, :], 1], exx, levels, cmap="jet")
                     i+=1
-                    #plt.tricontourf(p[:, 0], p[:, 1], t, thSTRAINxx, 500, cmap="jet")
             elif component == 2:
                 levels = np.linspace(np.min(strain_T),np.max(strain_T),100)
                 i=0
@@ -451,7 +431,6 @@ def show_deformation_LT(p,t,u, v, w, thetax, thetay,pos,thickness, angles):
                     eyy = np.around(eyy, decimals=10)
                     plt.tricontourf(p[t[i, :], 0], p[t[i, :], 1], eyy, levels, cmap="jet")
                     i+=1
-                    #plt.tricontourf(p[:, 0], p[:, 1], t, thSTRAINyy, 500, cmap="jet")
             else:
                 levels = np.linspace(np.min(strain_LT),np.max(strain_LT),100)
                 i=0
@@ -460,14 +439,11 @@ def show_deformation_LT(p,t,u, v, w, thetax, thetay,pos,thickness, angles):
                     exy = np.around(exy, decimals=10)
                     plt.tricontourf(p[t[i, :], 0], p[t[i, :], 1], exy, levels, cmap="jet")
                     i+=1
-                    #plt.tricontourf(p[:, 0], p[:, 1], t, thSTRAINxy, 500, cmap="jet")
 
             plt.colorbar()
             plt.title(titledef)
             fig13.savefig(results_dir + titledef + ' .png')
-            #img = cv2.imread(titledef + ' .png')
-            #cv2.imshow(titledef, img)
-            #cv2.waitKey(0)
+
             plt.show()
             print('press any key to continue')
 
@@ -499,9 +475,7 @@ def show_stress_LT(p,t,u, v, w, thetax, thetay, pos, Qprime, thickness, angles):
             plt.colorbar()
             plt.title(titledef)
             fig14.savefig(results_dir + titledef + ' .png')
-            #img = cv2.imread(titledef + ' .png')
-            #cv2.imshow(titledef, img)
-            #cv2.waitKey(0)
+
             plt.show()
             print('press any key to continue')
 
@@ -517,7 +491,6 @@ def show_stress_LT(p,t,u, v, w, thetax, thetay, pos, Qprime, thickness, angles):
                     exx = np.around(exx, decimals=10)
                     plt.tricontourf(p[t[i, :], 0], p[t[i, :], 1], exx, levels, cmap="jet")
                     i+=1
-                    #plt.tricontourf(p[:, 0], p[:, 1], t, thSTRAINxx, 500, cmap="jet")
             elif component == 2:
                 levels = np.linspace(np.min(syy),np.max(syy),100)
                 i=0
@@ -526,7 +499,6 @@ def show_stress_LT(p,t,u, v, w, thetax, thetay, pos, Qprime, thickness, angles):
                     eyy = np.around(eyy, decimals=10)
                     plt.tricontourf(p[t[i, :], 0], p[t[i, :], 1], eyy, levels, cmap="jet")
                     i+=1
-                    #plt.tricontourf(p[:, 0], p[:, 1], t, thSTRAINyy, 500, cmap="jet")
             else:
                 levels = np.linspace(np.min(sxy),np.max(sxy),100)
                 i=0
@@ -535,15 +507,12 @@ def show_stress_LT(p,t,u, v, w, thetax, thetay, pos, Qprime, thickness, angles):
                     exy = np.around(exy, decimals=10)
                     plt.tricontourf(p[t[i, :], 0], p[t[i, :], 1], exy, levels, cmap="jet")
                     i+=1
-                    #plt.tricontourf(p[:, 0], p[:, 1], t, thSTRAINxy, 500, cmap="jet")
 
 
             plt.colorbar()
             plt.title(titledef)
             fig15.savefig(results_dir + titledef + ' .png')
-            #img = cv2.imread(titledef + ' .png')
-            #cv2.imshow(titledef, img)
-            #cv2.waitKey(0)
+
             plt.show()
             print('press any key to continue')
 
@@ -576,9 +545,7 @@ def show_Hoffman_stress(p,t,u,v,w,thetax,thetay,pos,Qprime,thickness, angles):
             plt.colorbar()
             plt.title(titledef)
             fig16.savefig(results_dir + titledef + ' .png')
-            #img = cv2.imread(titledef + ' .png')
-            #cv2.imshow(titledef, img)
-            #cv2.waitKey(0)
+
             plt.show()
             print('press any key to continue')
 
@@ -596,9 +563,7 @@ def show_Hoffman_stress(p,t,u,v,w,thetax,thetay,pos,Qprime,thickness, angles):
             plt.colorbar()
             plt.title(titledef)
             fig17.savefig(results_dir + titledef + ' .png')
-            #img = cv2.imread(titledef + ' .png')
-            #cv2.imshow(titledef, img)
-            #cv2.waitKey(0)
+
             plt.show()
             print('press any key to continue')
 
@@ -635,20 +600,19 @@ def animate_mode(frq,modes,mode_number,modal_indexes,mesh_size,p,t):
         ax.cla()
         ax.set_zlim3d(0, np.max(y))
         ax.set_axis_off()
-        plt.title('Animation du mode ' + str(mode_number) + ' de frequence ' + '%.2f' % freq1 + ' Hz')
+        plt.title('Mode ' + str(mode_number) + ' Animation, Frequency ' + '%.2f' % freq1 + ' Hz')
         running_anim = ax.plot_trisurf(p[:,0], p[:,1], t,y[:,i1], cmap="jet", antialiased=True)
 
         return running_anim
 
     ani = FuncAnimation(fig, run_anim, frames=num, interval=500, repeat=True, blit=False)
-    #plt.show()
 
     return ani
 
 
-def animate_transient(SOL, p, t, delta_T):
+def animate_transient(SOL, p, t, delta_T, n_iter):
 
-    num=500
+    num=int(n_iter)
 
     fig = plt.figure(figsize=(10.2, 6.8), dpi=100)
     ax = fig.gca(projection='3d')
@@ -666,6 +630,249 @@ def animate_transient(SOL, p, t, delta_T):
         return running_anim
 
     ani = FuncAnimation(fig, run_anim, frames=num, interval=500, repeat=False, blit=False)
-    #plt.show()
 
     return ani
+
+
+def transient_postProc(transient, U, p, t):
+
+    delta_T = transient['time_step']
+
+    tf = transient['final_instant']
+
+    n_iter = tf / delta_T
+
+    script_dir = os.path.dirname(__file__)
+    results_dir = os.path.join(script_dir, 'Results/')
+    if not os.path.isdir(results_dir):
+        os.makedirs(results_dir)
+
+    one_D_two_D = 3
+
+    while one_D_two_D != 0:
+
+        one_D_two_D = int(input('Plot for a point 1 or animate the plate 2, Exit 0 '))
+
+        if one_D_two_D == 1:
+
+            XY = np.zeros((1, 2))
+            print('Point to display : [x y] ')
+            for j in np.arange(0, 2):
+                XY[0, j] = float(input())
+            pointdisp = -1
+            distdisp = 10000
+            ii = 0
+            while ii < p.shape[0]:
+                if m.sqrt(((p[ii, 0] - XY[0, 0]) ** 2) + ((p[ii, 1] - XY[0, 1]) ** 2)) <= distdisp:
+                    distdisp = m.sqrt(((p[ii, 0] - XY[0, 0]) ** 2) + ((p[ii, 1] - XY[0, 1]) ** 2))
+                    pointdisp = ii
+                ii += 1
+
+            dof = int(input('Degree of freedom : 1/2/3/4/5'))
+
+            fig6 = plt.figure()
+            time_domain = np.linspace(0, tf, int(n_iter))
+            if transient['scheme'] == 1:
+                plt.plot(time_domain, U[6 * (pointdisp + 1) - 7 + dof, :])
+            else:
+                plt.plot(time_domain, U[6 * (pointdisp + 1) - 7 + dof, :])
+            plt.grid()
+            plt.xlabel('Time [s]')
+            plt.ylabel('Displacement [m]')
+            plt.title('Transient analysis')
+            plt.savefig('Transient analysis' + '.png')
+
+        elif one_D_two_D == 2:
+
+            trans_anim = animate_transient(U, p, t, delta_T, n_iter)
+            Writer = animation.writers['ffmpeg']
+            writer = Writer(fps=15, metadata=dict(artist='Me'), bitrate=1800)
+            trans_anim.save(results_dir+'transient.mp4', writer=writer)
+
+
+def General_Post_proc(U, p, t, material_param):
+
+
+    thickness = material_param['thickness']
+    angles = material_param ['angles']
+    Qprime = material_param ['Q_prime']
+    pos = material_param['angles']
+    N = len(thickness)
+
+    u = U[0::6]
+    v = U[1::6]
+    w = U[2::6]
+    thetay = -U[3::6]
+    thetax = U[4::6]
+
+    fig = plt.figure()
+    ax = fig.gca(projection='3d')
+    plt.title('Transversal Displacement w (Oz) ')
+    ax.plot_trisurf(p[:, 0], p[:, 1], t, w, linewidth=0.2, antialiased=True, cmap='jet')
+    fig.savefig(results_dir + 'Transversal Displacement w (Oz) .png')
+    plt.show()
+    print('press any key to continue')
+
+    print()
+
+    fig2 = plt.figure()
+    plt.gca().set_aspect('equal')
+    plt.tricontourf(p[:, 0], p[:, 1], t, u, 500, cmap="jet")
+    plt.colorbar()
+    plt.title('Displacement u (Ox) ')
+    fig2.savefig(results_dir + 'Displacement u (Ox) .png')
+    plt.show()
+    print('press any key to continue')
+
+    fig3 = plt.figure()
+    plt.gca().set_aspect('equal')
+    plt.tricontourf(p[:, 0], p[:, 1], t, v, 500, cmap="jet")
+    plt.colorbar()
+    plt.title('Displacement v (Oy) ')
+    fig3.savefig(results_dir + 'Displacement v (Oy) .png')
+    plt.show()
+    print('press any key to continue')
+
+    fig4 = plt.figure()
+    plt.gca().set_aspect('equal')
+    plt.tricontourf(p[:, 0], p[:, 1], t, thetax, 500, cmap="jet")
+    plt.colorbar()
+    plt.title('Rotation on (Ox) ')
+
+    fig4.savefig(results_dir + 'Rotation on (Ox) .png')
+    plt.show()
+    print('press any key to continue')
+
+    fig5 = plt.figure()
+    plt.gca().set_aspect('equal')
+    plt.tricontourf(p[:, 0], p[:, 1], t, thetay, 500, cmap="jet")
+    plt.colorbar()
+    plt.title('Rotation on (Oy)')
+    fig5.savefig(results_dir + 'Rotation on (Oy) .png')
+    plt.show()
+    print('press any key to continue')
+
+    show_deformation(p, t, u, v, w, thetax, thetay)
+
+    show_stress(p, t, u, v, w, thetax, thetay, pos, Qprime, thickness)
+
+    show_displacement_thickness(p, u, v, thetax, thetay, pos, thickness, N)
+
+    show_strain_thickness(p, t, u, v, w, thetax, thetay, pos, thickness, N)
+
+    show_stress_thickness(p, t, u, v, w, thetax, thetay, pos, Qprime, thickness, N)
+
+    show_deformation_LT(p, t, u, v, w, thetax, thetay, pos, thickness, angles)
+
+    show_stress_LT(p, t, u, v, w, thetax, thetay, pos, Qprime, thickness, angles)
+
+    show_Hoffman_stress(p, t, u, v, w, thetax, thetay, pos, Qprime, thickness, angles)
+
+    print()
+
+
+def Plastic_Post_proc(U, p, t, material_param, Fb, sxx, syy, sxy, saved_residual, epxx, epyy, epxy, saved_deltaU):
+
+
+    chosen_step = int(input('Post Process at the end of Increment number : ?  '))
+
+    st = 0
+    resul = np.zeros((Fb.shape[0], 1))
+    resul = resul.T
+    resul = resul[0]
+    while st < chosen_step:
+        resul += saved_deltaU[st]
+        st += 1
+
+    u = resul[0::6]
+    v = resul[1::6]
+    w = resul[2::6]
+    thetay = -resul[3::6]
+    thetax = resul[4::6]
+
+    fig = plt.figure()
+    ax = fig.gca(projection='3d')
+    plt.title('Transversal Displacement w (Oz) ')
+    ax.plot_trisurf(p[:, 0], p[:, 1], t, w, linewidth=0.2, antialiased=True, cmap='jet')
+    fig.savefig(results_dir + 'Transversal Displacement w (Oz) .png')
+    plt.show()
+    print('press any key to continue')
+
+    print()
+
+    fig2 = plt.figure()
+    plt.gca().set_aspect('equal')
+    plt.tricontourf(p[:, 0], p[:, 1], t, u, 500, cmap="jet")
+    plt.colorbar()
+    plt.title('Displacement u (Ox) ')
+    fig2.savefig(results_dir + 'Displacement u (Ox) .png')
+    plt.show()
+    print('press any key to continue')
+
+    fig3 = plt.figure()
+    plt.gca().set_aspect('equal')
+    plt.tricontourf(p[:, 0], p[:, 1], t, v, 500, cmap="jet")
+    plt.colorbar()
+    plt.title('Displacement v (Oy) ')
+    fig3.savefig(results_dir + 'Displacement v (Oy) .png')
+    plt.show()
+    print('press any key to continue')
+
+    fig4 = plt.figure()
+    plt.gca().set_aspect('equal')
+    plt.tricontourf(p[:, 0], p[:, 1], t, thetax, 500, cmap="jet")
+    plt.colorbar()
+    plt.title('Rotation on (Ox) ')
+
+    fig4.savefig(results_dir + 'Rotation on (Ox) .png')
+    plt.show()
+    print('press any key to continue')
+
+    fig5 = plt.figure()
+    plt.gca().set_aspect('equal')
+    plt.tricontourf(p[:, 0], p[:, 1], t, thetay, 500, cmap="jet")
+    plt.colorbar()
+    plt.title('Rotation on (Oy)')
+    fig5.savefig(results_dir + 'Rotation on (Oy) .png')
+    plt.show()
+    print('press any key to continue')
+
+
+
+    yestr = int(input('Stress ? Yes 1 / No 0 '))
+    component = 1
+    if yestr == 1:
+        while component !=0 :
+            component = int(input('Sxx 1 / Syy 2 / Sxy 3 / Exit 0? '))
+            if component != 0:
+                lay  = int(input('Layer number ? '))
+                chosen_step = int(input('At the end of Increment number : ?  '))
+                if component == 1:
+                    titledef = 'Stress Sxx (Ox)'
+                elif component == 2:
+                    titledef = 'Stress Syy (Oy)'
+                else:
+                    titledef = 'Stress xy (Oxy)'
+
+
+                fig9 = plt.figure()
+                plt.gca().set_aspect('equal')
+
+                if component == 1:
+                    sxx_used = sxx[chosen_step]
+                    sxx_used = sxx_used[1,:,lay-1]
+                    plt.tripcolor(p[:, 0], p[:, 1], t, facecolors=sxx_used, edgecolors='k')
+                elif component == 2:
+                    syy_used = syy[chosen_step]
+                    syy_used = syy_used[1,:,lay-1]
+                    plt.tripcolor(p[:, 0], p[:, 1], t, facecolors=syy_used, edgecolors='k')
+                else:
+                    sxy_used = sxy[chosen_step]
+                    sxy_used = sxy_used[1,:,lay-1]
+                    plt.tripcolor(p[:, 0], p[:, 1], t, facecolors=sxy_used, edgecolors='k')
+                plt.colorbar()
+                plt.title(titledef)
+                fig9.savefig(results_dir + titledef + ' .png')
+                plt.show()
+                print('press any key to continue')
+

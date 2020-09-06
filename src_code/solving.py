@@ -3,880 +3,35 @@
 from boundary_conditions import *
 from Assembly import *
 from scipy.linalg import eig
+from postProc_calc import *
+from inputting import *
+import os
+import NonLinearModule
+import core
 
-def FEM(f,g,h,NX1,NY1,NX2,NY2,NX3,NY3,NX4,NY4,MY1,MXY1,MX2,MXY2,MY3,MXY3,MX4,MXY4,boundaryconditions,ENFRCDS,X,T,b,Ngauss,Klaw,box,pointload,NODALLOAD,pho,thickness,analysis_type,transient):
+def FEM(total_loading,X,T,b,Ngauss,box,analysis_type,transient,material_param, *args):
 
-    #U = np.zeros((1,X.shape[0]))
 
-    ind=0
-    while ind<4:
-        i=0
-        while i<b.shape[1]:
-            if b[ind,i]==0:
-                if ind==0:
-                 b1=b[ind,np.arange(0,i)]
-                elif ind==1:
-                 b2 = b[ind, np.arange(0, i)]
-                elif ind==2:
-                 b3 = b[ind, np.arange(0, i)]
-                elif ind==3:
-                 b4 = b[ind, np.arange(0, i)]
-                break
-            elif b[ind,i]!=0 and i==b.shape[1]-1:
-                if ind==0:
-                 b1=b[ind,np.arange(0,i+1)]
-                elif ind==1:
-                 b2 = b[ind, np.arange(0, i+1)]
-                elif ind==2:
-                 b3 = b[ind, np.arange(0, i+1)]
-                elif ind==3:
-                 b4 = b[ind, np.arange(0, i+1)]
-                break
-            i+=1
-        ind+=1
+    Klaw = material_param['constitutive_law']
+    pho = material_param['pho']
+    thickness = material_param['thickness']
+
+    surface_nodal_load = total_loading['surf_node']
+    surface_load = surface_nodal_load['surf']
 
     Xgauss, Wgauss = Quadrature(1, Ngauss)
     gp= Gauss3n(Ngauss)
     gp = gp[0]
 
-    K, M, F = Assembly2D(X, T, f, g, h, Wgauss, gp, Ngauss, Klaw, pho,thickness,analysis_type)
+    K, M, F = Assembly2D(X,T,surface_load,Wgauss,gp,Ngauss,Klaw,pho,thickness,analysis_type)
 
-    ii=0
-    while ii< b1.size:
-     min = ii
-     kk=ii+1
-     while kk< b1.size:
-      if X[b1[kk]-1, 1] < X[b1[min]-1, 1]:
-        min = kk
 
-      kk+=1
-     rempl = b1[min]
-     b1[min] = b1[ii]
-     b1[ii] = rempl
-     ii+=1
-
-    ii = 0
-    while ii < b2.size:
-         min = ii
-         kk = ii + 1
-         while kk < b2.size:
-             if X[b2[kk]-1, 0] < X[b2[min]-1, 0]:
-                 min = kk
-
-             kk += 1
-         rempl = b2[min]
-         b2[min] = b2[ii]
-         b2[ii] = rempl
-         ii += 1
-
-    ii = 0
-    while ii < b3.size:
-         min = ii
-         kk = ii + 1
-         while kk < b3.size:
-             if X[b3[kk]-1, 1] < X[b3[min]-1, 1]:
-                 min = kk
-
-             kk += 1
-         rempl = b3[min]
-         b3[min] = b3[ii]
-         b3[ii] = rempl
-         ii += 1
-
-
-    ii = 0
-    while ii < b4.size:
-     min = ii
-     kk = ii + 1
-     while kk < b4.size:
-      if X[b4[kk]-1, 0] < X[b4[min]-1, 0]:
-         min = kk
-      kk += 1
-
-     rempl = b4[min]
-     b4[min] = b4[ii]
-     b4[ii] = rempl
-     ii += 1
-
-     ENFRCDS1 = np.array([ENFRCDS[:, np.arange(0,5)]])
-     ENFRCDS2 = np.array([ENFRCDS[:, np.arange(5,10)]])
-     ENFRCDS1 = ENFRCDS1[0]
-     ENFRCDS2 = ENFRCDS2[0]
-     x1 = box[0,0]
-     y1 = box[0,1]
-     x2 = box[1,0]
-     y2 = box[1,1]
-
-    border1 = np.zeros((1, 6*b1.size))
-    ii=0
-    while ii<b1.size:
-        border1[0,np.arange(6 * ii , 6 * ii+6)]=np.arange(6 * b1[ii] - 5, 6 * b1[ii]+1)
-        ii+=1
-    border1=border1.astype(int)
-    border1 = border1[0]
-
-    border2 = np.zeros((1, 6 * b2.size))
-    ii = 0
-    while ii < b2.size:
-        border2[0,np.arange(6 * ii , 6 * ii+6)]=np.arange(6 * b2[ii] - 5, 6 * b2[ii]+1)
-        ii += 1
-    border2 = border2.astype(int)
-    border2 = border2[0]
-
-    border3 = np.zeros((1, 6 * b3.size))
-    ii = 0
-    while ii < b3.size:
-        border3[0,np.arange(6 * ii, 6 * ii + 6)] = np.arange(6 * b3[ii] - 5, 6 * b3[ii]+1)
-        ii += 1
-    border3 = border3.astype(int)
-    border3 = border3[0]
-
-    border4 = np.zeros((1, 6 * b4.size))
-    ii = 0
-    while ii < b4.size:
-     border4[0,np.arange(6 * ii, 6 * ii + 6)] = np.arange(6 * b4[ii] - 5, 6 * b4[ii]+1)
-     ii += 1
-    border4 = border4.astype(int)
-    border4 = border4[0]
-
-    border_size = max(border1.shape[0], border2.shape[0], border3.shape[0], border4.shape[0])
-    everyborder = np.zeros((4, border_size))
-    everyborder[0, :] = np.concatenate((border1, np.zeros((1, border_size - border1.shape[0]))), axis=None)
-    everyborder[1, :] = np.concatenate((border2, np.zeros((1, border_size - border2.shape[0]))), axis=None)
-    everyborder[2, :] = np.concatenate((border3, np.zeros((1, border_size - border3.shape[0]))), axis=None)
-    everyborder[3, :] = np.concatenate((border4, np.zeros((1, border_size - border4.shape[0]))), axis=None)
-    everyborder = everyborder.astype(int)
-
-
-
-    if boundaryconditions[0] == 1:
-      F[border1[np.arange(0,border1.size,6)]-1] += BCAssembly(X, T, b1, NX1, 2, x1)
-      F[border1[np.arange(1,border1.size,6)]-1] += BCAssembly(X, T, b1, NY1, 2, x1)
-    elif boundaryconditions[0] == 2:
-      K[border1-1,:]=0
-      K[:, border1-1]=0
-      M[border1-1,:]=0
-      M[:, border1-1]=0
-      F[border1-1] = 0
-      K[np.ix_(border1-1, border1-1)] = np.eye(border1.size)
-      M[np.ix_(border1-1, border1-1)] = np.eye(border1.size)
-
-
-    elif boundaryconditions[0] == 3:
-      F[border1[np.arange(3,border1.size,6)]-1,:] += BCMAssembly(X, T, b1, MY1, 2, x1, 1)
-      F[border1[np.arange(4,border1.size,6)]-1,:] += BCMAssembly(X, T, b1, MXY1, 2, x1, 2)
-    elif boundaryconditions[0] == 4:
-      srch=np.nonzero(ENFRCDS2[0,:])
-      for c in srch[0]:
-       K[border1[np.arange(c,border1.size,6)]-1,:]=0
-       M[border1[np.arange(c,border1.size,6)]-1,:]=0
-       F[border1[np.arange(c,border1.size,6)]-1]=ENFRCDS1[0, c]
-       #K[np.ix_(border1[np.arange(c,border1.size,6)]-1, border1[np.arange(c,border1.size,6)]-1)]=np.eye(border1[np.arange(c,border1.size,6)].size)
-       K[np.ix_(border1[np.arange(c, border1.size, 6)] - 1, border1[np.arange(c, border1.size, 6)] - 1)] -= np.diag(np.diag(K[np.ix_(border1[np.arange(c,border1.size,6)]-1, border1[np.arange(c,border1.size,6)]-1)])) - np.eye(border1[np.arange(c,border1.size,6)].size)
-       M[np.ix_(border1[np.arange(c, border1.size, 6)] - 1, border1[np.arange(c, border1.size, 6)] - 1)] -= np.diag(np.diag(M[np.ix_(border1[np.arange(c,border1.size,6)]-1, border1[np.arange(c,border1.size,6)]-1)])) - np.eye(border1[np.arange(c,border1.size,6)].size)
-
-    elif boundaryconditions[0] == 5:
-        K[border1[::6] - 1, :] = 0
-        K[:, border1[::6] - 1] = 0
-        M[border1[::6] - 1, :] = 0
-        M[:, border1[::6] - 1] = 0
-        F[border1[::6] - 1] = 0
-        K[np.ix_(border1[::6] - 1, border1[::6] - 1)] = np.eye(border1[::6].size)
-        M[np.ix_(border1[::6] - 1, border1[::6] - 1)] = np.eye(border1[::6].size)
-
-        K[border1[1::6] - 1, :] = 0
-        K[:, border1[1::6] - 1] = 0
-        M[border1[1::6] - 1, :] = 0
-        M[:, border1[1::6] - 1] = 0
-        F[border1[1::6] - 1] = 0
-        K[np.ix_(border1[1::6] - 1, border1[1::6] - 1)] = np.eye(border1[1::6].size)
-        M[np.ix_(border1[1::6] - 1, border1[1::6] - 1)] = np.eye(border1[1::6].size)
-
-        K[border1[2::6] - 1, :] = 0
-        K[:, border1[2::6] - 1] = 0
-        M[border1[2::6] - 1, :] = 0
-        M[:, border1[2::6] - 1] = 0
-        F[border1[2::6] - 1] = 0
-        K[np.ix_(border1[2::6] - 1, border1[2::6] - 1)] = np.eye(border1[2::6].size)
-        M[np.ix_(border1[2::6] - 1, border1[2::6] - 1)] = np.eye(border1[2::6].size)
-
-        K[border1[3::6] - 1, :] = 0
-        K[:, border1[3::6] - 1] = 0
-        M[border1[3::6] - 1, :] = 0
-        M[:, border1[3::6] - 1] = 0
-        F[border1[3::6] - 1] = 0
-        K[np.ix_(border1[3::6] - 1, border1[3::6] - 1)] = np.eye(border1[3::6].size)
-        M[np.ix_(border1[3::6] - 1, border1[3::6] - 1)] = np.eye(border1[3::6].size)
-
-    elif boundaryconditions[0] == 6:
-        K[border1[1::6] - 1, :] = 0
-        K[:, border1[1::6] - 1] = 0
-        M[border1[1::6] - 1, :] = 0
-        M[:, border1[1::6] - 1] = 0
-        F[border1[1::6] - 1] = 0
-        K[np.ix_(border1[1::6] - 1, border1[1::6] - 1)] = np.eye(border1[1::6].size)
-        M[np.ix_(border1[1::6] - 1, border1[1::6] - 1)] = np.eye(border1[1::6].size)
-
-        K[border1[2::6] - 1, :] = 0
-        K[:, border1[2::6] - 1] = 0
-        M[border1[2::6] - 1, :] = 0
-        M[:, border1[2::6] - 1] = 0
-        F[border1[2::6] - 1] = 0
-        K[np.ix_(border1[2::6] - 1, border1[2::6] - 1)] = np.eye(border1[2::6].size)
-        M[np.ix_(border1[2::6] - 1, border1[2::6] - 1)] = np.eye(border1[2::6].size)
-
-        K[border1[3::6] - 1, :] = 0
-        K[:, border1[3::6] - 1] = 0
-        M[border1[3::6] - 1, :] = 0
-        M[:, border1[3::6] - 1] = 0
-        F[border1[3::6] - 1] = 0
-        K[np.ix_(border1[3::6] - 1, border1[3::6] - 1)] = np.eye(border1[3::6].size)
-        M[np.ix_(border1[3::6] - 1, border1[3::6] - 1)] = np.eye(border1[3::6].size)
-
-    elif boundaryconditions[0] == 7:
-        K[border1[1::6] - 1, :] = 0
-        K[:, border1[1::6] - 1] = 0
-        M[border1[1::6] - 1, :] = 0
-        M[:, border1[1::6] - 1] = 0
-        F[border1[1::6] - 1] = 0
-        K[np.ix_(border1[1::6] - 1, border1[1::6] - 1)] = np.eye(border1[1::6].size)
-        M[np.ix_(border1[1::6] - 1, border1[1::6] - 1)] = np.eye(border1[1::6].size)
-
-        K[border1[::6] - 1, :] = 0
-        K[:, border1[::6] - 1] = 0
-        M[border1[::6] - 1, :] = 0
-        M[:, border1[::6] - 1] = 0
-        F[border1[::6] - 1] = 0
-        K[np.ix_(border1[::6] - 1, border1[::6] - 1)] = np.eye(border1[::6].size)
-        M[np.ix_(border1[::6] - 1, border1[::6] - 1)] = np.eye(border1[::6].size)
-
-        K[border1[4::6] - 1, :] = 0
-        K[:, border1[4::6] - 1] = 0
-        M[border1[4::6] - 1, :] = 0
-        M[:, border1[4::6] - 1] = 0
-        F[border1[4::6] - 1] = 0
-        K[np.ix_(border1[4::6] - 1, border1[4::6] - 1)] = np.eye(border1[4::6].size)
-        M[np.ix_(border1[4::6] - 1, border1[4::6] - 1)] = np.eye(border1[4::6].size)
-
-    elif boundaryconditions[0] == 8:
-        K[border1[1::6] - 1, :] = 0
-        K[:, border1[1::6] - 1] = 0
-        M[border1[1::6] - 1, :] = 0
-        M[:, border1[1::6] - 1] = 0
-        F[border1[1::6] - 1] = 0
-        K[np.ix_(border1[1::6] - 1, border1[1::6] - 1)] = np.eye(border1[1::6].size)
-        M[np.ix_(border1[1::6] - 1, border1[1::6] - 1)] = np.eye(border1[1::6].size)
-
-        K[border1[::6] - 1, :] = 0
-        K[:, border1[::6] - 1] = 0
-        M[border1[::6] - 1, :] = 0
-        M[:, border1[::6] - 1] = 0
-        F[border1[::6] - 1] = 0
-        K[np.ix_(border1[::6] - 1, border1[::6] - 1)] = np.eye(border1[::6].size)
-        M[np.ix_(border1[::6] - 1, border1[::6] - 1)] = np.eye(border1[::6].size)
-
-        K[border1[2::6] - 1, :] = 0
-        K[:, border1[2::6] - 1] = 0
-        M[border1[2::6] - 1, :] = 0
-        M[:, border1[2::6] - 1] = 0
-        F[border1[2::6] - 1] = 0
-        K[np.ix_(border1[2::6] - 1, border1[2::6] - 1)] = np.eye(border1[2::6].size)
-        M[np.ix_(border1[2::6] - 1, border1[2::6] - 1)] = np.eye(border1[2::6].size)
-
-        K[border1[4::6] - 1, :] = 0
-        K[:, border1[4::6] - 1] = 0
-        M[border1[4::6] - 1, :] = 0
-        M[:, border1[4::6] - 1] = 0
-        F[border1[4::6] - 1] = 0
-        K[np.ix_(border1[4::6] - 1, border1[4::6] - 1)] = np.eye(border1[4::6].size)
-        M[np.ix_(border1[4::6] - 1, border1[4::6] - 1)] = np.eye(border1[4::6].size)
-
-
-
-
-
-    if boundaryconditions[1] == 1:
-      F[border2[np.arange(0,border2.size,6)]-1,:] += BCAssembly(X, T, b2, NX2, 1, y1)
-      F[border2[np.arange(1,border2.size,6)]-1,:] += BCAssembly(X, T, b2, NY2, 1, y1)
-      if boundaryconditions[0] == 2:
-       K[border2[np.arange(0,6)]-1,:]=0
-       K[:, border2[np.arange(0,6)]-1]=0
-       M[border2[np.arange(0,6)]-1,:]=0
-       M[:, border2[np.arange(0,6)]-1]=0
-       F[border2[np.arange(0,6)]-1] = 0
-       K[np.ix_(border2[np.arange(0,6)]-1, border2[np.arange(0,6)]-1)] = np.eye(6)
-       M[np.ix_(border2[np.arange(0,6)]-1, border2[np.arange(0,6)]-1)] = np.eye(6)
-    elif boundaryconditions[1] == 2:
-      K[border2-1,:] = 0
-      K[:, border2-1] = 0
-      M[border2-1,:] = 0
-      M[:, border2-1] = 0
-      F[border2-1] = 0
-      K[np.ix_(border2-1, border2-1)] = np.eye(border2.size)
-      M[np.ix_(border2-1, border2-1)] = np.eye(border2.size)
-
-
-    elif boundaryconditions[1] == 3:
-     F[border2[np.arange(4,border2.size,6)]-1]+= BCMAssembly(X, T, b2, MX2, 1, y1, 2)
-     F[border2[np.arange(3,border2.size,6)]-1]+= BCMAssembly(X, T, b2, MXY2, 1, y1, 1)
-     if boundaryconditions[0] == 2:
-       K[border1-1,:]=0
-       K[:, border1-1]=0
-       F[border1-1] = 0
-       K[np.ix_(border1-1, border1-1)] = np.eye(border1.size)
-       M[border1-1,:]=0
-       M[:, border1-1]=0
-       M[np.ix_(border1-1, border1-1)] = np.eye(border1.size)
-    elif boundaryconditions[1] == 4:
-      srch=np.nonzero(ENFRCDS2[1,:])
-      for c in srch[0]:
-       K[border2[np.arange(c,border2.size,6)]-1,:]=0
-       F[border2[np.arange(c,border2.size,6)]-1,:]=ENFRCDS1[1, c]
-       #K[np.ix_(border2[np.arange(c,border2.size,6)]-1, border2[np.arange(c,border2.size,6)]-1)]=np.eye(border2[np.arange(c,border2.size,6)].size)
-       K[np.ix_(border2[np.arange(c, border2.size, 6)] - 1, border2[np.arange(c, border2.size, 6)] - 1)] -= np.diag(np.diag(K[np.ix_(border2[np.arange(c, border2.size, 6)] - 1, border2[np.arange(c, border2.size, 6)] - 1)]))  - np.eye(border2[np.arange(c,border2.size,6)].size)
-       M[border2[np.arange(c,border2.size,6)]-1,:]=0
-       M[np.ix_(border2[np.arange(c, border2.size, 6)] - 1, border2[np.arange(c, border2.size, 6)] - 1)] -= np.diag(np.diag(K[np.ix_(border2[np.arange(c, border2.size, 6)] - 1, border2[np.arange(c, border2.size, 6)] - 1)]))  - np.eye(border2[np.arange(c,border2.size,6)].size)
-
-
-    elif boundaryconditions[1] == 5:
-        K[border2[::6] - 1, :] = 0
-        K[:, border2[::6] - 1] = 0
-        M[border2[::6] - 1, :] = 0
-        M[:, border2[::6] - 1] = 0
-        F[border2[::6] - 1] = 0
-        K[np.ix_(border2[::6] - 1, border2[::6] - 1)] = np.eye(border2[::6].size)
-        M[np.ix_(border2[::6] - 1, border2[::6] - 1)] = np.eye(border2[::6].size)
-
-        K[border2[1::6] - 1, :] = 0
-        K[:, border2[1::6] - 1] = 0
-        M[border2[1::6] - 1, :] = 0
-        M[:, border2[1::6] - 1] = 0
-        F[border2[1::6] - 1] = 0
-        K[np.ix_(border2[1::6] - 1, border2[1::6] - 1)] = np.eye(border2[1::6].size)
-        M[np.ix_(border2[1::6] - 1, border2[1::6] - 1)] = np.eye(border2[1::6].size)
-
-        K[border2[2::6] - 1, :] = 0
-        K[:, border2[2::6] - 1] = 0
-        M[border2[2::6] - 1, :] = 0
-        M[:, border2[2::6] - 1] = 0
-        F[border2[2::6] - 1] = 0
-        K[np.ix_(border2[2::6] - 1, border2[2::6] - 1)] = np.eye(border2[2::6].size)
-        M[np.ix_(border2[2::6] - 1, border2[2::6] - 1)] = np.eye(border2[2::6].size)
-
-        K[border2[4::6] - 1, :] = 0
-        K[:, border2[4::6] - 1] = 0
-        M[border2[4::6] - 1, :] = 0
-        M[:, border2[4::6] - 1] = 0
-        F[border2[4::6] - 1] = 0
-        K[np.ix_(border2[4::6] - 1, border2[4::6] - 1)] = np.eye(border2[4::6].size)
-        M[np.ix_(border2[4::6] - 1, border2[4::6] - 1)] = np.eye(border2[4::6].size)
-
-    elif boundaryconditions[1] == 6:
-        K[border2[::6] - 1, :] = 0
-        K[:, border2[::6] - 1] = 0
-        M[border2[::6] - 1, :] = 0
-        M[:, border2[::6] - 1] = 0
-        F[border2[::6] - 1] = 0
-        K[np.ix_(border2[::6] - 1, border2[::6] - 1)] = np.eye(border2[::6].size)
-        M[np.ix_(border2[::6] - 1, border2[::6] - 1)] = np.eye(border2[::6].size)
-
-        K[border2[2::6] - 1, :] = 0
-        K[:, border2[2::6] - 1] = 0
-        M[border2[2::6] - 1, :] = 0
-        M[:, border2[2::6] - 1] = 0
-        F[border2[2::6] - 1] = 0
-        K[np.ix_(border2[2::6] - 1, border2[2::6] - 1)] = np.eye(border2[2::6].size)
-        M[np.ix_(border2[2::6] - 1, border2[2::6] - 1)] = np.eye(border2[2::6].size)
-
-        K[border2[4::6] - 1, :] = 0
-        K[:, border2[4::6] - 1] = 0
-        M[border2[4::6] - 1, :] = 0
-        M[:, border2[4::6] - 1] = 0
-        F[border2[4::6] - 1] = 0
-        K[np.ix_(border2[4::6] - 1, border2[4::6] - 1)] = np.eye(border2[4::6].size)
-        M[np.ix_(border2[4::6] - 1, border2[4::6] - 1)] = np.eye(border2[4::6].size)
-
-    elif boundaryconditions[1] == 7:
-        K[border2[1::6] - 1, :] = 0
-        K[:, border2[1::6] - 1] = 0
-        M[border2[1::6] - 1, :] = 0
-        M[:, border2[1::6] - 1] = 0
-        F[border2[1::6] - 1] = 0
-        K[np.ix_(border2[1::6] - 1, border2[1::6] - 1)] = np.eye(border2[1::6].size)
-        M[np.ix_(border2[1::6] - 1, border2[1::6] - 1)] = np.eye(border2[1::6].size)
-
-        K[border2[::6] - 1, :] = 0
-        K[:, border2[::6] - 1] = 0
-        M[border2[::6] - 1, :] = 0
-        M[:, border2[::6] - 1] = 0
-        F[border2[::6] - 1] = 0
-        K[np.ix_(border2[::6] - 1, border2[::6] - 1)] = np.eye(border2[::6].size)
-        M[np.ix_(border2[::6] - 1, border2[::6] - 1)] = np.eye(border2[::6].size)
-
-        K[border2[3::6] - 1, :] = 0
-        K[:, border2[3::6] - 1] = 0
-        M[border2[3::6] - 1, :] = 0
-        M[:, border2[3::6] - 1] = 0
-        F[border2[3::6] - 1] = 0
-        K[np.ix_(border2[3::6] - 1, border2[3::6] - 1)] = np.eye(border2[3::6].size)
-        M[np.ix_(border2[3::6] - 1, border2[3::6] - 1)] = np.eye(border2[3::6].size)
-
-    elif boundaryconditions[1] == 8:
-        K[border2[1::6] - 1, :] = 0
-        K[:, border2[1::6] - 1] = 0
-        M[border2[1::6] - 1, :] = 0
-        M[:, border2[1::6] - 1] = 0
-        F[border2[1::6] - 1] = 0
-        K[np.ix_(border2[1::6] - 1, border2[1::6] - 1)] = np.eye(border2[1::6].size)
-        M[np.ix_(border2[1::6] - 1, border2[1::6] - 1)] = np.eye(border2[1::6].size)
-
-        K[border2[::6] - 1, :] = 0
-        K[:, border2[::6] - 1] = 0
-        M[border2[::6] - 1, :] = 0
-        M[:, border2[::6] - 1] = 0
-        F[border2[::6] - 1] = 0
-        K[np.ix_(border2[::6] - 1, border2[::6] - 1)] = np.eye(border2[::6].size)
-        M[np.ix_(border2[::6] - 1, border2[::6] - 1)] = np.eye(border2[::6].size)
-
-        K[border2[2::6] - 1, :] = 0
-        K[:, border2[2::6] - 1] = 0
-        M[border2[2::6] - 1, :] = 0
-        M[:, border2[2::6] - 1] = 0
-        F[border2[2::6] - 1] = 0
-        K[np.ix_(border2[2::6] - 1, border2[2::6] - 1)] = np.eye(border2[2::6].size)
-        M[np.ix_(border2[2::6] - 1, border2[2::6] - 1)] = np.eye(border2[2::6].size)
-
-        K[border2[3::6] - 1, :] = 0
-        K[:, border2[3::6] - 1] = 0
-        M[border2[3::6] - 1, :] = 0
-        M[:, border2[3::6] - 1] = 0
-        F[border2[3::6] - 1] = 0
-        K[np.ix_(border2[3::6] - 1, border2[3::6] - 1)] = np.eye(border2[3::6].size)
-        M[np.ix_(border2[3::6] - 1, border2[3::6] - 1)] = np.eye(border2[3::6].size)
-
-
-
-
-
-    if boundaryconditions[2] == 1:
-      F[border3[np.arange(0,border3.size,6)]-1] += BCAssembly(X, T, b3, NX3, 2, x2)
-      F[border3[np.arange(1,border3.size,6)]-1] += BCAssembly(X, T, b3, NY3, 2, x2)
-      if boundaryconditions[1] == 2:
-       K[border3[np.arange(0,6)]-1,:] = 0
-       K[:, border3[np.arange(0,6)]-1] = 0
-       F[border3[np.arange(0,6)]-1] = 0
-       K[np.ix_(border3[np.arange(0,6)]-1, border3[np.arange(0,6)]-1)] = np.eye(6)
-    elif boundaryconditions[2] == 2:
-      K[border3-1,:]=0
-      M[border3-1,:]=0
-      K[:, border3-1]=0
-      M[:, border3-1]=0
-      F[border3-1] = 0
-      K[np.ix_(border3-1, border3-1)] = np.eye(border3.size)
-      M[np.ix_(border3-1, border3-1)] = np.eye(border3.size)
-
-
-    elif boundaryconditions[2] == 3:
-      F[border3[np.arange(3,border3.size,6)]-1] += BCMAssembly(X, T, b3, MY3, 2, x2, 1)
-      F[border3[np.arange(4,border3.size,6)]-1] += BCMAssembly(X, T, b3, MXY3, 2, x2, 2)
-      if boundaryconditions[1] == 2:
-       K[border2-1,:]=0
-       K[:, border2-1]=0
-       F[border2-1] = 0
-       K[np.ix_(border2-1, border2-1)] = np.eye(border2.size)
-    elif boundaryconditions[2] == 4:
-      srch=np.nonzero(ENFRCDS2[2,:])
-      for c in srch[0]:
-       K[border3[np.arange(c,border3.size,6)]-1,:]=0
-       F[border3[np.arange(c,border3.size,6)]-1]=ENFRCDS1[2, c]
-       #K[np.ix_(border3[np.arange(c,border3.size,6)]-1, border3[np.arange(c,border3.size,6)]-1)]=np.eye(border3[np.arange(c,border3.size,6)].size)
-       K[np.ix_(border3[np.arange(c,border3.size,6)]-1, border3[np.arange(c,border3.size,6)]-1)] -= np.diag(np.diag(K[np.ix_(border3[np.arange(c,border3.size,6)]-1, border3[np.arange(c,border3.size,6)]-1)])) - np.eye(border3[np.arange(c,border3.size,6)].size)
-
-    elif boundaryconditions[2] == 5:
-        K[border3[::6] - 1, :] = 0
-        K[:, border3[::6] - 1] = 0
-        M[border3[::6] - 1, :] = 0
-        M[:, border3[::6] - 1] = 0
-        F[border3[::6] - 1] = 0
-        K[np.ix_(border3[::6] - 1, border3[::6] - 1)] = np.eye(border3[::6].size)
-        M[np.ix_(border3[::6] - 1, border3[::6] - 1)] = np.eye(border3[::6].size)
-
-        K[border3[1::6] - 1, :] = 0
-        K[:, border3[1::6] - 1] = 0
-        M[border3[1::6] - 1, :] = 0
-        M[:, border3[1::6] - 1] = 0
-        F[border3[1::6] - 1] = 0
-        K[np.ix_(border3[1::6] - 1, border3[1::6] - 1)] = np.eye(border3[1::6].size)
-        M[np.ix_(border3[1::6] - 1, border3[1::6] - 1)] = np.eye(border3[1::6].size)
-
-        K[border3[2::6] - 1, :] = 0
-        K[:, border3[2::6] - 1] = 0
-        M[border3[2::6] - 1, :] = 0
-        M[:, border3[2::6] - 1] = 0
-        F[border3[2::6] - 1] = 0
-        K[np.ix_(border3[2::6] - 1, border3[2::6] - 1)] = np.eye(border3[2::6].size)
-        M[np.ix_(border3[2::6] - 1, border3[2::6] - 1)] = np.eye(border3[2::6].size)
-
-        K[border3[3::6] - 1, :] = 0
-        K[:, border3[3::6] - 1] = 0
-        M[border3[3::6] - 1, :] = 0
-        M[:, border3[3::6] - 1] = 0
-        F[border3[3::6] - 1] = 0
-        K[np.ix_(border3[3::6] - 1, border3[3::6] - 1)] = np.eye(border3[3::6].size)
-        M[np.ix_(border3[3::6] - 1, border3[3::6] - 1)] = np.eye(border3[3::6].size)
-
-
-    elif boundaryconditions[2] == 6:
-        K[border3[1::6] - 1, :] = 0
-        K[:, border3[1::6] - 1] = 0
-        M[border3[1::6] - 1, :] = 0
-        M[:, border3[1::6] - 1] = 0
-        F[border3[1::6] - 1] = 0
-        K[np.ix_(border3[1::6] - 1, border3[1::6] - 1)] = np.eye(border3[1::6].size)
-        M[np.ix_(border3[1::6] - 1, border3[1::6] - 1)] = np.eye(border3[1::6].size)
-
-        K[border3[2::6] - 1, :] = 0
-        K[:, border3[2::6] - 1] = 0
-        M[border3[2::6] - 1, :] = 0
-        M[:, border3[2::6] - 1] = 0
-        F[border3[2::6] - 1] = 0
-        K[np.ix_(border3[2::6] - 1, border3[2::6] - 1)] = np.eye(border3[2::6].size)
-        M[np.ix_(border3[2::6] - 1, border3[2::6] - 1)] = np.eye(border3[2::6].size)
-
-        K[border3[3::6] - 1, :] = 0
-        K[:, border3[3::6] - 1] = 0
-        M[border3[3::6] - 1, :] = 0
-        M[:, border3[3::6] - 1] = 0
-        F[border3[3::6] - 1] = 0
-        K[np.ix_(border3[3::6] - 1, border3[3::6] - 1)] = np.eye(border3[3::6].size)
-        M[np.ix_(border3[3::6] - 1, border3[3::6] - 1)] = np.eye(border3[3::6].size)
-
-    elif boundaryconditions[2] == 7:
-        K[border3[1::6] - 1, :] = 0
-        K[:, border3[1::6] - 1] = 0
-        M[border3[1::6] - 1, :] = 0
-        M[:, border3[1::6] - 1] = 0
-        F[border3[1::6] - 1] = 0
-        K[np.ix_(border3[1::6] - 1, border3[1::6] - 1)] = np.eye(border3[1::6].size)
-        M[np.ix_(border3[1::6] - 1, border3[1::6] - 1)] = np.eye(border3[1::6].size)
-
-        K[border3[::6] - 1, :] = 0
-        K[:, border3[::6] - 1] = 0
-        M[border3[::6] - 1, :] = 0
-        M[:, border3[::6] - 1] = 0
-        F[border3[::6] - 1] = 0
-        K[np.ix_(border3[::6] - 1, border3[::6] - 1)] = np.eye(border3[::6].size)
-        M[np.ix_(border3[::6] - 1, border3[::6] - 1)] = np.eye(border3[::6].size)
-
-        K[border3[4::6] - 1, :] = 0
-        K[:, border3[4::6] - 1] = 0
-        M[border3[4::6] - 1, :] = 0
-        M[:, border3[4::6] - 1] = 0
-        F[border3[4::6] - 1] = 0
-        K[np.ix_(border3[4::6] - 1, border3[4::6] - 1)] = np.eye(border3[4::6].size)
-        M[np.ix_(border3[4::6] - 1, border3[4::6] - 1)] = np.eye(border3[4::6].size)
-
-    elif boundaryconditions[2] == 8:
-        K[border3[1::6] - 1, :] = 0
-        K[:, border3[1::6] - 1] = 0
-        M[border3[1::6] - 1, :] = 0
-        M[:, border3[1::6] - 1] = 0
-        F[border3[1::6] - 1] = 0
-        K[np.ix_(border3[1::6] - 1, border3[1::6] - 1)] = np.eye(border3[1::6].size)
-        M[np.ix_(border3[1::6] - 1, border3[1::6] - 1)] = np.eye(border3[1::6].size)
-
-        K[border3[::6] - 1, :] = 0
-        K[:, border3[::6] - 1] = 0
-        M[border3[::6] - 1, :] = 0
-        M[:, border3[::6] - 1] = 0
-        F[border3[::6] - 1] = 0
-        K[np.ix_(border3[::6] - 1, border3[::6] - 1)] = np.eye(border3[::6].size)
-        M[np.ix_(border3[::6] - 1, border3[::6] - 1)] = np.eye(border3[::6].size)
-
-        K[border3[2::6] - 1, :] = 0
-        K[:, border3[2::6] - 1] = 0
-        M[border3[2::6] - 1, :] = 0
-        M[:, border3[2::6] - 1] = 0
-        F[border3[2::6] - 1] = 0
-        K[np.ix_(border3[2::6] - 1, border3[2::6] - 1)] = np.eye(border3[2::6].size)
-        M[np.ix_(border3[2::6] - 1, border3[2::6] - 1)] = np.eye(border3[2::6].size)
-
-        K[border3[4::6] - 1, :] = 0
-        K[:, border3[4::6] - 1] = 0
-        M[border3[4::6] - 1, :] = 0
-        M[:, border3[4::6] - 1] = 0
-        F[border3[4::6] - 1] = 0
-        K[np.ix_(border3[4::6] - 1, border3[4::6] - 1)] = np.eye(border3[4::6].size)
-        M[np.ix_(border3[4::6] - 1, border3[4::6] - 1)] = np.eye(border3[4::6].size)
-
-
-
-
-
-    if boundaryconditions[3] == 1:
-      F[border4[np.arange(0,border4.size,6)]-1] += BCAssembly(X, T, b4, NX4, 1, y2)
-      F[border4[np.arange(1,border4.size,6)]-1] += BCAssembly(X, T, b4, NY4, 1, y2)
-      if boundaryconditions[2] == 2:
-       sz4=border4.size
-       K[border4[np.arange(sz4-1,sz4-7,-1)]-1,:]=0
-       K[:, border4[np.arange(sz4-1,sz4-7,-1)]-1]=0
-       F[border4[np.arange(sz4-1,sz4-7,-1)]-1] = 0
-       K[np.ix_(border4[np.arange(sz4-1,sz4-7,-1)]-1, border4[np.arange(sz4-1,sz4-7,-1)]-1)] = np.eye(6)
-      if boundaryconditions[0] == 2:
-       K[border1[np.arange(0,6)] - 1, :] = 0
-       K[:, border1[np.arange(0,6)]-1] = 0
-       F[border1[np.arange(0,6)]-1] = 0
-       K[np.ix_(border1[np.arange(0,6)] - 1, border1[np.arange(0,6)] - 1)] = np.eye(6)
-    elif boundaryconditions[3] == 2:
-      K[border4-1,:]=0
-      M[border4-1,:]=0
-      M[:, border4-1]=0
-      K[:, border4-1]=0
-      F[border4-1] = 0
-      K[np.ix_(border4-1, border4-1)] = np.eye(border4.size)
-      M[np.ix_(border4-1, border4-1)] = np.eye(border4.size)
-
-
-    elif boundaryconditions[3] == 3:
-      F[border4[np.arange(4,border4.size,6)]-1]+= BCMAssembly(X, T, b4, MX4, 1, y2, 2)
-      F[border4[np.arange(3,border4.size,6)]-1]+= BCMAssembly(X, T, b4, MXY4, 1, y2, 1)
-      if boundaryconditions[2] == 2:
-       K[border3[np.arange(0,6)]-1,:]=0
-       K[:, border3[np.arange(0,6)]-1]=0
-       F[border3[np.arange(0,6)]-1] = 0
-       K[np.ix_(border3[np.arange(0,6)]-1, border3[np.arange(0,6)]-1)] = np.eye(6)
-      if boundaryconditions[0] == 2:
-       K[border1[np.arange(0,6)]-1,:]=0
-       K[:, border1[np.arange(0,6)]-1]=0
-       F[border1[np.arange(0,6)]-1] = 0
-       K[np.ix_(border1[np.arange(0,6)]-1, border1[np.arange(0,6)]-1)] = np.eye(6)
-    elif boundaryconditions[3] == 4:
-      srch=np.nonzero(ENFRCDS2[3,:])
-      for c in srch[0]:
-       K[border4[np.arange(c,border4.size,6)]-1,:]=0
-       F[border4[np.arange(c,border4.size,6)]-1,:]=ENFRCDS1[3, c]
-       #K[np.ix_(border4[np.arange(c,border4.size,6)]-1, border4[np.arange(c,border4.size,6)]-1)]=np.eye(border4[np.arange(c,border4.size,6)].size)
-       K[np.ix_(border4[np.arange(c, border4.size, 6)] - 1, border4[np.arange(c, border4.size, 6)] - 1)] -= np.diag(np.diag(K[np.ix_(border4[np.arange(c, border4.size, 6)] - 1, border4[np.arange(c, border4.size, 6)] - 1)])) - np.eye(border4[np.arange(c,border4.size,6)].size)
-
-    elif boundaryconditions[3] == 5:
-        K[border4[::6] - 1, :] = 0
-        K[:, border4[::6] - 1] = 0
-        M[border4[::6] - 1, :] = 0
-        M[:, border4[::6] - 1] = 0
-        F[border4[::6] - 1] = 0
-        K[np.ix_(border4[::6] - 1, border4[::6] - 1)] = np.eye(border4[::6].size)
-        M[np.ix_(border4[::6] - 1, border4[::6] - 1)] = np.eye(border4[::6].size)
-
-        K[border4[1::6] - 1, :] = 0
-        K[:, border4[1::6] - 1] = 0
-        M[border4[1::6] - 1, :] = 0
-        M[:, border4[1::6] - 1] = 0
-        F[border4[1::6] - 1] = 0
-        K[np.ix_(border4[1::6] - 1, border4[1::6] - 1)] = np.eye(border4[1::6].size)
-        M[np.ix_(border4[1::6] - 1, border4[1::6] - 1)] = np.eye(border4[1::6].size)
-
-        K[border4[2::6] - 1, :] = 0
-        K[:, border4[2::6] - 1] = 0
-        M[border4[2::6] - 1, :] = 0
-        M[:, border4[2::6] - 1] = 0
-        F[border4[2::6] - 1] = 0
-        K[np.ix_(border4[2::6] - 1, border4[2::6] - 1)] = np.eye(border4[2::6].size)
-        M[np.ix_(border4[2::6] - 1, border4[2::6] - 1)] = np.eye(border4[2::6].size)
-
-        K[border4[4::6] - 1, :] = 0
-        K[:, border4[4::6] - 1] = 0
-        M[border4[4::6] - 1, :] = 0
-        M[:, border4[4::6] - 1] = 0
-        F[border4[4::6] - 1] = 0
-        K[np.ix_(border4[4::6] - 1, border4[4::6] - 1)] = np.eye(border4[4::6].size)
-        M[np.ix_(border4[4::6] - 1, border4[4::6] - 1)] = np.eye(border4[4::6].size)
-
-    elif boundaryconditions[3] == 6:
-        K[border4[::6] - 1, :] = 0
-        K[:, border4[::6] - 1] = 0
-        M[border4[::6] - 1, :] = 0
-        M[:, border4[::6] - 1] = 0
-        F[border4[::6] - 1] = 0
-        K[np.ix_(border4[::6] - 1, border4[::6] - 1)] = np.eye(border4[::6].size)
-        M[np.ix_(border4[::6] - 1, border4[::6] - 1)] = np.eye(border4[::6].size)
-
-        K[border4[2::6] - 1, :] = 0
-        K[:, border4[2::6] - 1] = 0
-        M[border4[2::6] - 1, :] = 0
-        M[:, border4[2::6] - 1] = 0
-        F[border4[2::6] - 1] = 0
-        K[np.ix_(border4[2::6] - 1, border4[2::6] - 1)] = np.eye(border4[2::6].size)
-        M[np.ix_(border4[2::6] - 1, border4[2::6] - 1)] = np.eye(border4[2::6].size)
-
-        K[border4[4::6] - 1, :] = 0
-        K[:, border4[4::6] - 1] = 0
-        M[border4[4::6] - 1, :] = 0
-        M[:, border4[4::6] - 1] = 0
-        F[border4[4::6] - 1] = 0
-        K[np.ix_(border4[4::6] - 1, border4[4::6] - 1)] = np.eye(border4[4::6].size)
-        M[np.ix_(border4[4::6] - 1, border4[4::6] - 1)] = np.eye(border4[4::6].size)
-
-    elif boundaryconditions[3] == 7:
-        K[border4[1::6] - 1, :] = 0
-        K[:, border4[1::6] - 1] = 0
-        M[border4[1::6] - 1, :] = 0
-        M[:, border4[1::6] - 1] = 0
-        F[border4[1::6] - 1] = 0
-        K[np.ix_(border4[1::6] - 1, border4[1::6] - 1)] = np.eye(border4[1::6].size)
-        M[np.ix_(border4[1::6] - 1, border4[1::6] - 1)] = np.eye(border4[1::6].size)
-
-        K[border4[::6] - 1, :] = 0
-        K[:, border4[::6] - 1] = 0
-        M[border4[::6] - 1, :] = 0
-        M[:, border4[::6] - 1] = 0
-        F[border4[::6] - 1] = 0
-        K[np.ix_(border4[::6] - 1, border4[::6] - 1)] = np.eye(border4[::6].size)
-        M[np.ix_(border4[::6] - 1, border4[::6] - 1)] = np.eye(border4[::6].size)
-
-        K[border4[3::6] - 1, :] = 0
-        K[:, border4[3::6] - 1] = 0
-        M[border4[3::6] - 1, :] = 0
-        M[:, border4[3::6] - 1] = 0
-        F[border4[3::6] - 1] = 0
-        K[np.ix_(border4[3::6] - 1, border4[3::6] - 1)] = np.eye(border4[3::6].size)
-        M[np.ix_(border4[3::6] - 1, border4[3::6] - 1)] = np.eye(border4[3::6].size)
-
-    elif boundaryconditions[3] == 8:
-        K[border4[1::6] - 1, :] = 0
-        K[:, border4[1::6] - 1] = 0
-        M[border4[1::6] - 1, :] = 0
-        M[:, border4[1::6] - 1] = 0
-        F[border4[1::6] - 1] = 0
-        K[np.ix_(border4[1::6] - 1, border4[1::6] - 1)] = np.eye(border4[1::6].size)
-        M[np.ix_(border4[1::6] - 1, border4[1::6] - 1)] = np.eye(border4[1::6].size)
-
-        K[border4[::6] - 1, :] = 0
-        K[:, border4[::6] - 1] = 0
-        M[border4[::6] - 1, :] = 0
-        M[:, border4[::6] - 1] = 0
-        F[border4[::6] - 1] = 0
-        K[np.ix_(border4[::6] - 1, border4[::6] - 1)] = np.eye(border4[::6].size)
-        M[np.ix_(border4[::6] - 1, border4[::6] - 1)] = np.eye(border4[::6].size)
-
-        K[border4[2::6] - 1, :] = 0
-        K[:, border4[2::6] - 1] = 0
-        M[border4[2::6] - 1, :] = 0
-        M[:, border4[2::6] - 1] = 0
-        F[border4[2::6] - 1] = 0
-        K[np.ix_(border4[2::6] - 1, border4[2::6] - 1)] = np.eye(border4[2::6].size)
-        M[np.ix_(border4[2::6] - 1, border4[2::6] - 1)] = np.eye(border4[2::6].size)
-
-        K[border4[3::6] - 1, :] = 0
-        K[:, border4[3::6] - 1] = 0
-        M[border4[3::6] - 1, :] = 0
-        M[:, border4[3::6] - 1] = 0
-        F[border4[3::6] - 1] = 0
-        K[np.ix_(border4[3::6] - 1, border4[3::6] - 1)] = np.eye(border4[3::6].size)
-        M[np.ix_(border4[3::6] - 1, border4[3::6] - 1)] = np.eye(border4[3::6].size)
-
-
-
-
-
-
-    K[np.ix_(np.arange(5,K.shape[0],6), np.arange(5,K.shape[0],6))]=np.eye(int(K.shape[0] / 6))
-    M[np.ix_(np.arange(5,M.shape[0],6), np.arange(5,M.shape[0],6))]=np.eye(int(M.shape[0] / 6))
-
-
-    fixed_borders = np.array([])
-    fixed_index = np.where(boundaryconditions == 2)[0]
-    fixed_borders = everyborder[fixed_index]
-    fixed_borders = fixed_borders.flatten()
-    #fixed_borders = fixed_borders[np.nonzero(fixed_borders)]
-
-    fixed_index2 = np.where(boundaryconditions == 5)[0]
-    i=0
-    while i<fixed_index2.shape[0]:
-        fixed_borders_interm = everyborder[fixed_index2[i]]
-        if i%2!=0:
-         fixed_borders_interm_int = np.concatenate((fixed_borders_interm[0::6],fixed_borders_interm[1::6],fixed_borders_interm[2::6],fixed_borders_interm[4::6]))
-        else:
-         fixed_borders_interm_int = np.concatenate((fixed_borders_interm[0::6],fixed_borders_interm[1::6],fixed_borders_interm[2::6],fixed_borders_interm[3::6]))
-
-        fixed_borders = np.concatenate((fixed_borders,fixed_borders_interm_int))
-        i+=1
-
-    fixed_index2 = np.where(boundaryconditions == 6)[0]
-    i=0
-    while i<fixed_index2.shape[0]:
-        fixed_borders_interm = everyborder[fixed_index2[i]]
-        if i%2!=0:
-         fixed_borders_interm_int = np.concatenate((fixed_borders_interm[1::6],fixed_borders_interm[2::6],fixed_borders_interm[4::6]))
-        else:
-         fixed_borders_interm_int = np.concatenate((fixed_borders_interm[0::6],fixed_borders_interm[2::6],fixed_borders_interm[3::6]))
-
-        fixed_borders = np.concatenate((fixed_borders,fixed_borders_interm_int))
-        i+=1
-
-    fixed_index2 = np.where(boundaryconditions == 7)[0]
-    i=0
-    while i<fixed_index2.shape[0]:
-        fixed_borders_interm = everyborder[fixed_index2[i]]
-        if i%2!=0:
-         fixed_borders_interm_int = np.concatenate((fixed_borders_interm[0::6],fixed_borders_interm[1::6],fixed_borders_interm[3::6]))
-        else:
-         fixed_borders_interm_int = np.concatenate((fixed_borders_interm[0::6],fixed_borders_interm[1::6],fixed_borders_interm[4::6]))
-
-        fixed_borders = np.concatenate((fixed_borders,fixed_borders_interm_int))
-        i+=1
-
-    fixed_index2 = np.where(boundaryconditions == 8)[0]
-    i=0
-    while i<fixed_index2.shape[0]:
-        fixed_borders_interm = everyborder[fixed_index2[i]]
-        if i%2!=0:
-         fixed_borders_interm_int = np.concatenate((fixed_borders_interm[0::6],fixed_borders_interm[1::6],fixed_borders_interm[2::6],fixed_borders_interm[3::6]))
-        else:
-         fixed_borders_interm_int = np.concatenate((fixed_borders_interm[0::6],fixed_borders_interm[1::6],fixed_borders_interm[2::6],fixed_borders_interm[4::6]))
-
-        fixed_borders = np.concatenate((fixed_borders,fixed_borders_interm_int))
-        i+=1
-
-    Msize=M.shape[0]
-    fixed_borders = np.concatenate((fixed_borders, np.arange(5,Msize,6)+1))
-    fixed_borders = fixed_borders[np.nonzero(fixed_borders)]
-
-    i=0
-    if not (NODALLOAD.size == 0 ):
-        while i < pointload.shape[0]:
-            while (np.any(np.isin(fixed_borders-1, 6 * (pointload[i]+1) - 6)) and NODALLOAD[i,0]!=0) or (np.any(np.isin(fixed_borders-1, 6 * (pointload[i]+1) - 5)) and NODALLOAD[i,1]!=0) or (np.any(np.isin(fixed_borders-1, 6 * (pointload[i]+1) - 4)) and NODALLOAD[i,2]!=0):
-                XY = np.zeros((1,2))
-                print ('The mesh used can t allow a nodal load this close to the constrained border, please change the location of the load : ')
-                print('Load application point coordinates : [x y] ')
-                for j in np.arange(0, 2):
-                    XY[0,j] = float(input())
-                pointload = -1
-                distload = 10000
-                ii=0
-                while ii<X.shape[0]:
-                    if m.sqrt(((X[ii,0]-XY[0,0])**2)+((X[ii,1]-XY[0,1])**2)) <= distload:
-                        distload = m.sqrt(((X[ii,0]-XY[0,0])**2)+((X[ii,1]-XY[0,1])**2))
-                        pointload[i] = ii
-                    ii += 1
-            F[6 * (pointload[i] + 1) - 6] += NODALLOAD[i, 0]
-            F[6 * (pointload[i] + 1) - 5] += NODALLOAD[i, 1]
-            F[6 * (pointload[i] + 1) - 4] += NODALLOAD[i, 2]
-            i+=1
-
-
+    fixed_borders, K, M, F = applying_BC(total_loading,X,T,b,box,K,F,M)
 
     Mb = np.delete(M, fixed_borders - 1, 0)
     Mb = np.delete(Mb, fixed_borders - 1, 1)
     Kb = np.delete(K, fixed_borders - 1, 0)
     Kb = np.delete(Kb, fixed_borders - 1, 1)
-
-
-    #Ksize=Kb.shape[0]
-    #Msize=Mb.shape[0]
-    #Mb = np.delete(Mb, np.arange(5,Msize,6), 0)
-    #Mb = np.delete(Mb, np.arange(5,Msize,6), 1)
-    #Kb = np.delete(Kb, np.arange(5,Ksize,6), 0)
-    #Kb = np.delete(Kb, np.arange(5,Ksize,6), 1)
 
 
     fixed_borders = np.unique(fixed_borders)
@@ -912,14 +67,19 @@ def FEM(f,g,h,NX1,NY1,NX2,NY2,NX3,NY3,NX4,NY4,MY1,MXY1,MX2,MXY2,MY3,MXY3,MX4,MXY
             return K, F, U
         else:
 
-            U, p_strain = plastic_analysis (K, Fb)
-            return U, p_strain
+            istherePlast = len(args)
+            if istherePlast != 0:
+                plast_param = args[0]
+
+            U, Fb, sxx, syy, sxy, saved_residual, epxx, epyy, epxy, saved_deltaU = \
+                plastic_analysis(X, T, K, Fb, plast_param, material_param, b, box, total_loading, Ngauss)
+            return  U, Fb, sxx, syy, sxy, saved_residual, epxx, epyy, epxy, saved_deltaU
 
 
 
     elif analysis_type[0,0] == 3:
 
-        modes_number = Mb.shape[0]#int(input('Number of modes extracted ? '))
+        modes_number = Mb.shape[0]
         w, modes = eig(Kb,Mb)
 
         modes = modes.real
@@ -1014,9 +174,9 @@ def FEM(f,g,h,NX1,NY1,NX2,NY2,NX3,NY3,NX4,NY4,MY1,MXY1,MX2,MXY2,MY3,MXY3,MX4,MXY
             xtwodots = xtwodots.T[0]
 
 
-            SOL[0:n_dof, i - 1] = x
-            SOL[n_dof:2 * n_dof, i - 1] = xdot
-            SOL[2 * n_dof: 3 * n_dof, i - 1] = xtwodots
+            SOL[0:n_dof, 0] = x
+            SOL[n_dof:2 * n_dof, 0] = xdot
+            SOL[2 * n_dof: 3 * n_dof, 0] = xtwodots
 
             mat= np.linalg.inv((1/(beta*delta_T**2))*M+K)
             inv_M = np.linalg.inv(M)
@@ -1049,12 +209,37 @@ def FEM(f,g,h,NX1,NY1,NX2,NY2,NX3,NY3,NX4,NY4,MY1,MXY1,MX2,MXY2,MY3,MXY3,MX4,MXY
         return K, F, SOL
 
 
-def plastic_analysis(X, T, K, Fb, Nincr, limit, angles, thickness, pos, Q, init_sigma):
+def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, total_loading, Ngauss):
 
-    # ------------      UNDER CONSTRUCTION      ---------------
+    script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    results_dir = os.path.join(script_dir, 'Results/')
+    if not os.path.isdir(results_dir):
+        os.makedirs(results_dir)
+
+    text_file = open(results_dir+'Non_Linear_Results.txt', "w")
+    data_text = 'The yield stresses, displacements, and information on load increments are shown here:'
+
 
     TT=T.shape[0]
+
+    gone_plastic = 0
+
+    Xgauss, Wgauss = Quadrature(1, Ngauss)
+    gp= Gauss3n(Ngauss)
+    gp = gp[0]
+
+    Q = material_param['Q_prime']
+    pos = material_param['position']
+    angles = material_param['angles']
+    thickness = material_param['thickness']
+
     Nplies = len(angles)
+    Nn = 6*X.shape[0]
+    Nincr = plast_param['increments']
+    Niter = plast_param['iterations']
+    limit = plast_param['yield_limit']
+
+
     i=0
     while i<Nplies:
         if pos[i]*(pos[i]+thickness[i])<=0:
@@ -1064,142 +249,338 @@ def plastic_analysis(X, T, K, Fb, Nincr, limit, angles, thickness, pos, Q, init_
 
     #The load is divided on equal incremental loads
     deltaFb = Fb/Nincr
-    residual = deltaFb
-    deltaU = []
-    epsxx = []
-    epsyy = []
-    epsxy = []
-    deltaU_step = np.zeros((len(Fb,1)))
+    Fb = np.zeros((deltaFb.shape[0],1))
+    Fb = Fb.T
+    Fb = Fb[0]
+    saved_residual = []
+    sxx = []
+    syy = []
+    sxy = []
+    epxx = []
+    epyy = []
+    epxy = []
 
-    strain = np.zeros((3*TT, 1))
+    saved_deltaU = []
+
+    U = np.zeros((deltaFb.shape[0],1))
+    U = U.T
+    U = U[0]
+
+    saved_strain_xx = np.zeros((TT, 1))
+    saved_strain_yy = np.zeros((TT, 1))
+    saved_strain_xy = np.zeros((TT, 1))
+
+    saved_stress_xx = np.zeros((3, TT, Nplies))
+    saved_stress_yy = np.zeros((3, TT, Nplies))
+    saved_stress_xy = np.zeros((3, TT, Nplies))
+
+    saved_stress_xx_ev = np.zeros((3, TT, Nplies))
+    saved_stress_yy_ev = np.zeros((3, TT, Nplies))
+    saved_stress_xy_ev = np.zeros((3, TT, Nplies))
+
+    saved_delta_lambda = np.zeros((3,TT, Nplies))
+
+
+    q = np.zeros((Nn, 1))
+    q = applying_Fix_q(total_loading, X, T, b, box, q)
+    q = q.T
+    q = q[0]
+
     i=0
-
     while i<Nincr:
 
-        #residual from internal_forces
-        dU = np.linalg.solve(K, residual)
-        deltaU_step = deltaU_step + dU
 
-        u = deltaU_step[0::6]
-        v = deltaU_step[1::6]
-        w = deltaU_step[2::6]
-        thetax = deltaU_step[4::6]
-        thetay = -deltaU_step[3::6]
+        #if i!=0:
 
-        STRAINxx = []
-        STRAINyy = []
-        STRAINxy = []
-
-        SIGMAXX = []
-        SIGMAYY = []
-        SIGMAXY = []
-
-        STRAIN = np.zeros((3,1))
-
-        thSTRAINxx = np.zeros((3,1))
-        thSTRAINyy = np.zeros((3,1))
-        thSTRAINxy = np.zeros((3,1))
+        #    globalK, Q_data = tangent_stiffness(X, T, material_param, limit, b, box, total_loading, np.zeros((deltaFb.shape[0],0)), saved_stress_xx_ev, saved_stress_yy_ev, saved_stress_xy_ev, saved_delta_lambda, gone_plastic)
 
 
-        k = 0
-        while k<TT:
 
-            strainxx = []
-            strainyy = []
-            strainxy = []
+        deltaU = np.zeros((deltaFb.shape[0],1))
+        deltaU = deltaU.T
+        deltaU = deltaU[0]
 
-            sigmaxx = []
-            sigmayy = []
-            sigmxy = []
+        count=0
+        count2 = 0
 
+        ii=0
+        while ii < Niter:
 
-            xe = X[T[k, :], :]
-            b = np.zeros((1, 3))
-            b[0, 0] = xe[1, 1] - xe[2, 1]
-            b[0, 1] = xe[2, 1] - xe[0, 1]
-            b[0, 2] = xe[0, 1] - xe[1, 1]
+            data_tmp = '\nIncrement : ' + str(i+1) +'\niteration : '+str(ii)
+            data_text += data_tmp
+            print(data_tmp)
 
-            c = np.zeros((1, 3))
-            c[0, 0] = xe[2, 0] - xe[1, 0]
-            c[0, 1] = xe[0, 0] - xe[2, 0]
-            c[0, 2] = xe[1, 0] - xe[0, 0]
+            u = deltaU[0::6]
+            v = deltaU[1::6]
+            w = deltaU[2::6]
+            thetax =  deltaU[4::6]
+            thetay = - deltaU[3::6]
 
-            delta = 0.5 * (b[0, 0] * c[0, 1] - b[0, 1] * c[0, 0])
-            dN1dx = b[0, 0] / (2 * delta)
-            dN1dy = c[0, 0] / (2 * delta)
-            dN2dx = b[0, 1] / (2 * delta)
-            dN2dy = c[0, 1] / (2 * delta)
-            dN3dx = b[0, 2] / (2 * delta)
-            dN3dy = c[0, 2] / (2 * delta)
-
-            STRAIN = np.array(
-                [[dN1dx * u[T[k, 0]] + dN2dx * u[T[k, 1]] + dN3dx * u[T[k, 2]]],
-                 [(dN1dy * v[T[k, 0]] + dN2dy * v[T[k, 1]] + dN3dy * v[T[k, 2]])],
-                 [(dN1dy * u[T[k, 0]] + dN2dy * u[T[k, 1]] + dN3dy * u[T[k, 2]] + dN1dx * v[T[k, 0]] + dN2dx * v[
-                     T[k, 1]] + dN3dx * v[T[k, 2]])]])
-
-            kappa = k_calc(X,T,w,thetax,thetay,k)
-
-            layer_STRAINxx = []
-            layer_STRAINyy = []
-            layer_STRAINxy = []
-
-            layer_SIGMAXX = []
-            layer_SIGMAYY = []
-            layer_SIGMAXY = []
-
-            yieldval = np.zeros((1,Nplies))
-
-            j=0
-
-            while j<Nplies:
-
-                th = pos[j] + thickness[j]/2
-                thSTRAINxx[0] = STRAIN[0] + th * kappa[0]
-                thSTRAINxx[1] = STRAIN[0] + th * kappa[3]
-                thSTRAINxx[2] = STRAIN[0] + th * kappa[6]
-
-                thSTRAINyy[0] = STRAIN[1] + th * kappa[1]
-                thSTRAINyy[1] = STRAIN[1] + th * kappa[4]
-                thSTRAINyy[2] = STRAIN[1] + th * kappa[7]
-
-                thSTRAINxy[0] = STRAIN[2] + th * kappa[2]
-                thSTRAINxy[1] = STRAIN[2] + th * kappa[5]
-                thSTRAINxy[2] = STRAIN[2] + th * kappa[8]
+            strain = strain_calc(X,T,u,v)
 
 
-                layer_STRAINxx.append(thSTRAINxx)
-                layer_STRAINyy.append(thSTRAINyy)
-                layer_STRAINxy.append(thSTRAINxy)
+            if (ii != 0):
 
-                thSTRAIN = np.array([[thSTRAINxx[i, j]], [thSTRAINyy[i, j]], [thSTRAINxy[i, j]]])
-                thstress = np.dot(Qprime[3 * ply:3 * ply + 3, :], thSTRAIN)
+                q = np.zeros((Nn, 1))
 
-            # ?
-            STRAINxx.append(layer_STRAINxx[chosen_layer])
-            STRAINyy.append(layer_STRAINyy[chosen_layer])
-            STRAINxy.append(layer_STRAINxy[chosen_layer])
+                k = 0
+                while k<TT:
 
-            theta = angles[chosen_layer]
-
-            Tr = np.array([[m.cos(theta)**2,               m.sin(theta)**2,         2*m.sin(theta)*m.cos(theta)],
-                           [m.sin(theta)**2,               m.cos(theta)**2,         -2*m.sin(theta)*m.cos(theta)],
-                           [-m.sin(theta)*m.cos(theta),   m.sin(theta)*m.cos(theta), (m.cos(theta)**2)-m.sin(theta)**2]])
-
-            # Checking the one that has the biggest yield function
-
-            #get the strain of that layer
-
-        # Tangent_Stiffness from Q from file
+                    Tie = T[k, :] + 1
+                    Tie1 = np.concatenate((np.arange(6 * Tie[0] - 5, 6 * Tie[0] + 1),
+                                           np.arange(6 * Tie[1] - 5, 6 * Tie[1] + 1),
+                                           np.arange(6 * Tie[2] - 5, 6 * Tie[2] + 1)), 0)
 
 
-            #Finding the new tangent matrix
+                    j=0
+                    while j<Nplies:
 
-            #the file Returns also the sigma state to compute
-            #the internal forces
-        deltaU.append(deltaU_step)
-        epsxx.append(STRAINxx)
-        epsyy.append(STRAINyy)
-        epsxy.append(STRAINxy)
 
-    return 0
+                        thick = 0
+                        while thick < 3:
+
+
+                            theta = angles[j]
+
+                            Tr = np.array([[m.cos(theta) ** 2,              m.sin(theta) ** 2,              2 * m.sin(theta) * m.cos(theta)],
+                                           [m.sin(theta) ** 2,              m.cos(theta) ** 2,              -2 * m.sin(theta) * m.cos(theta)],
+                                           [-m.sin(theta) * m.cos(theta),   m.sin(theta) * m.cos(theta),   (m.cos(theta) ** 2) - m.sin(theta) ** 2]])
+
+                            th = pos[j] + thick * thickness[j]/2
+
+                            kappa = k_calc(X, T, w, thetax, thetay, k)
+
+                            l=0
+
+                            deltaStrain_used = np.zeros((1,3))
+                            deltaStrain_used = deltaStrain_used[0]
+                            while l<3:
+
+                                laySTRAINxx = strain[k] + th * kappa[3*l]
+                                laySTRAINxx = laySTRAINxx[0]
+
+                                laySTRAINyy = strain[k + TT] + th * kappa[3*l + 1]
+                                laySTRAINyy = laySTRAINyy[0]
+
+                                laySTRAINxy = strain[k + 2 * TT] + th * kappa[3*l + 2]
+                                laySTRAINxy = laySTRAINxy[0]
+
+                                deltaStrain_used += (1/3) * np.array([laySTRAINxx, laySTRAINyy, laySTRAINxy])
+
+                                l+=1
+
+
+
+
+
+                            previous_stress = np.array([saved_stress_xx_ev[thick, k, j], saved_stress_yy_ev[thick, k, j], saved_stress_xy_ev[thick, k, j]])
+
+                            Q_used = Q[np.arange(3*j,3*j+3), :]
+
+
+                            rtrnAlg = NonLinearModule.returnAlg(previous_stress, Tr, limit, Q_used, deltaStrain_used)
+
+                            interm = rtrnAlg.reshape((1, 4))
+                            interm = np.array(interm[0])
+
+                            previous_stress = interm[0:3]
+
+                            if (interm[3]>1e-7 and count2 ==0):
+                                data_tmp = '\nPlasticity occurring in the layer '+str(j+1)+', spotted at the element number, '+str(k)
+                                data_text += data_tmp
+                                print(data_tmp)
+                                count2+=1
+
+                            saved_delta_lambda[thick, k,j] = interm[3]
+
+                            saved_strain_xx[k,0] = deltaStrain_used[0]
+                            saved_strain_yy[k,0] = deltaStrain_used[1]
+                            saved_strain_xy[k,0] = deltaStrain_used[2]
+
+
+                            saved_stress_xx[thick, k,j] = previous_stress[0]
+                            saved_stress_yy[thick, k,j] = previous_stress[1]
+                            saved_stress_xy[thick, k,j] = previous_stress[2]
+
+
+
+                            #stress = np.array([[saved_stress_xx[k,j]*thickness[j][0]],[saved_stress_xy[k,j]*thickness[j][0]],[saved_stress_xy[k,j]*thickness[j][0]],\
+                            #                   [saved_stress_xx[k,j]*0.5 * (hi2 ** 2 - hi1 ** 2)[0]],[saved_stress_xy[k,j]*0.5 * (hi2 ** 2 - hi1 ** 2)[0]],[saved_stress_xy[k,j]*0.5 * (hi2 ** 2 - hi1 ** 2)[0]]])
+                            #qe += internal_force_elem(X, T, k, gp, Wgauss, stress)
+
+                            thick+=1
+
+                        j+=1
+
+                    qe = internal_force_elem(X, T, k, gp, Wgauss, saved_stress_xx,saved_stress_yy,saved_stress_xy,thickness,mid_lay,pos)
+                    q[Tie1 - 1, :] += qe
+                    k+=1
+
+
+                q = applying_Fix_q(total_loading, X, T, b, box, q)
+                q = q.T
+                q = q[0]
+                #q = np.dot(globalK, U)
+
+
+            check_yield = saved_delta_lambda[saved_delta_lambda>1e-7]
+            if check_yield.shape[0]!=0:
+                gone_plastic = 1
+
+
+
+            if gone_plastic==1:
+                data_tmp = '\nComputing the new stiffness matrix'
+                data_text += data_tmp
+                print(data_tmp)
+                globalK, Q_data = tangent_stiffness(X, T, material_param, limit, b, box, total_loading, np.zeros((deltaFb.shape[0],0)), saved_stress_xx, saved_stress_yy, saved_stress_xy, saved_delta_lambda, gone_plastic)
+                count+=1
+
+            residual = Fb + deltaFb - q
+            residual = applying_Fix_q(total_loading, X, T, b, box, residual)
+
+            tolerance = np.linalg.norm(residual)/np.linalg.norm(Fb+deltaFb)
+            data_tmp = '\nResidual: '+str(tolerance)+' \n'
+            data_text += data_tmp
+            print(data_tmp)
+
+
+
+            if ( tolerance < 0.001 )  or ( count>1 and tolerance < 0.06 ):
+
+
+                saved_residual.append(residual)
+
+
+                saved_stress_xx_ev = saved_stress_xx
+                saved_stress_yy_ev = saved_stress_yy
+                saved_stress_xy_ev = saved_stress_xy
+
+
+                sxx.append(saved_stress_xx_ev)
+                syy.append(saved_stress_yy_ev)
+                sxy.append(saved_stress_xy_ev)
+
+
+                epxx.append(saved_strain_xx)
+                epyy.append(saved_strain_yy)
+                epxy.append(saved_strain_xy)
+
+                saved_deltaU.append(deltaU)
+
+                break
+
+            else:
+
+                dU = np.linalg.solve(globalK,residual)
+
+                deltaU = deltaU + dU
+
+            ii+=1
+
+
+        U = U + deltaU
+        Fb = Fb + deltaFb
+
+        i+=1
+
+
+
+    n = text_file.write(data_text)
+    text_file.close()
+
+    return U, Fb, sxx, syy, sxy, saved_residual, epxx, epyy, epxy, saved_deltaU
+
+def tangent_stiffness(X,T, material_param, limit, b, box, total_loading, F, saved_stress_xx, saved_stress_yy, saved_stress_xy, saved_delta_lambda, gone_plastic):
+
+
+    Xgauss, Wgauss = Quadrature(1, 3)
+    gp= Gauss3n(3)
+    gp = gp[0]
+
+
+    Q = material_param['Q_prime']
+    pos = material_param['position']
+    angles = material_param['angles']
+    thickness = material_param['thickness']
+
+    globalK = np.zeros((6*X.shape[0],6*X.shape[0]))
+
+    nPlies = thickness.shape[0]
+    nT = T.shape[0]
+
+
+    Q_data = np.zeros((nT,nPlies,3,3))
+
+
+    k=0
+    while k<nT:
+
+        Tie = T[k, :] + 1
+        Tie1 = np.concatenate((np.arange(6 * Tie[0] - 5, 6 * Tie[0] + 1), np.arange(6 * Tie[1] - 5, 6 * Tie[1] + 1),
+                               np.arange(6 * Tie[2] - 5, 6 * Tie[2] + 1)), 0)
+
+        A = np.zeros((3, 3))
+        B = np.zeros((3, 3))
+        D = np.zeros((3, 3))
+
+        j=0
+        while j<nPlies:
+
+            theta = angles[j]
+
+            Tr = np.array([[m.cos(theta) ** 2,              m.sin(theta) ** 2,                       2 * m.sin(theta) * m.cos(theta)],
+                           [m.sin(theta) ** 2,              m.cos(theta) ** 2,                       -2 * m.sin(theta) * m.cos(theta)],
+                           [-m.sin(theta) * m.cos(theta),   m.sin(theta) * m.cos(theta),            (m.cos(theta) ** 2) - m.sin(theta) ** 2]])
+
+            Q_used = Q[np.arange(3 * j, 3 * j + 3), :]
+
+
+            thick=0
+            while thick<3:
+                stress_used = np.array([saved_stress_xx[thick,k,j],saved_stress_yy[thick,k,j],saved_stress_xy[thick,k,j],saved_delta_lambda[thick,k,j]])
+
+
+                new_Q = NonLinearModule.Ktangent(stress_used, Tr, limit, Q_used)
+
+
+
+                if gone_plastic == 1:
+                    Q_data[k,j,:,:] = new_Q
+
+
+
+                if thick!=1:
+                    A = A + (thickness[j][0]/6) * new_Q
+                    B = B + (thickness[j][0]/6) * (pos[j][0] + thick * 0.5 * thickness[j][0]) * new_Q
+                    D = D + (thickness[j][0]/6) * ((pos[j][0] + thick * 0.5 * thickness[j][0])**2) * new_Q
+                else:
+                    A = A + 4 * (thickness[j][0]/6) * new_Q
+                    B = B + 4 * (thickness[j][0]/6) * (pos[j][0] + thick * 0.5 * thickness[j][0]) * new_Q
+                    D = D + 4 * (thickness[j][0]/6) * ((pos[j][0] + thick * 0.5 * thickness[j][0])**2) * new_Q
+
+                thick+=1
+
+            j+=1
+
+
+        K = np.array([[A[0, 0], A[0, 1], A[0, 2], -B[0, 0], -B[0, 1], -B[0, 2]],
+                          [A[1, 0], A[1, 1], A[1, 2], -B[1, 0], -B[1, 1], -B[1, 2]],
+                          [A[2, 0], A[2, 1], A[2, 2], -B[2, 0], -B[2, 1], -B[2, 2]],
+                          [-B[0, 0], -B[0, 1], -B[0, 2], D[0, 0], D[0, 1], D[0, 2]],
+                          [-B[1, 0], -B[1, 1], -B[1, 2], D[1, 0], D[1, 1], D[1, 2]],
+                          [-B[2, 0], -B[2, 1], -B[2, 2], D[2, 0], D[2, 1], D[2, 2]]])
+
+
+
+        elemK = core.ElemMat(X,T,k,gp,Wgauss,K)
+        globalK[np.ix_(Tie1 - 1, Tie1 - 1)] += elemK
+
+        k+=1
+
+
+
+
+    fixed_borders, globalK, M, F = applying_BC(total_loading,X,T,b,box,globalK,F)
+
+    return globalK, Q_data

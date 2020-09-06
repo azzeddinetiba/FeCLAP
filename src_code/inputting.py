@@ -218,7 +218,12 @@ def get_boundaryconditions(analysis_type):
 
     ENFRCDS[:, np.arange(5, 10)] = ENFRCDS[:, [5, 6, 7, 9, 8]]
 
-    return NX1,NY1,NX2,NY2,NX3,NY3,NX4,NY4,MY1,MXY1,MX2,MXY2,MY3,MXY3,MX4,MXY4,boundaryconditions,ENFRCDS
+    boundary_load = {'NX1':NX1, 'NY1':NY1, 'NX2':NX2, 'NY2':  NY2, 'NX3': NX3,\
+                     'NY3':NY3,'NX4':NX4, 'NY4':NY4, 'MY1':MY1, 'MXY1':MXY1,\
+                     'MX2':MX2, 'MXY2':MXY2, 'MY3':MY3, 'MXY3':MXY3, 'MX4':MX4,\
+                     'MXY4':MXY4,'boundaryconditions':boundaryconditions, 'ENFRCDS':ENFRCDS}
+
+    return boundary_load
 
 def get_type():
     analysis_type = np.zeros((1,2))
@@ -244,6 +249,9 @@ def get_transient():
 def get_plastic():
 
     Nincr = int(input('Divide the load on how many increments : ? '))
+    Niter = int(input('Maximum Number of iterations : ? '))
+
+
     limit = np.zeros((3,3))
     X = float(input('Longitudinal Yield limit ? X = '))
     Y = float(input('Transverse Yield limit ? Y = '))
@@ -253,4 +261,7 @@ def get_plastic():
     limit[1,1] = 1/Y
     limit[2,2] = 1/SLT
 
-    return Nincr, limit
+
+    plast_param = {'increments':Nincr, 'iterations':Niter, 'yield_limit':limit}
+
+    return plast_param

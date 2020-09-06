@@ -101,8 +101,8 @@ VectorXd returnAlg (Map<VectorXd> &init_sigma, Map<MatrixXd> &Tr, Map<MatrixXd> 
 
     sigma_trial = init_sigma + Q*delta_strain;
     yield f(sigma_trial, Tr, limit); q = f.getvalue();
-    std::cout<<"first q is"<<std::endl;
-    std::cout<<q;
+    //std::cout<<"first q is"<<std::endl;
+    //std::cout<<q;
 
     state_sigma = sigma_trial;
 
@@ -156,11 +156,11 @@ VectorXd returnAlg (Map<VectorXd> &init_sigma, Map<MatrixXd> &Tr, Map<MatrixXd> 
             R.delta_lambda += dlambda;
             R.delta_sigma += dsigma;
 
-            std::cout<<R.delta_lambda<<std::endl;
-            std::cout<<R.delta_sigma<<std::endl;
-            std::cout<<"q="<<std::endl;
-            std::cout<<q<<std::endl;
-            std::cout<<"then"<<std::endl;
+            //std::cout<<R.delta_lambda<<std::endl;
+            //std::cout<<R.delta_sigma<<std::endl;
+            //std::cout<<"q="<<std::endl;
+            //std::cout<<q<<std::endl;
+            //std::cout<<"then"<<std::endl;
 
             if (ii == 999 && q >1e-7)
             {
@@ -188,17 +188,27 @@ MatrixXd Ktangent(Map<VectorXd> &result_sigma, Map<MatrixXd> &Tr, Map<MatrixXd> 
 
     state_sigma = result_sigma.head(3);
     delta_lambda = result_sigma(3);
-    yield f(state_sigma, Tr, limit);
-    f_deriv = f.grad(state_sigma, Tr, limit);
-    f_2deriv = f.grad2(state_sigma, Tr, limit);
 
-    Dc = Q.inverse() + delta_lambda * f_2deriv;
-    Dc = Dc.inverse();
+    if (state_sigma.norm() > 1e-7 && delta_lambda > 1e-7)
+    {
+        yield f(state_sigma, Tr, limit);
+        f_deriv = f.grad(state_sigma, Tr, limit);
+        f_2deriv = f.grad2(state_sigma, Tr, limit);
 
-    DcEp = Dc * f_deriv * f_deriv.transpose() * Dc;
-    DcEp = DcEp*(1/(f_deriv.transpose() * Dc * f_deriv));
+        Dc = Q.inverse() + delta_lambda * f_2deriv;
+        Dc = Dc.inverse();
 
-    DcEp = Dc - DcEp;
+        DcEp = Dc * f_deriv * f_deriv.transpose() * Dc;
+        DcEp = DcEp*(1/(f_deriv.transpose() * Dc * f_deriv));
+
+        DcEp = Dc - DcEp;
+     }
+
+     else {
+
+     DcEp = Q;
+
+     }
 
     return DcEp;
 }

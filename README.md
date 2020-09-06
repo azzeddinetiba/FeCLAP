@@ -70,7 +70,7 @@ This solver supports **static, modal, transient and non linear analysis** using 
 ## Getting Started
 
 To get a local copy up and running follow these simple steps.
-Further explanations about user inputs and results will be available soon.
+See [Usage](#usage) for using the solver.
 
 ### Prerequisites
 
@@ -128,9 +128,28 @@ _FeCLAP\NonLinearModule_ folder
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-(Under construction)
+The solver is used by running **_Main.py_** and the user can follow the instructions on how to input the model data.
 
-_For more examples, please refer to the [Documentation]( ) (Under construction)_
+**_test_examples.py_** includes 3 example cases, these could be solved simply by running the script, the results generated will be stored in the **_Example_Cases_Results_** Directory, and replace the existing reference results.
+(Remember to exit the generated figures to allow the script to keep running). The text file for the first case results however will be stored in the main **_Results_** Directory 
+
+_For more info, Please refer to the [Documentation]( ) (Under construction)_
+
+<!-- Screenshots -->
+## Screenshots
+Here are some screenshots for some results gotten from this code.
+[![screen1][Screen1]]()
+
+[![screen2][Screen2]]()
+
+[![screen3][Screen3]]()
+
+[![screen4][Screen3]]()
+
+[![screen5][Screen4]]()
+
+[![screen6][Screen5]]()
+
 
 
 
@@ -163,7 +182,7 @@ Project Link: [FeCLAP Github Link](https://github.com/azzeddinetiba/FeCLAP)
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 [codesize-shield]:  https://img.shields.io/github/languages/code-size/azzeddinetiba/FeCLAP
-[codesize-url]: https://github.com/azzeddinetiba/FeCLAP/
+[codesize-url]: https://github.com/azzeddinetiba/FeCLAP/tree/master/src_code
 [stars-shield]: https://img.shields.io/github/stars/azzeddinetiba/FeCLAP.svg?style=flat-square
 [stars-url]: https://github.com/azzeddinetiba/FeCLAP/stargazers
 [issues-shield]: https://img.shields.io/github/issues/azzeddinetiba/FeCLAP.svg?style=flat-square
@@ -172,3 +191,9 @@ Project Link: [FeCLAP Github Link](https://github.com/azzeddinetiba/FeCLAP)
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=flat-square&logo=linkedin&colorB=555
 [linkedin-url]: https://www.linkedin.com/in/azzeddine-tiba/
 [product-screenshot]: logo/hoffman.png
+[Screen1]: logo/Hoffmancriterion.png
+[Screen2]: logo/Modal_Screenschot.PNG
+[Screen3]: logo/Straineyy(Oy).png
+[Screen4]: logo/StressThick.png
+[Screen5]: logo/TransientAnal.png
+[Screen6]: logo/TransDisp.png

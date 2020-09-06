@@ -1,3 +1,4 @@
+README.md
 setup.py
 NonLinearModule/NonLinearModule.cpp
 NonLinearModule/NonLinearModule_cpp.cpp

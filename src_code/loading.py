@@ -3,7 +3,12 @@
 from numerical_integration import *
 import math as m
 
-def SMelem(f,g,h,X,T,ie,Ngauss,Wgauss):
+def SMelem(surface_load,X,T,ie,Ngauss,Wgauss):
+
+
+    f = surface_load['z']
+    g = surface_load['x']
+    h = surface_load['y']
 
     Fe=np.zeros((18,1))
     gp,gw=Gauss3n(Ngauss)
@@ -127,4 +132,10 @@ def get_loads(X):
             pointload1 = pointload1.astype(int)
             print('\n')
     NODALLOAD1 = NODALLOAD1[1::, :]
-    return f,g,h,pointload1,NODALLOAD1
+
+
+    surface_load = {'z':f, 'x':g, 'y':h}
+    nodal_load = {'coord':pointload1, 'value':NODALLOAD1}
+    surface_nodal_load = {'surf':surface_load, 'node':nodal_load}
+
+    return surface_nodal_load
