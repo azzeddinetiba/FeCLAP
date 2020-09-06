@@ -1,7 +1,7 @@
 # -*-coding:Latin-1 -*
 
 import numpy as np
-from numerical_integration import *
+from src_code.numerical_integration import *
 
 def SMBC(F,X,T,ie,b,j,fixedx):
     b=b.astype(int)

@@ -1,6 +1,6 @@
 # -*-coding:Latin-1 -*
 
-from numerical_integration import *
+from src_code.numerical_integration import *
 import math as m
 
 def SMelem(surface_load,X,T,ie,Ngauss,Wgauss):

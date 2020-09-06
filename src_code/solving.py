@@ -1,13 +1,13 @@
 # -*-coding:Latin-1 -*
 
-from boundary_conditions import *
-from Assembly import *
+from src_code.boundary_conditions import *
+from src_code.Assembly import *
 from scipy.linalg import eig
-from postProc_calc import *
-from inputting import *
+from src_code.postProc_calc import *
+from src_code.inputting import *
 import os
 import NonLinearModule
-import core
+import src_code.core
 
 def FEM(total_loading,X,T,b,Ngauss,box,analysis_type,transient,material_param, *args):
 
@@ -573,7 +573,7 @@ def tangent_stiffness(X,T, material_param, limit, b, box, total_loading, F, save
 
 
 
-        elemK = core.ElemMat(X,T,k,gp,Wgauss,K)
+        elemK = src_code.core.ElemMat(X,T,k,gp,Wgauss,K)
         globalK[np.ix_(Tie1 - 1, Tie1 - 1)] += elemK
 
         k+=1

@@ -8,7 +8,7 @@ import time
 import matplotlib.animation as animation
 import matplotlib as mpl
 from mpl_toolkits.mplot3d import Axes3D
-import postProc_visuals
+import src_code.postProc_visuals
 mpl.rcParams['animation.ffmpeg_path'] = 'C:\\ffmpeg\\bin\\ffmpeg.exe'
 
 print(
@@ -150,18 +150,18 @@ if analysis_type[0,0] == 1:
 
     if analysis_type[0,1] == 2:
 
-        postProc_visuals.Plastic_Post_proc(U, p, t, material_param, Fb, sxx, syy, sxy,\
+        src_code.postProc_visuals.Plastic_Post_proc(U, p, t, material_param, Fb, sxx, syy, sxy,\
                           saved_residual, epxx, epyy, epxy, saved_deltaU)
 
 
     else:
 
-        postProc_visuals.General_Post_proc(U, p, t, material_param)
+        src_code.postProc_visuals.General_Post_proc(U, p, t, material_param)
 
 
 if analysis_type[0,0] == 2:
 
-    postProc_visuals.transient_postProc(transient, U, p, t)
+    src_code.transient_postProc(transient, U, p, t)
 
 print('Finite element Solution finding Time : ' + str(t2 - t1) + ' s')
 os.system("pause")

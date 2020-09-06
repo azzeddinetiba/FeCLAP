@@ -1,6 +1,6 @@
 # -*-coding:Latin-1 -*
 
-from postProc_calc import *
+from src_code.postProc_calc import *
 import matplotlib.pyplot as plt
 import os
 import math as m

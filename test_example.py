@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import time
 import matplotlib.animation as animation
 import matplotlib as mpl
-import postProc_visuals
+from src_code.postProc_visuals import *
 from mpl_toolkits.mplot3d import Axes3D
 
 mpl.rcParams['animation.ffmpeg_path'] = 'C:\\ffmpeg\\bin\\ffmpeg.exe'

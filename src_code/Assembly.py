@@ -1,8 +1,8 @@
 # -*-coding:Latin-1 -*
 
-from core import *
-from loading import *
-from boundary_conditions import *
+from src_code.core import *
+from src_code.loading import *
+from src_code.boundary_conditions import *
 
 def Assembly2D(X,T,surface_load,Wgauss,gp,Ngauss,Klaw,pho,thickness,analysis_type):
 
