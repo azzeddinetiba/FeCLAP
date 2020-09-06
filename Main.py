@@ -138,7 +138,7 @@ else:
     mesh_size = p.shape[0]
     mode_number = 1
     while mode_number != 0:
-        mode_number = int(input('Visualiser mode numero ?  /Exit 0 '))
+        mode_number = int(input('Visualize Mode Number ?  /Exit 0 '))
         if mode_number == 0:
             break
         modal_anim = animate_mode(freq, modes, mode_number, modal_indexes, mesh_size, p, t)
