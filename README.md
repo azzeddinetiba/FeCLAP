@@ -14,6 +14,8 @@
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
 [![LinkedIn][linkedin-shield]][linkedin-url]
+[![version][version-shield]][release-url]
+[![commits][commits-shield]][commits-url]
 
 <!-- PROJECT LOGO -->
 <br />
@@ -184,14 +186,18 @@ Project Link: [FeCLAP Github Link](https://github.com/azzeddinetiba/FeCLAP)
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 [codesize-shield]:  https://img.shields.io/github/languages/code-size/azzeddinetiba/FeCLAP
 [codesize-url]: https://github.com/azzeddinetiba/FeCLAP/tree/master/src_code
-[stars-shield]: https://img.shields.io/github/stars/azzeddinetiba/FeCLAP.svg?style=flat-square
+[stars-shield]: https://img.shields.io/github/stars/azzeddinetiba/FeCLAP.svg?style=flat-square&color=yellow
 [stars-url]: https://github.com/azzeddinetiba/FeCLAP/stargazers
 [issues-shield]: https://img.shields.io/github/issues/azzeddinetiba/FeCLAP.svg?style=flat-square
 [issues-url]: https://github.com/azzeddinetiba/FeCLAP/issues
 [license-shield]: https://img.shields.io/github/license/othneildrew/Best-README-Template.svg?style=flat-square
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=flat-square&logo=linkedin&colorB=555
+[commits-shield]: https://img.shields.io/github/commits-since/azzeddinetiba/FeCLAP/v0.2?color=lightgreen&style=plastic
+[commits-url]: https://github.com/azzeddinetiba/FeCLAP/commits
 [linkedin-url]: https://www.linkedin.com/in/azzeddine-tiba/
+[release-url]: https://github.com/azzeddinetiba/FeCLAP/releases/
 [product-screenshot]: logo/hoffman.png
+[version-shield]: https://img.shields.io/github/v/release/azzeddinetiba/FeCLAP?color=orange
 [Screen1]: logo/Hoffmancriterion.png
 [Screen2]: logo/Modal_Screenschot.PNG
 [Screen3]: logo/Straineyy(Oy).png
