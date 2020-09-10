@@ -1,8 +1,8 @@
 # -*-coding:Latin-1 -*
 
-from src_code.boundary_conditions import *
 from src_code.Assembly import *
 from scipy.linalg import eig
+import scipy.sparse.linalg
 from src_code.postProc_calc import *
 from src_code.inputting import *
 import os
@@ -25,51 +25,37 @@ def FEM(total_loading,X,T,b,Ngauss,box,analysis_type,transient,material_param, *
 
     K, M, F = Assembly2D(X,T,surface_load,Wgauss,gp,Ngauss,Klaw,pho,thickness,analysis_type)
 
-
-    fixed_borders, K, M, F = applying_BC(total_loading,X,T,b,box,K,F,M)
-
-    Mb = np.delete(M, fixed_borders - 1, 0)
-    Mb = np.delete(Mb, fixed_borders - 1, 1)
-    Kb = np.delete(K, fixed_borders - 1, 0)
-    Kb = np.delete(Kb, fixed_borders - 1, 1)
+    fixed_borders, K, M, F = applying_BC(total_loading,X,T,b,box,K,F, analysis_type,M)
 
 
-    fixed_borders = np.unique(fixed_borders)
-    xxx = np.arange(0,M.shape[0])
-    i=0
-    while i<fixed_borders.shape[0]:
-     if i==0:
-      index = np.argwhere(xxx == fixed_borders[i]-1)
-     else:
-      index = np.argwhere(yyy == fixed_borders[i] - 1)
-     if i==0 :
-         yyy = np.delete(xxx, index)
-     else:
-         yyy = np.delete(yyy, index)
-
-     i+=1
-
-
-    #if i==0:
-    # modal_indexes = np.delete(xxx, np.arange(5,xxx.shape[0],6), 0)
-    #else:
-    # yyy = np.delete(yyy, np.arange(5,yyy.shape[0],6), 0)
-    modal_indexes = yyy
-
-
-    Fb=F.T
-    Fb=Fb[0]
 
     if analysis_type[0,0] == 1:
 
         if analysis_type[0,1] == 1:
-            U = np.linalg.solve(K, Fb)
+
+            if analysis_type[0,2] == 1:
+
+                Fb = F.T
+                Fb = Fb[0]
+
+                U = np.linalg.solve(K, Fb)
+
+            else:
+
+                K = sp.csc_matrix(K)
+                F= sp.csc_matrix(F)
+
+                U = sp.linalg.spsolve(K, F)
+
             return K, F, U
         else:
 
             istherePlast = len(args)
             if istherePlast != 0:
                 plast_param = args[0]
+
+            Fb = F.T
+            Fb = Fb[0]
 
             U, Fb, sxx, syy, sxy, saved_residual, epxx, epyy, epxy, saved_deltaU = \
                 plastic_analysis(X, T, K, Fb, plast_param, material_param, b, box, total_loading, Ngauss)
@@ -79,8 +65,56 @@ def FEM(total_loading,X,T,b,Ngauss,box,analysis_type,transient,material_param, *
 
     elif analysis_type[0,0] == 3:
 
-        modes_number = Mb.shape[0]
-        w, modes = eig(Kb,Mb)
+
+        shape_for_index = M.shape[0]
+
+        if analysis_type[0,2] == 1:
+            Mb = np.delete(M, fixed_borders - 1, 0)
+            Mb = np.delete(Mb, fixed_borders - 1, 1)
+            Kb = np.delete(K, fixed_borders - 1, 0)
+            Kb = np.delete(Kb, fixed_borders - 1, 1)
+
+            modes_number = Mb.shape[0]
+
+            w, modes = eig(Kb, Mb)
+
+        else:
+
+            boundary_load = total_loading['Bc']
+            modes_number = boundary_load['modes']
+
+            M = delete_row_csr(M, fixed_borders - 1)
+            M = sp.csc_matrix.transpose(M)
+            M = delete_row_csr(M, fixed_borders - 1)
+            M = sp.csc_matrix.transpose(M)
+
+            K = delete_row_csr(K, fixed_borders - 1)
+            K = sp.csc_matrix.transpose(K)
+            K = delete_row_csr(K, fixed_borders - 1)
+            K = sp.csc_matrix.transpose(K)
+
+            Kb = K
+            Mb = M
+
+
+            w, modes = sp.linalg.eigsh(Kb, modes_number , Mb, which = 'LM',  tol=1E-3, sigma = 0)
+
+        fixed_borders = np.unique(fixed_borders)
+        xxx = np.arange(0, shape_for_index)
+        i = 0
+        while i < fixed_borders.shape[0]:
+            if i == 0:
+                index = np.argwhere(xxx == fixed_borders[i] - 1)
+            else:
+                index = np.argwhere(yyy == fixed_borders[i] - 1)
+            if i == 0:
+                yyy = np.delete(xxx, index)
+            else:
+                yyy = np.delete(yyy, index)
+
+            i += 1
+
+        modal_indexes = yyy
 
         modes = modes.real
         indices = np.argsort(w)

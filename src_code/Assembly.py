@@ -3,26 +3,43 @@
 from src_code.core import *
 from src_code.loading import *
 from src_code.boundary_conditions import *
+from scipy import sparse as sp
 
 def Assembly2D(X,T,surface_load,Wgauss,gp,Ngauss,Klaw,pho,thickness,analysis_type):
 
     Nn=6*X.shape[0]
     Nt=T.shape[0]
 
-    K=np.zeros((Nn,Nn))
-    F=np.zeros((Nn,1))
-    M=np.zeros((Nn,Nn))
+    if analysis_type[0, 2] == 1:
+
+        K=np.zeros((Nn,Nn))
+        F=np.zeros((Nn,1))
+        M=np.zeros((Nn,Nn))
+
+    else:
+
+        K = sp.lil_matrix((Nn,Nn))
+        F = sp.lil_matrix((Nn,1))
+        M = sp.lil_matrix((Nn,Nn))
 
     ie=0
     while ie < Nt :
      Tie=T[ie,:]+1
      Tie1=np.concatenate((np.arange(6*Tie[0]-5,6*Tie[0]+1),np.arange(6*Tie[1]-5,6*Tie[1]+1),np.arange(6*Tie[2]-5,6*Tie[2]+1)),0)
-     Ke = ElemMat(X, T, ie, gp, Wgauss, Klaw)
-     Fe = SMelem(surface_load, X, T, ie, Ngauss, Wgauss)
+     if analysis_type[0,2] == 1:
+         Ke = ElemMat(X, T, ie, gp, Wgauss, Klaw)
+         Fe = SMelem(surface_load, X, T, ie, Ngauss, Wgauss)
+     else:
+         Ke = sp.lil_matrix(ElemMat(X, T, ie, gp, Wgauss, Klaw))
+         Fe = sp.lil_matrix(SMelem(surface_load, X, T, ie, Ngauss, Wgauss))
      K[np.ix_(Tie1-1,Tie1-1)]+=Ke
      F[Tie1-1,:]+=Fe
      if analysis_type[0,0] !=1:
-         Me = ElemMassMat(X, T, ie, gp, Wgauss, pho, thickness)
+         if analysis_type[0, 2] == 1:
+             Me = ElemMassMat(X, T, ie, gp, Wgauss, pho, thickness)
+         else:
+             Me = sp.lil_matrix(ElemMassMat(X, T, ie, gp, Wgauss, pho, thickness))
+
          M[np.ix_(Tie1 - 1, Tie1 - 1)] += Me
 
      ie+=1
@@ -30,7 +47,7 @@ def Assembly2D(X,T,surface_load,Wgauss,gp,Ngauss,Klaw,pho,thickness,analysis_typ
     return K,M,F
 
 
-def applying_BC(total_loading,X,T,b,box,K,F,*args):
+def applying_BC(total_loading,X,T,b,box,K,F, analysis_type,*args):
 
     isthereM = len(args)
     if isthereM != 0:
@@ -898,7 +915,6 @@ def applying_BC(total_loading,X,T,b,box,K,F,*args):
         M[np.ix_(np.arange(5,M.shape[0],6), np.arange(5,M.shape[0],6))]=np.eye(int(M.shape[0] / 6))
 
 
-    fixed_borders = np.array([])
     fixed_index = np.where(boundaryconditions == 2)[0]
     fixed_borders = everyborder[fixed_index]
     fixed_borders = fixed_borders.flatten()
@@ -974,9 +990,16 @@ def applying_BC(total_loading,X,T,b,box,K,F,*args):
                         distload = m.sqrt(((X[ii,0]-XY[0,0])**2)+((X[ii,1]-XY[0,1])**2))
                         pointload[i] = ii
                     ii += 1
-            F[6 * (pointload[i] + 1) - 6] += NODALLOAD[i, 0]
-            F[6 * (pointload[i] + 1) - 5] += NODALLOAD[i, 1]
-            F[6 * (pointload[i] + 1) - 4] += NODALLOAD[i, 2]
+            if analysis_type[0,2] == 1:
+                F[6 * (pointload[i] + 1) - 6] += NODALLOAD[i, 0]
+                F[6 * (pointload[i] + 1) - 5] += NODALLOAD[i, 1]
+                F[6 * (pointload[i] + 1) - 4] += NODALLOAD[i, 2]
+            else:
+                loading_vector = np.zeros((F.shape[0],1))
+                loading_vector[6 * (pointload[i] + 1) - 6] += NODALLOAD[i, 0]
+                loading_vector[6 * (pointload[i] + 1) - 5] += NODALLOAD[i, 1]
+                loading_vector[6 * (pointload[i] + 1) - 4] += NODALLOAD[i, 2]
+                F += sp.lil_matrix(loading_vector)
             i+=1
 
     return fixed_borders,K,M,F

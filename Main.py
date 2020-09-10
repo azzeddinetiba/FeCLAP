@@ -33,8 +33,14 @@ box = np.array([[x1, y1], [x2, y2]])
 
 p, t, b = mesh(x1, x2, y1, y2, h, radius, xh, yh)
 
+
+#analysis_type
+analysis_type = get_type()
+print()
+
+
 # Constitutive law
-N, PPT, angles, thickness, TH, pho=get_plies()
+N, PPT, angles, thickness, TH, pho=get_plies(analysis_type)
 print()
 pos, Q, Qprime, A, B, D, Klaw = constitutive_law(N, PPT, angles, thickness, TH)
 print()
@@ -48,9 +54,6 @@ while (Ngauss!=3 and Ngauss!=4 and Ngauss!=7):
     Ngauss=int(input('Number of GAUSS Points : (3, 4 or 7) '))
     print()
 
-
-analysis_type = get_type()
-print()
 
 script_dir = os.path.dirname(__file__)
 results_dir = os.path.join(script_dir, 'Results/')
@@ -88,6 +91,9 @@ if analysis_type[0,0] != 3:
 
         t2 = time.time()
 
+        print('Finite element Solution finding Time : ' + str(t2 - t1) + ' s')
+
+
     else:
 
         if analysis_type[0,0] == 2:
@@ -100,6 +106,9 @@ if analysis_type[0,0] != 3:
                        analysis_type, transient, material_param)
 
         t2 = time.time()
+
+        print('Finite element Solution finding Time : ' + str(t2 - t1) + ' s')
+
 
 else:
 
@@ -135,12 +144,26 @@ else:
 
     t2 = time.time()
 
+    print('Finite element Solution finding Time : ' + str(t2 - t1) + ' s')
+
     mesh_size = p.shape[0]
     mode_number = 1
     while mode_number != 0:
         mode_number = int(input('Visualize Mode Number ?  /Exit 0 '))
         if mode_number == 0:
             break
+        if mode_number > modes.shape[1] and analysis_type[0,2] == 0:
+            print('The sparse solver only extracts the chosen number of modes,\n \
+            Please choose another mode to visualize ')
+
+            continue
+
+        if mode_number > modes.shape[1] and analysis_type[0, 2] == 1:
+            print('The chosen number exceeds the number of Dofs, there is no corresponding modes\n \
+            Please choose another mode to visualize ')
+
+            continue
+
         modal_anim = animate_mode(freq, modes, mode_number, modal_indexes, mesh_size, p, t)
         writervideo = animation.FFMpegWriter(fps=60)
         modal_anim.save(results_dir+"modal"+"_mode_"+str(mode_number)+".mp4", writer=writervideo)
@@ -163,5 +186,4 @@ if analysis_type[0,0] == 2:
 
     src_code.transient_postProc(transient, U, p, t)
 
-print('Finite element Solution finding Time : ' + str(t2 - t1) + ' s')
 os.system("pause")
