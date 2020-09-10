@@ -612,7 +612,7 @@ def animate_mode(frq,modes,mode_number,modal_indexes,mesh_size,p,t):
 
 def animate_transient(SOL, p, t, delta_T, n_iter):
 
-    num=int(n_iter)
+    num=int(n_iter)+1
 
     fig = plt.figure(figsize=(10.2, 6.8), dpi=100)
     ax = fig.gca(projection='3d')
@@ -671,32 +671,42 @@ def transient_postProc(transient, U, p, t):
             dof = int(input('Degree of freedom : 1/2/3/4/5'))
 
             fig6 = plt.figure()
-            time_domain = np.linspace(0, tf, int(n_iter))
+            time_domain = np.linspace(0, tf, int(n_iter)+1)
             if transient['scheme'] == 2:
                 if not isinstance(U,list):
                     plt.plot(time_domain, U[6 * (pointdisp + 1) - 7 + dof, :])
                 else:
-                    used_U = U[0]
-                    plt.plot(time_domain, used_U[6 * (pointdisp + 1) - 7 + dof])
+                    ii = 0
+                    used_U = np.zeros((1, int(n_iter)))
+                    U1 = U[0]
+
+                    while ii < int(n_iter)+1:
+                        tmp_vals = U1[ii].toarray()[6 * (pointdisp + 1) - 7 + dof]
+                        used_U[0, ii] = tmp_vals
+                        ii += 1
+                    del U1
+                    del tmp_vals
+                    plt.plot(time_domain, used_U[0])
                     del used_U
             else:
                 if not isinstance(U,list):
                     plt.plot(time_domain, U[6 * (pointdisp + 1) - 7 + dof])
                 else:
                     ii = 0
-                    used_U = np.zeros((1,int(n_iter)))
+                    used_U = np.zeros((1,int(n_iter)+1))
                     while ii < int(n_iter):
                         tmp_vals = U[ii].toarray()[6 * (pointdisp + 1) - 7 + dof]
                         used_U[0,ii] = tmp_vals
                         ii+=1
                     del tmp_vals
+                    print(used_U[0])
                     plt.plot(time_domain, used_U[0])
                     del used_U
             plt.grid()
             plt.xlabel('Time [s]')
             plt.ylabel('Displacement [m]')
             plt.title('Transient analysis')
-            plt.savefig('Transient analysis' + '.png')
+            plt.savefig(results_dir+'Transient analysis' + '.png')
 
         elif one_D_two_D == 2:
 

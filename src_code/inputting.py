@@ -248,7 +248,19 @@ def get_transient():
     delta_T = float(input('Time step :  [s] '))
     integration = int(input('Time integration : Backward euler scheme 1 / Newmark 2 / Explicit 3 :'))
 
-    transient = {'final_instant':tf, 'time_step':delta_T, 'scheme':integration}
+    beta = 0
+    gamma = 0
+    x = 0
+    xdot = 0
+    if integration == 2:
+        beta = float(input('Beta  :'))
+        gamma = float(input('gamma :'))
+    if integration == 2 or integration == 3:
+        x = float(input('Initial displacement : ? [m]'))
+        xdot = float(input('Initial velocity : ? [m/s]'))
+
+    transient = {'final_instant':tf, 'time_step':delta_T, 'scheme':integration,\
+                 'Beta': beta, 'Gamma':gamma, 'init_disp':x, 'init_V':xdot}
 
     return transient
 
