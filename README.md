@@ -186,7 +186,7 @@ Project Link: [FeCLAP Github Link](https://github.com/azzeddinetiba/FeCLAP)
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 [codesize-shield]:  https://img.shields.io/github/languages/code-size/azzeddinetiba/FeCLAP
 [codesize-url]: https://github.com/azzeddinetiba/FeCLAP/tree/master/src_code
-[stars-shield]: https://img.shields.io/github/stars/azzeddinetiba/FeCLAP.svg?style=flat-square
+[stars-shield]: https://img.shields.io/github/stars/azzeddinetiba/FeCLAP.svg?style=flat-square&color=yellow
 [stars-url]: https://github.com/azzeddinetiba/FeCLAP/stargazers
 [issues-shield]: https://img.shields.io/github/issues/azzeddinetiba/FeCLAP.svg?style=flat-square
 [issues-url]: https://github.com/azzeddinetiba/FeCLAP/issues
