@@ -642,7 +642,7 @@ def transient_postProc(transient, U, p, t):
 
     n_iter = tf / delta_T
 
-    script_dir = os.path.dirname(__file__)
+    script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     results_dir = os.path.join(script_dir, 'Results/')
     if not os.path.isdir(results_dir):
         os.makedirs(results_dir)
@@ -672,10 +672,26 @@ def transient_postProc(transient, U, p, t):
 
             fig6 = plt.figure()
             time_domain = np.linspace(0, tf, int(n_iter))
-            if transient['scheme'] == 1:
-                plt.plot(time_domain, U[6 * (pointdisp + 1) - 7 + dof, :])
+            if transient['scheme'] == 2:
+                if not isinstance(U,list):
+                    plt.plot(time_domain, U[6 * (pointdisp + 1) - 7 + dof, :])
+                else:
+                    used_U = U[0]
+                    plt.plot(time_domain, used_U[6 * (pointdisp + 1) - 7 + dof])
+                    del used_U
             else:
-                plt.plot(time_domain, U[6 * (pointdisp + 1) - 7 + dof, :])
+                if not isinstance(U,list):
+                    plt.plot(time_domain, U[6 * (pointdisp + 1) - 7 + dof])
+                else:
+                    ii = 0
+                    used_U = np.zeros((1,int(n_iter)))
+                    while ii < int(n_iter):
+                        tmp_vals = U[ii].toarray()[6 * (pointdisp + 1) - 7 + dof]
+                        used_U[0,ii] = tmp_vals
+                        ii+=1
+                    del tmp_vals
+                    plt.plot(time_domain, used_U[0])
+                    del used_U
             plt.grid()
             plt.xlabel('Time [s]')
             plt.ylabel('Displacement [m]')
@@ -684,7 +700,12 @@ def transient_postProc(transient, U, p, t):
 
         elif one_D_two_D == 2:
 
-            trans_anim = animate_transient(U, p, t, delta_T, n_iter)
+            if len(U) != 3:
+                trans_anim = animate_transient(U, p, t, delta_T, n_iter)
+            else:
+                used_U = U[0]
+                trans_anim = animate_transient(used_U, p, t, delta_T, n_iter)
+                del used_U
             Writer = animation.writers['ffmpeg']
             writer = Writer(fps=15, metadata=dict(artist='Me'), bitrate=1800)
             trans_anim.save(results_dir+'transient.mp4', writer=writer)

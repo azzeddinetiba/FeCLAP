@@ -42,8 +42,8 @@ def FEM(total_loading,X,T,b,Ngauss,box,analysis_type,transient,material_param, *
 
             else:
 
-                K = sp.csc_matrix(K)
-                F= sp.csc_matrix(F)
+                K = K.tocsr()
+                F = F.tocsr()
 
                 U = sp.linalg.spsolve(K, F)
 
@@ -84,14 +84,14 @@ def FEM(total_loading,X,T,b,Ngauss,box,analysis_type,transient,material_param, *
             modes_number = boundary_load['modes']
 
             M = delete_row_csr(M, fixed_borders - 1)
-            M = sp.csc_matrix.transpose(M)
+            M = sp.csr_matrix.transpose(M)
             M = delete_row_csr(M, fixed_borders - 1)
-            M = sp.csc_matrix.transpose(M)
+            M = sp.csr_matrix.transpose(M)
 
             K = delete_row_csr(K, fixed_borders - 1)
-            K = sp.csc_matrix.transpose(K)
+            K = sp.csr_matrix.transpose(K)
             K = delete_row_csr(K, fixed_borders - 1)
-            K = sp.csc_matrix.transpose(K)
+            K = sp.csr_matrix.transpose(K)
 
             Kb = K
             Mb = M
@@ -139,54 +139,104 @@ def FEM(total_loading,X,T,b,Ngauss,box,analysis_type,transient,material_param, *
 
         n_iter = tf/delta_T
 
-        #F = np.dot(F,np.array([np.concatenate((np.linspace(0,1,int(n_iter/6)),np.linspace(1,0,int(n_iter/6)),np.zeros((1,int(n_iter)-2*int(n_iter/6)))[0]))]))
         F = np.dot(F, np.ones((1,int(n_iter))))
 
-        if transient['scheme']==1:
-            A = (delta_T**2)*K + M
-            A2 = np.eye(M.shape[0]) + np.dot(np.linalg.inv(A),M)
-            U2 = (delta_T**2)*np.dot(np.linalg.inv(A2),np.dot(np.linalg.inv(A),F[:,1]))
+        if transient['scheme'] == 1:
 
-            SOL = np.zeros((M.shape[0],int(n_iter)))
-            SOL[:,1] = U2.T
+            A = (delta_T**2)*K + M
+            if analysis_type[0,2] == 1:
+                A2 = np.eye(M.shape[0]) + np.dot(np.linalg.inv(A),M)
+                U2 = (delta_T**2)*np.dot(np.linalg.inv(A2),np.dot(np.linalg.inv(A),F[:,1]))
+
+                SOL = np.zeros((M.shape[0], int(n_iter)))
+                SOL[:, 1] = U2.T
+
+            else:
+                M = M.tocsc()
+                A = A.tocsc()
+                inv_A = sp.linalg.inv(A)
+                A2 = sp.csc_matrix((M.shape[0],M.shape[0])) + inv_A.dot(M)
+                inv_A2 = sp.linalg.inv(A2)
+                U2 = (delta_T ** 2) * inv_A2.dot(inv_A.dot(sp.csc_matrix(F[:,1].T[0])))
+                del inv_A2
+
+                SOL = []
+                SOL.append(sp.csc_matrix((M.shape[0],1)))
+                SOL.append(U2)
+
 
             i=2
             while i<n_iter:
 
-                U = np.dot(np.linalg.inv(A),(((delta_T**2)*F[:,i])-(np.dot(M,SOL[:,i-2])).T+(2*np.dot(M,SOL[:,i-1])).T))
-                SOL[:,i] = U.T
+                if analysis_type[0,2] == 1:
+                    U = np.dot(np.linalg.inv(A),(((delta_T**2)*F[:,i])-(np.dot(M,SOL[:,i-2]))+(2*np.dot(M,SOL[:,i-1]))))
+                    SOL[:,i] = U.T
+
+                else:
+
+                    U = inv_A.dot((delta_T**2)*sp.csc_matrix(F[:,i].T[0]) - M.dot(SOL[i-2]) + 2 * M.dot(SOL[i-1]))
+                    SOL.append(U)
+
                 i+=1
 
         elif transient['scheme']==3:
 
             n_dof = M.shape[0]
-            SOL = np.zeros((n_dof,int(n_iter)))
-
             x = float(input('Initial displacement : ? [m]'))
             xdot = float(input('Initial velocity : ? [m/s]'))
-            x = x*np.ones((n_dof,1))
-            xdot = xdot*np.ones((n_dof,1))
-            xtwodots = np.linalg.solve(M,F[:,0]-(np.dot(K,x)))
-
-            x = x.T[0]
-            xdot = xdot.T[0]
-            xtwodots = xtwodots.T[0]
 
 
-            x1 = x - delta_T*xdot + 0.5 * (delta_T**2) * xtwodots
 
-            mat = np.linalg.inv((1/(delta_T**2))*M)
-            A = (2/(delta_T**2))*M - K
-            B = -(1/(delta_T**2))*M
 
-            SOL[:, 0] = x
-            SOL[:, 1] = x1
+            if analysis_type[0,2] == 1:
 
-            i=2
-            while i<int(n_iter):
+                x = x * np.ones((n_dof, 1))
+                xdot = xdot * np.ones((n_dof, 1))
+                xtwodots = np.linalg.solve(M, F[:, 0] - (np.dot(K, x)))
 
-                SOL[:,i] = np.dot(mat,(np.dot(A,SOL[:,i-1])+np.dot(B,SOL[:,i-2])+F[:,i]))
-                i+=1
+                x = x.T[0]
+                xdot = xdot.T[0]
+                xtwodots = xtwodots.T[0]
+
+                x1 = x - delta_T * xdot + 0.5 * (delta_T ** 2) * xtwodots
+
+                SOL = np.zeros((n_dof,int(n_iter)))
+
+                mat = np.linalg.inv((1/(delta_T**2))*M)
+                A = (2/(delta_T**2))*M - K
+                B = -(1/(delta_T**2))*M
+
+                SOL[:, 0] = x
+                SOL[:, 1] = x1
+
+                i=2
+                while i<int(n_iter):
+
+                    SOL[:,i] = np.dot(mat,(np.dot(A,SOL[:,i-1])+np.dot(B,SOL[:,i-2])+F[:,i]))
+                    i+=1
+
+            else:
+                x = x * np.ones((n_dof, 1))
+                xdot = xdot * np.ones((n_dof, 1))
+                xtwodots = sp.linalg.spsolve(M,sp.csr_matrix(F[:,0]) - K.dot(sp.csr_matrix(x)))
+
+                x = x.T[0]
+                xdot = xdot.T[0]
+
+                x1 = sp.csr_matrix(x) - delta_T * sp.csr_matrix(xdot) + 0.5 * (delta_T ** 2) * sp.csr_matrix(xtwodots)
+
+                SOL = []
+                mat = sp.linalg.inv((1/(delta_T**2))*M)
+                A = (2/(delta_T**2))*M - K
+                B = -(1/(delta_T**2))*M
+
+                SOL.append(sp.csr_matrix(x))
+                SOL.append(x1)
+
+                i=2
+                while i < int(n_iter):
+                    SOL.append(mat.dot(A.dot(SOL[i - 1]) + B.dot(SOL[i - 2]) + F[:, i]))
+                    i += 1
 
         else:
 
@@ -194,51 +244,91 @@ def FEM(total_loading,X,T,b,Ngauss,box,analysis_type,transient,material_param, *
             gamma = float(input('gamma :'))
 
             n_dof = M.shape[0]
-            SOL = np.zeros((3*n_dof,int(n_iter)))
-
-
             x = float(input('Initial displacement : ? [m]'))
             xdot = float(input('Initial velocity : ? [m/s]'))
-            x = x*np.ones((n_dof,1))
-            xdot = xdot*np.ones((n_dof,1))
-            xtwodots = -np.dot(np.linalg.inv(M), np.dot(K, x) - F[:, 0])
 
-            x = x.T[0]
-            xdot = xdot.T[0]
-            xtwodots = xtwodots.T[0]
+            if analysis_type[0,2] == 1:
+                SOL = np.zeros((3*n_dof,int(n_iter)))
 
 
-            SOL[0:n_dof, 0] = x
-            SOL[n_dof:2 * n_dof, 0] = xdot
-            SOL[2 * n_dof: 3 * n_dof, 0] = xtwodots
+                x = x*np.ones((n_dof,1))
+                xdot = xdot*np.ones((n_dof,1))
+                xtwodots = -np.dot(np.linalg.inv(M), np.dot(K, x) - F[:, 0])
 
-            mat= np.linalg.inv((1/(beta*delta_T**2))*M+K)
-            inv_M = np.linalg.inv(M)
-
-            i=1
-            while i<int(n_iter):
+                x = x.T[0]
+                xdot = xdot.T[0]
+                xtwodots = xtwodots.T[0]
 
 
-                #deltax = np.dot(np.linalg.inv((1/(beta*delta_T**2))*M+K),(F[:,i]-F[:,i-1])+np.dot(M,(1/(beta*delta_T))*xdot+(1/(beta*2))*xtwodots))
-                #deltax = np.linalg.solve((1/(beta*delta_T**2))*M+K,(F[:,i]-F[:,i-1])+np.dot(M,(1/(beta*delta_T))*xdot+(1/(beta*2))*xtwodots))
-                deltax = np.dot(mat,(F[:,i]-F[:,i-1])+np.dot(M,(1/(beta*delta_T))*xdot+(1/(beta*2))*xtwodots))
+                SOL[0:n_dof, 0] = x
+                SOL[n_dof:2 * n_dof, 0] = xdot
+                SOL[2 * n_dof: 3 * n_dof, 0] = xtwodots
 
-                x += deltax
-                xdot += (deltax * gamma / (beta * delta_T)) - (gamma / beta) * xdot + delta_T * (
-                            1 - gamma / (2 * beta)) * xtwodots
+                mat= np.linalg.inv((1/(beta*delta_T**2))*M+K)
+                inv_M = np.linalg.inv(M)
 
-                #xtwodots = -np.dot(np.linalg.inv(M),np.dot(K,x)-F[:,i])
-                #xtwodots = -np.linalg.solve(M,np.dot(K,x)-F[:,i])
-                xtwodots = -np.dot(inv_M, np.dot(K, x) - F[:, i])
-
-                SOL[0:n_dof, i] = x
-                SOL[n_dof:2 * n_dof, i] = xdot
-                SOL[2 * n_dof: 3 * n_dof, i] = xtwodots
+                i=1
+                while i<int(n_iter):
 
 
+                    deltax = np.dot(mat,(F[:,i]-F[:,i-1])+np.dot(M,(1/(beta*delta_T))*xdot+(1/(beta*2))*xtwodots))
 
-                i += 1
+                    x += deltax
+                    xdot += (deltax * gamma / (beta * delta_T)) - (gamma / beta) * xdot + delta_T * (
+                                1 - gamma / (2 * beta)) * xtwodots
 
+                    xtwodots = -np.dot(inv_M, np.dot(K, x) - F[:, i])
+
+                    SOL[0:n_dof, i] = x
+                    SOL[n_dof:2 * n_dof, i] = xdot
+                    SOL[2 * n_dof: 3 * n_dof, i] = xtwodots
+
+
+
+                    i += 1
+
+                else:
+                    SOL1 = []
+                    SOL_dot = []
+                    SOL_two_dots = []
+
+                    x = x * np.ones((n_dof, 1))
+                    xdot = xdot * np.ones((n_dof, 1))
+                    inv_M = sp.linalg.inv(M)
+                    xtwodots = - inv_M.dot(K.dot(sp.csr_matrix(x))-sp.csr_matrix(F[:,0]))
+
+                    x = x.T[0]
+                    x = sp.csr_matrix(x)
+                    xdot = xdot.T[0]
+                    xdot = sp.csr_matrix(xdot)
+
+
+                    SOL1.append(x)
+                    SOL_dot.append(xdot)
+                    SOL_two_dots.append(xtwodots)
+
+                    mat = sp.linalg.inv((1 / (beta * delta_T ** 2)) * M + K)
+
+                    i = 1
+                    while i < int(n_iter):
+
+                        deltax = mat.dot(sp.csr_matrix(F[:, i] - F[:, i - 1]) + M.dot((1 / (beta * delta_T)) * xdot + (
+                                    1 / (beta * 2)) * xtwodots))
+                        x += deltax
+
+                        xdot += (deltax * gamma / (beta * delta_T)) - (gamma / beta) * xdot + delta_T * (
+                                1 - gamma / (2 * beta)) * xtwodots
+
+                        xtwodots = -inv_M.dot(K.dot(x) - sp.csr_matrix(F[:, i]))
+
+                        SOL1.append(x)
+                        SOL_dot.append(xdot)
+                        SOL_two_dots.append(xtwodots)
+
+                        i += 1
+
+
+                    SOL = [SOL1, SOL_dot, SOL_two_dots]
 
         return K, F, SOL
 

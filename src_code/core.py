@@ -531,7 +531,7 @@ def delete_row_csr(mat, i):
     k = np.unique(i)
     k = np.sort(k)
 
-    mat = scipy.sparse.csr_matrix(mat)
+    mat = mat.tocsr()
     ii=0
     while ii<len(k):
         n = mat.indptr[k[ii]+1] - mat.indptr[k[ii]]
@@ -549,6 +549,6 @@ def delete_row_csr(mat, i):
         ii+=1
 
 
-    mat = scipy.sparse.csc_matrix(mat)
+    mat = mat.tocsr()
 
     return mat
