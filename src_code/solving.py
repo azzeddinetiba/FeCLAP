@@ -54,11 +54,15 @@ def FEM(total_loading,X,T,b,Ngauss,box,analysis_type,transient,material_param, *
             if istherePlast != 0:
                 plast_param = args[0]
 
-            Fb = F.T
-            Fb = Fb[0]
+            if analysis_type[0,2] == 1:
+                Fb = F.T
+                Fb = Fb[0]
+
+            else:
+                Fb = F
 
             U, Fb, sxx, syy, sxy, saved_residual, epxx, epyy, epxy, saved_deltaU = \
-                plastic_analysis(X, T, K, Fb, plast_param, material_param, b, box, total_loading, Ngauss)
+                plastic_analysis(X, T, K, Fb, plast_param, material_param, b, box, total_loading, Ngauss, analysis_type)
             return  U, Fb, sxx, syy, sxy, saved_residual, epxx, epyy, epxy, saved_deltaU
 
 
@@ -353,7 +357,7 @@ def FEM(total_loading,X,T,b,Ngauss,box,analysis_type,transient,material_param, *
         return K, F, SOL
 
 
-def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, total_loading, Ngauss):
+def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, total_loading, Ngauss, analysis_type):
 
     script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     results_dir = os.path.join(script_dir, 'Results/')
@@ -363,6 +367,10 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
     text_file = open(results_dir+'Non_Linear_Results.txt', "w")
     data_text = 'The yield stresses, displacements, and information on load increments are shown here:'
 
+
+
+    if analysis_type[0,2] == 0:
+        globalK = globalK.tocsr()
 
     TT=T.shape[0]
 
@@ -393,9 +401,11 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
 
     #The load is divided on equal incremental loads
     deltaFb = Fb/Nincr
-    Fb = np.zeros((deltaFb.shape[0],1))
-    Fb = Fb.T
-    Fb = Fb[0]
+    if analysis_type[0,2] == 1:
+        Fb = np.zeros((deltaFb.shape[0],1))
+        Fb = Fb.T[0]
+    else:
+        Fb = sp.lil_matrix((deltaFb.shape[0],1))
     saved_residual = []
     sxx = []
     syy = []
@@ -433,19 +443,10 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
     i=0
     while i<Nincr:
 
-
-        #if i!=0:
-
-        #    globalK, Q_data = tangent_stiffness(X, T, material_param, limit, b, box, total_loading, np.zeros((deltaFb.shape[0],0)), saved_stress_xx_ev, saved_stress_yy_ev, saved_stress_xy_ev, saved_delta_lambda, gone_plastic)
-
-
-
         deltaU = np.zeros((deltaFb.shape[0],1))
-        deltaU = deltaU.T
-        deltaU = deltaU[0]
+        deltaU = deltaU.T[0]
 
         count=0
-        count2 = 0
 
         ii=0
         while ii < Niter:
@@ -465,7 +466,10 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
 
             if (ii != 0):
 
-                q = np.zeros((Nn, 1))
+                if analysis_type[0,2] == 1:
+                    q = np.zeros((Nn, 1))
+                else:
+                    q = sp.lil_matrix((Nn,1))
 
                 k = 0
                 while k<TT:
@@ -477,6 +481,7 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
 
 
                     j=0
+                    count2 = 0
                     while j<Nplies:
 
 
@@ -529,7 +534,7 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
 
                             previous_stress = interm[0:3]
 
-                            if (interm[3]>1e-7 and count2 ==0):
+                            if (interm[3]>1e-7 and ii==1 and count2 == 0):
                                 data_tmp = '\nPlasticity occurring in the layer '+str(j+1)+', spotted at the element number, '+str(k)
                                 data_text += data_tmp
                                 print(data_tmp)
@@ -548,23 +553,23 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
 
 
 
-                            #stress = np.array([[saved_stress_xx[k,j]*thickness[j][0]],[saved_stress_xy[k,j]*thickness[j][0]],[saved_stress_xy[k,j]*thickness[j][0]],\
-                            #                   [saved_stress_xx[k,j]*0.5 * (hi2 ** 2 - hi1 ** 2)[0]],[saved_stress_xy[k,j]*0.5 * (hi2 ** 2 - hi1 ** 2)[0]],[saved_stress_xy[k,j]*0.5 * (hi2 ** 2 - hi1 ** 2)[0]]])
-                            #qe += internal_force_elem(X, T, k, gp, Wgauss, stress)
-
                             thick+=1
 
                         j+=1
 
                     qe = internal_force_elem(X, T, k, gp, Wgauss, saved_stress_xx,saved_stress_yy,saved_stress_xy,thickness,mid_lay,pos)
-                    q[Tie1 - 1, :] += qe
+                    if analysis_type[0,2] == 1:
+                        q[Tie1 - 1, :] += qe
+                    else:
+                        q[Tie1 - 1, :] += sp.lil_matrix(qe)
                     k+=1
 
 
                 q = applying_Fix_q(total_loading, X, T, b, box, q)
-                q = q.T
-                q = q[0]
-                #q = np.dot(globalK, U)
+
+                if analysis_type[0,2] == 1:
+                    q = q.T
+                    q = q[0]
 
 
             check_yield = saved_delta_lambda[saved_delta_lambda>1e-7]
@@ -573,17 +578,38 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
 
 
 
-            if gone_plastic==1:
+            if gone_plastic == 1:
                 data_tmp = '\nComputing the new stiffness matrix'
                 data_text += data_tmp
                 print(data_tmp)
-                globalK, Q_data = tangent_stiffness(X, T, material_param, limit, b, box, total_loading, np.zeros((deltaFb.shape[0],0)), saved_stress_xx, saved_stress_yy, saved_stress_xy, saved_delta_lambda, gone_plastic)
+                if analysis_type[0,2] == 1:
+                    globalK, Q_data = tangent_stiffness(X, T, material_param, limit, b, box, total_loading, np.zeros((deltaFb.shape[0],1)), saved_stress_xx, saved_stress_yy, saved_stress_xy, saved_delta_lambda, gone_plastic, analysis_type)
+                else:
+                    globalK, Q_data = tangent_stiffness(X, T, material_param, limit, b, box, total_loading, sp.lil_matrix((deltaFb.shape[0],1)), saved_stress_xx, saved_stress_yy, saved_stress_xy, saved_delta_lambda, gone_plastic, analysis_type)
+                    globalK = globalK.tocsr()
                 count+=1
 
-            residual = Fb + deltaFb - q
-            residual = applying_Fix_q(total_loading, X, T, b, box, residual)
+            if analysis_type[0,2] == 1:
+                residual = Fb + deltaFb - q
+            else:
+                if ii==0:
+                    q = sp.lil_matrix(q)
 
-            tolerance = np.linalg.norm(residual)/np.linalg.norm(Fb+deltaFb)
+                if ii==0 and i == 0 :
+                    residual = sp.lil_matrix( Fb + deltaFb ) - q.T
+                else:
+                    residual = sp.lil_matrix( Fb + deltaFb ) - q
+                residual = residual.tolil()
+
+            residual = applying_Fix_q(total_loading, X, T, b, box, residual)
+            if analysis_type[0,2] == 0:
+                residual = residual.tocsr()
+
+            if analysis_type[0,2] == 1:
+                tolerance = np.linalg.norm(residual)/np.linalg.norm(Fb+deltaFb)
+            else:
+                tolerance = sp.linalg.norm(residual)/sp.linalg.norm(sp.csr_matrix(Fb+deltaFb))
+
             data_tmp = '\nResidual: '+str(tolerance)+' \n'
             data_text += data_tmp
             print(data_tmp)
@@ -616,7 +642,10 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
 
             else:
 
-                dU = np.linalg.solve(globalK,residual)
+                if analysis_type[0,2] == 1:
+                    dU = np.linalg.solve(globalK,residual)
+                else:
+                    dU = sp.linalg.spsolve(globalK, residual)
 
                 deltaU = deltaU + dU
 
@@ -635,7 +664,7 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
 
     return U, Fb, sxx, syy, sxy, saved_residual, epxx, epyy, epxy, saved_deltaU
 
-def tangent_stiffness(X,T, material_param, limit, b, box, total_loading, F, saved_stress_xx, saved_stress_yy, saved_stress_xy, saved_delta_lambda, gone_plastic):
+def tangent_stiffness(X,T, material_param, limit, b, box, total_loading, F, saved_stress_xx, saved_stress_yy, saved_stress_xy, saved_delta_lambda, gone_plastic,analysis_type):
 
 
     Xgauss, Wgauss = Quadrature(1, 3)
@@ -648,7 +677,10 @@ def tangent_stiffness(X,T, material_param, limit, b, box, total_loading, F, save
     angles = material_param['angles']
     thickness = material_param['thickness']
 
-    globalK = np.zeros((6*X.shape[0],6*X.shape[0]))
+    if analysis_type[0,2] == 1:
+        globalK = np.zeros((6*X.shape[0],6*X.shape[0]))
+    else:
+        globalK = sp.lil_matrix((6*X.shape[0],6*X.shape[0]))
 
     nPlies = thickness.shape[0]
     nT = T.shape[0]
@@ -718,13 +750,17 @@ def tangent_stiffness(X,T, material_param, limit, b, box, total_loading, F, save
 
 
         elemK = src_code.core.ElemMat(X,T,k,gp,Wgauss,K)
-        globalK[np.ix_(Tie1 - 1, Tie1 - 1)] += elemK
+        if analysis_type[0,2] == 1:
+            globalK[np.ix_(Tie1 - 1, Tie1 - 1)] += elemK
+        else:
+
+            globalK[np.ix_(Tie1 - 1, Tie1 - 1)] += sp.lil_matrix(elemK)
 
         k+=1
 
 
 
 
-    fixed_borders, globalK, M, F = applying_BC(total_loading,X,T,b,box,globalK,F)
+    fixed_borders, globalK, M, F = applying_BC(total_loading,X,T,b,box,globalK,F, analysis_type)
 
     return globalK, Q_data
