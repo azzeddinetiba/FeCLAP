@@ -1,8 +1,8 @@
 # -*-coding:Latin-1 -*
 
-from src_code.boundary_conditions import *
 from src_code.Assembly import *
 from scipy.linalg import eig
+import scipy.sparse.linalg
 from src_code.postProc_calc import *
 from src_code.inputting import *
 import os
@@ -25,45 +25,28 @@ def FEM(total_loading,X,T,b,Ngauss,box,analysis_type,transient,material_param, *
 
     K, M, F = Assembly2D(X,T,surface_load,Wgauss,gp,Ngauss,Klaw,pho,thickness,analysis_type)
 
-
-    fixed_borders, K, M, F = applying_BC(total_loading,X,T,b,box,K,F,M)
-
-    Mb = np.delete(M, fixed_borders - 1, 0)
-    Mb = np.delete(Mb, fixed_borders - 1, 1)
-    Kb = np.delete(K, fixed_borders - 1, 0)
-    Kb = np.delete(Kb, fixed_borders - 1, 1)
+    fixed_borders, K, M, F = applying_BC(total_loading,X,T,b,box,K,F, analysis_type,M)
 
 
-    fixed_borders = np.unique(fixed_borders)
-    xxx = np.arange(0,M.shape[0])
-    i=0
-    while i<fixed_borders.shape[0]:
-     if i==0:
-      index = np.argwhere(xxx == fixed_borders[i]-1)
-     else:
-      index = np.argwhere(yyy == fixed_borders[i] - 1)
-     if i==0 :
-         yyy = np.delete(xxx, index)
-     else:
-         yyy = np.delete(yyy, index)
-
-     i+=1
-
-
-    #if i==0:
-    # modal_indexes = np.delete(xxx, np.arange(5,xxx.shape[0],6), 0)
-    #else:
-    # yyy = np.delete(yyy, np.arange(5,yyy.shape[0],6), 0)
-    modal_indexes = yyy
-
-
-    Fb=F.T
-    Fb=Fb[0]
 
     if analysis_type[0,0] == 1:
 
         if analysis_type[0,1] == 1:
-            U = np.linalg.solve(K, Fb)
+
+            if analysis_type[0,2] == 1:
+
+                Fb = F.T
+                Fb = Fb[0]
+
+                U = np.linalg.solve(K, Fb)
+
+            else:
+
+                K = K.tocsr()
+                F = F.tocsr()
+
+                U = sp.linalg.spsolve(K, F)
+
             return K, F, U
         else:
 
@@ -71,16 +54,71 @@ def FEM(total_loading,X,T,b,Ngauss,box,analysis_type,transient,material_param, *
             if istherePlast != 0:
                 plast_param = args[0]
 
+            if analysis_type[0,2] == 1:
+                Fb = F.T
+                Fb = Fb[0]
+
+            else:
+                Fb = F
+
             U, Fb, sxx, syy, sxy, saved_residual, epxx, epyy, epxy, saved_deltaU = \
-                plastic_analysis(X, T, K, Fb, plast_param, material_param, b, box, total_loading, Ngauss)
+                plastic_analysis(X, T, K, Fb, plast_param, material_param, b, box, total_loading, Ngauss, analysis_type)
             return  U, Fb, sxx, syy, sxy, saved_residual, epxx, epyy, epxy, saved_deltaU
 
 
 
     elif analysis_type[0,0] == 3:
 
-        modes_number = Mb.shape[0]
-        w, modes = eig(Kb,Mb)
+
+        shape_for_index = M.shape[0]
+
+        if analysis_type[0,2] == 1:
+            Mb = np.delete(M, fixed_borders - 1, 0)
+            Mb = np.delete(Mb, fixed_borders - 1, 1)
+            Kb = np.delete(K, fixed_borders - 1, 0)
+            Kb = np.delete(Kb, fixed_borders - 1, 1)
+
+            modes_number = Mb.shape[0]
+
+            w, modes = eig(Kb, Mb)
+
+        else:
+
+            boundary_load = total_loading['Bc']
+            modes_number = boundary_load['modes']
+
+            M = delete_row_csr(M, fixed_borders - 1)
+            M = sp.csr_matrix.transpose(M)
+            M = delete_row_csr(M, fixed_borders - 1)
+            M = sp.csr_matrix.transpose(M)
+
+            K = delete_row_csr(K, fixed_borders - 1)
+            K = sp.csr_matrix.transpose(K)
+            K = delete_row_csr(K, fixed_borders - 1)
+            K = sp.csr_matrix.transpose(K)
+
+            Kb = K
+            Mb = M
+
+
+            w, modes = sp.linalg.eigsh(Kb, modes_number , Mb, which = 'LM',  tol=1E-3, sigma = 0)
+
+        fixed_borders = np.unique(fixed_borders)
+        xxx = np.arange(0, shape_for_index)
+        i = 0
+        while i < fixed_borders.shape[0]:
+            if i == 0:
+                index = np.argwhere(xxx == fixed_borders[i] - 1)
+            else:
+                index = np.argwhere(yyy == fixed_borders[i] - 1)
+            if i == 0:
+                yyy = np.delete(xxx, index)
+            else:
+                yyy = np.delete(yyy, index)
+
+            i += 1
+
+        modal_indexes = yyy
 
         modes = modes.real
         indices = np.argsort(w)
@@ -105,111 +143,221 @@ def FEM(total_loading,X,T,b,Ngauss,box,analysis_type,transient,material_param, *
 
         n_iter = tf/delta_T
 
-        #F = np.dot(F,np.array([np.concatenate((np.linspace(0,1,int(n_iter/6)),np.linspace(1,0,int(n_iter/6)),np.zeros((1,int(n_iter)-2*int(n_iter/6)))[0]))]))
-        F = np.dot(F, np.ones((1,int(n_iter))))
 
-        if transient['scheme']==1:
+
+        if transient['scheme'] == 1:
+
+            F = np.dot(F, np.ones((1,int(n_iter)+1)))
+
             A = (delta_T**2)*K + M
-            A2 = np.eye(M.shape[0]) + np.dot(np.linalg.inv(A),M)
-            U2 = (delta_T**2)*np.dot(np.linalg.inv(A2),np.dot(np.linalg.inv(A),F[:,1]))
+            if analysis_type[0,2] == 1:
+                A2 = np.eye(M.shape[0]) + np.dot(np.linalg.inv(A),M)
+                U2 = (delta_T**2)*np.dot(np.linalg.inv(A2),np.dot(np.linalg.inv(A),F[:,1]))
 
-            SOL = np.zeros((M.shape[0],int(n_iter)))
-            SOL[:,1] = U2.T
+                SOL = np.zeros((M.shape[0], int(n_iter)+1))
+                SOL[:, 1] = U2.T
+
+            else:
+                M = M.tocsc()
+                A = A.tocsc()
+                inv_A = sp.linalg.inv(A)
+                A2 = sp.csc_matrix((M.shape[0],M.shape[0])) + inv_A.dot(M)
+                inv_A2 = sp.linalg.inv(A2)
+                U2 = (delta_T ** 2) * inv_A2.dot(inv_A.dot(sp.csc_matrix(F[:,1].T[0])))
+                del inv_A2
+
+                SOL = []
+                SOL.append(sp.csc_matrix((M.shape[0],1)))
+                SOL.append(U2)
+
 
             i=2
-            while i<n_iter:
+            while i<int(n_iter)+1:
 
-                U = np.dot(np.linalg.inv(A),(((delta_T**2)*F[:,i])-(np.dot(M,SOL[:,i-2])).T+(2*np.dot(M,SOL[:,i-1])).T))
-                SOL[:,i] = U.T
+                if analysis_type[0,2] == 1:
+                    U = np.dot(np.linalg.inv(A),(((delta_T**2)*F[:,i])-(np.dot(M,SOL[:,i-2]))+(2*np.dot(M,SOL[:,i-1]))))
+                    SOL[:,i] = U.T
+
+                else:
+
+                    U = inv_A.dot((delta_T**2)*sp.csc_matrix(F[:,i].T[0]) - M.dot(SOL[i-2]) + 2 * M.dot(SOL[i-1]))
+                    SOL.append(U)
+
                 i+=1
 
         elif transient['scheme']==3:
 
+            F = np.dot(F, np.ones((1, int(n_iter)+1)))
+
             n_dof = M.shape[0]
-            SOL = np.zeros((n_dof,int(n_iter)))
-
-            x = float(input('Initial displacement : ? [m]'))
-            xdot = float(input('Initial velocity : ? [m/s]'))
-            x = x*np.ones((n_dof,1))
-            xdot = xdot*np.ones((n_dof,1))
-            xtwodots = np.linalg.solve(M,F[:,0]-(np.dot(K,x)))
-
-            x = x.T[0]
-            xdot = xdot.T[0]
-            xtwodots = xtwodots.T[0]
+            x = transient['init_disp']
+            xdot = transient['init_V']
 
 
-            x1 = x - delta_T*xdot + 0.5 * (delta_T**2) * xtwodots
 
-            mat = np.linalg.inv((1/(delta_T**2))*M)
-            A = (2/(delta_T**2))*M - K
-            B = -(1/(delta_T**2))*M
 
-            SOL[:, 0] = x
-            SOL[:, 1] = x1
+            if analysis_type[0,2] == 1:
 
-            i=2
-            while i<int(n_iter):
+                x = x * np.ones((n_dof, 1))
+                xdot = xdot * np.ones((n_dof, 1))
+                xtwodots = np.linalg.solve(M, F[:, 0] - (np.dot(K, x)))
 
-                SOL[:,i] = np.dot(mat,(np.dot(A,SOL[:,i-1])+np.dot(B,SOL[:,i-2])+F[:,i]))
-                i+=1
+                x = x.T[0]
+                xdot = xdot.T[0]
+                xtwodots = xtwodots.T[0]
+
+                x1 = x - delta_T * xdot + 0.5 * (delta_T ** 2) * xtwodots
+
+                SOL = np.zeros((n_dof,int(n_iter)+1))
+
+                mat = np.linalg.inv((1/(delta_T**2))*M)
+                A = (2/(delta_T**2))*M - K
+                B = -(1/(delta_T**2))*M
+
+                SOL[:, 0] = x
+                SOL[:, 1] = x1
+
+                i=2
+                while i<int(n_iter)+1:
+
+                    SOL[:,i] = np.dot(mat,(np.dot(A,SOL[:,i-1])+np.dot(B,SOL[:,i-2])+F[:,i]))
+                    i+=1
+
+            else:
+                x = x * np.ones((n_dof, 1))
+                xdot = xdot * np.ones((n_dof, 1))
+
+
+                M = M.tocsc()
+                K = K.tocsc()
+
+                xtwodots = np.array([sp.linalg.spsolve(M,sp.csc_matrix(F[:,0].T[0]) - K.dot(sp.csc_matrix(x)))]).T
+
+
+                x = sp.csc_matrix(x)
+                xdot = sp.csc_matrix(xdot)
+                xtwodots = sp.csc_matrix(xtwodots)
+
+
+                x1 = x - delta_T * xdot + 0.5 * (delta_T ** 2) * xtwodots
+
+                SOL = []
+                mat = sp.linalg.inv((1/(delta_T**2))*M)
+                A = (2/(delta_T**2))*M - K
+                B = -(1/(delta_T**2))*M
+
+                SOL.append(x)
+                SOL.append(x1)
+
+                i=2
+                while i < int(n_iter)+1:
+                    SOL.append(mat.dot(A.dot(SOL[i - 1]) + B.dot(SOL[i - 2]) + sp.csc_matrix(F[:, i].T[0])))
+                    i += 1
 
         else:
 
-            beta = float(input('Beta  :'))
-            gamma = float(input('gamma :'))
+            F = np.dot(F,  np.array([np.concatenate((np.zeros((1,1)), np.ones((1,int(n_iter)))),axis=None)])) #No force at the initial instant
+
+            beta = transient['Beta']
+            gamma = transient['Gamma']
 
             n_dof = M.shape[0]
-            SOL = np.zeros((3*n_dof,int(n_iter)))
+            x = transient['init_disp']
+            xdot = transient['init_V']
+
+            if analysis_type[0,2] == 1:
+                SOL = np.zeros((3*n_dof,int(n_iter)))
 
 
-            x = float(input('Initial displacement : ? [m]'))
-            xdot = float(input('Initial velocity : ? [m/s]'))
-            x = x*np.ones((n_dof,1))
-            xdot = xdot*np.ones((n_dof,1))
-            xtwodots = -np.dot(np.linalg.inv(M), np.dot(K, x) - F[:, 0])
+                x = x*np.ones((n_dof,1))
+                xdot = xdot*np.ones((n_dof,1))
+                xtwodots = -np.dot(np.linalg.inv(M), np.dot(K, x) - F[:, 0])
 
-            x = x.T[0]
-            xdot = xdot.T[0]
-            xtwodots = xtwodots.T[0]
+                x = x.T[0]
+                xdot = xdot.T[0]
+                xtwodots = xtwodots.T[0]
 
 
-            SOL[0:n_dof, 0] = x
-            SOL[n_dof:2 * n_dof, 0] = xdot
-            SOL[2 * n_dof: 3 * n_dof, 0] = xtwodots
+                SOL[0:n_dof, 0] = x
+                SOL[n_dof:2 * n_dof, 0] = xdot
+                SOL[2 * n_dof: 3 * n_dof, 0] = xtwodots
 
-            mat= np.linalg.inv((1/(beta*delta_T**2))*M+K)
-            inv_M = np.linalg.inv(M)
+                mat= np.linalg.inv((1/(beta*delta_T**2))*M+K)
+                inv_M = np.linalg.inv(M)
 
-            i=1
-            while i<int(n_iter):
+                i=1
+                while i<int(n_iter)+1:
 
 
-                #deltax = np.dot(np.linalg.inv((1/(beta*delta_T**2))*M+K),(F[:,i]-F[:,i-1])+np.dot(M,(1/(beta*delta_T))*xdot+(1/(beta*2))*xtwodots))
-                #deltax = np.linalg.solve((1/(beta*delta_T**2))*M+K,(F[:,i]-F[:,i-1])+np.dot(M,(1/(beta*delta_T))*xdot+(1/(beta*2))*xtwodots))
-                deltax = np.dot(mat,(F[:,i]-F[:,i-1])+np.dot(M,(1/(beta*delta_T))*xdot+(1/(beta*2))*xtwodots))
+                    deltax = np.dot(mat,(F[:,i]-F[:,i-1])+np.dot(M,(1/(beta*delta_T))*xdot+(1/(beta*2))*xtwodots))
 
-                x += deltax
-                xdot += (deltax * gamma / (beta * delta_T)) - (gamma / beta) * xdot + delta_T * (
+                    x += deltax
+                    xdot += (deltax * gamma / (beta * delta_T)) - (gamma / beta) * xdot + delta_T * (
+                                1 - gamma / (2 * beta)) * xtwodots
+
+                    xtwodots = -np.dot(inv_M, np.dot(K, x) - F[:, i])
+
+                    SOL[0:n_dof, i] = x
+                    SOL[n_dof:2 * n_dof, i] = xdot
+                    SOL[2 * n_dof: 3 * n_dof, i] = xtwodots
+
+
+
+                    i += 1
+
+            else:
+                SOL1 = []
+                SOL_dot = []
+                SOL_two_dots = []
+
+                M = M.tocsc()
+                K = K.tocsc()
+
+                x = x * np.ones((n_dof, 1))
+                xdot = xdot * np.ones((n_dof, 1))
+                inv_M = sp.linalg.inv(M)
+                xtwodots = - inv_M.dot(K.dot(sp.csc_matrix(x))-sp.csc_matrix(F[:,0].T[0]))
+
+                x = sp.csc_matrix(x)
+                xdot = sp.csc_matrix(xdot)
+
+
+                SOL1.append(x)
+                SOL_dot.append(xdot)
+                SOL_two_dots.append(xtwodots)
+
+                mat = sp.linalg.inv((1 / (beta * delta_T ** 2)) * M + K)
+
+                i = 1
+                while i < int(n_iter)+1:
+
+                    deltax = mat.dot(sp.csc_matrix(F[:, i].T[0] - F[:, i - 1].T[0]) + M.dot((1 / (beta * delta_T)) * xdot + (
+                                1 / (beta * 2)) * xtwodots))
+                    x += deltax
+
+                    xdot += (deltax * gamma / (beta * delta_T)) - (gamma / beta) * xdot + delta_T * (
                             1 - gamma / (2 * beta)) * xtwodots
 
-                #xtwodots = -np.dot(np.linalg.inv(M),np.dot(K,x)-F[:,i])
-                #xtwodots = -np.linalg.solve(M,np.dot(K,x)-F[:,i])
-                xtwodots = -np.dot(inv_M, np.dot(K, x) - F[:, i])
+                    xtwodots = -inv_M.dot(K.dot(x) - sp.csc_matrix(F[:, i].T[0]))
 
-                SOL[0:n_dof, i] = x
-                SOL[n_dof:2 * n_dof, i] = xdot
-                SOL[2 * n_dof: 3 * n_dof, i] = xtwodots
+                    SOL1.append(x)
+                    SOL_dot.append(xdot)
+                    SOL_two_dots.append(xtwodots)
 
 
+                    i += 1
 
-                i += 1
+                del mat
+                del deltax
+                del xtwodots
+                del xdot
 
+                SOL = [SOL1, SOL_dot, SOL_two_dots]
 
         return K, F, SOL
 
 
-def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, total_loading, Ngauss):
+def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, total_loading, Ngauss, analysis_type):
 
     script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     results_dir = os.path.join(script_dir, 'Results/')
@@ -219,6 +367,10 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
     text_file = open(results_dir+'Non_Linear_Results.txt', "w")
     data_text = 'The yield stresses, displacements, and information on load increments are shown here:'
 
+
+
+    if analysis_type[0,2] == 0:
+        globalK = globalK.tocsr()
 
     TT=T.shape[0]
 
@@ -249,9 +401,11 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
 
     #The load is divided on equal incremental loads
     deltaFb = Fb/Nincr
-    Fb = np.zeros((deltaFb.shape[0],1))
-    Fb = Fb.T
-    Fb = Fb[0]
+    if analysis_type[0,2] == 1:
+        Fb = np.zeros((deltaFb.shape[0],1))
+        Fb = Fb.T[0]
+    else:
+        Fb = sp.lil_matrix((deltaFb.shape[0],1))
     saved_residual = []
     sxx = []
     syy = []
@@ -289,19 +443,10 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
     i=0
     while i<Nincr:
 
-
-        #if i!=0:
-
-        #    globalK, Q_data = tangent_stiffness(X, T, material_param, limit, b, box, total_loading, np.zeros((deltaFb.shape[0],0)), saved_stress_xx_ev, saved_stress_yy_ev, saved_stress_xy_ev, saved_delta_lambda, gone_plastic)
-
-
-
         deltaU = np.zeros((deltaFb.shape[0],1))
-        deltaU = deltaU.T
-        deltaU = deltaU[0]
+        deltaU = deltaU.T[0]
 
         count=0
-        count2 = 0
 
         ii=0
         while ii < Niter:
@@ -321,7 +466,10 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
 
             if (ii != 0):
 
-                q = np.zeros((Nn, 1))
+                if analysis_type[0,2] == 1:
+                    q = np.zeros((Nn, 1))
+                else:
+                    q = sp.lil_matrix((Nn,1))
 
                 k = 0
                 while k<TT:
@@ -333,6 +481,7 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
 
 
                     j=0
+                    count2 = 0
                     while j<Nplies:
 
 
@@ -385,7 +534,7 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
 
                             previous_stress = interm[0:3]
 
-                            if (interm[3]>1e-7 and count2 ==0):
+                            if (interm[3]>1e-7 and ii==1 and count2 == 0):
                                 data_tmp = '\nPlasticity occurring in the layer '+str(j+1)+', spotted at the element number, '+str(k)
                                 data_text += data_tmp
                                 print(data_tmp)
@@ -404,23 +553,23 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
 
 
 
-                            #stress = np.array([[saved_stress_xx[k,j]*thickness[j][0]],[saved_stress_xy[k,j]*thickness[j][0]],[saved_stress_xy[k,j]*thickness[j][0]],\
-                            #                   [saved_stress_xx[k,j]*0.5 * (hi2 ** 2 - hi1 ** 2)[0]],[saved_stress_xy[k,j]*0.5 * (hi2 ** 2 - hi1 ** 2)[0]],[saved_stress_xy[k,j]*0.5 * (hi2 ** 2 - hi1 ** 2)[0]]])
-                            #qe += internal_force_elem(X, T, k, gp, Wgauss, stress)
-
                             thick+=1
 
                         j+=1
 
                     qe = internal_force_elem(X, T, k, gp, Wgauss, saved_stress_xx,saved_stress_yy,saved_stress_xy,thickness,mid_lay,pos)
-                    q[Tie1 - 1, :] += qe
+                    if analysis_type[0,2] == 1:
+                        q[Tie1 - 1, :] += qe
+                    else:
+                        q[Tie1 - 1, :] += sp.lil_matrix(qe)
                     k+=1
 
 
                 q = applying_Fix_q(total_loading, X, T, b, box, q)
-                q = q.T
-                q = q[0]
-                #q = np.dot(globalK, U)
+
+                if analysis_type[0,2] == 1:
+                    q = q.T
+                    q = q[0]
 
 
             check_yield = saved_delta_lambda[saved_delta_lambda>1e-7]
@@ -429,17 +578,38 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
 
 
 
-            if gone_plastic==1:
+            if gone_plastic == 1:
                 data_tmp = '\nComputing the new stiffness matrix'
                 data_text += data_tmp
                 print(data_tmp)
-                globalK, Q_data = tangent_stiffness(X, T, material_param, limit, b, box, total_loading, np.zeros((deltaFb.shape[0],0)), saved_stress_xx, saved_stress_yy, saved_stress_xy, saved_delta_lambda, gone_plastic)
+                if analysis_type[0,2] == 1:
+                    globalK, Q_data = tangent_stiffness(X, T, material_param, limit, b, box, total_loading, np.zeros((deltaFb.shape[0],1)), saved_stress_xx, saved_stress_yy, saved_stress_xy, saved_delta_lambda, gone_plastic, analysis_type)
+                else:
+                    globalK, Q_data = tangent_stiffness(X, T, material_param, limit, b, box, total_loading, sp.lil_matrix((deltaFb.shape[0],1)), saved_stress_xx, saved_stress_yy, saved_stress_xy, saved_delta_lambda, gone_plastic, analysis_type)
+                    globalK = globalK.tocsr()
                 count+=1
 
-            residual = Fb + deltaFb - q
-            residual = applying_Fix_q(total_loading, X, T, b, box, residual)
+            if analysis_type[0,2] == 1:
+                residual = Fb + deltaFb - q
+            else:
+                if ii==0:
+                    q = sp.lil_matrix(q)
 
-            tolerance = np.linalg.norm(residual)/np.linalg.norm(Fb+deltaFb)
+                if ii==0 and i == 0 :
+                    residual = sp.lil_matrix( Fb + deltaFb ) - q.T
+                else:
+                    residual = sp.lil_matrix( Fb + deltaFb ) - q
+                residual = residual.tolil()
+
+            residual = applying_Fix_q(total_loading, X, T, b, box, residual)
+            if analysis_type[0,2] == 0:
+                residual = residual.tocsr()
+
+            if analysis_type[0,2] == 1:
+                tolerance = np.linalg.norm(residual)/np.linalg.norm(Fb+deltaFb)
+            else:
+                tolerance = sp.linalg.norm(residual)/sp.linalg.norm(sp.csr_matrix(Fb+deltaFb))
+
             data_tmp = '\nResidual: '+str(tolerance)+' \n'
             data_text += data_tmp
             print(data_tmp)
@@ -472,7 +642,10 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
 
             else:
 
-                dU = np.linalg.solve(globalK,residual)
+                if analysis_type[0,2] == 1:
+                    dU = np.linalg.solve(globalK,residual)
+                else:
+                    dU = sp.linalg.spsolve(globalK, residual)
 
                 deltaU = deltaU + dU
 
@@ -491,7 +664,7 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
 
     return U, Fb, sxx, syy, sxy, saved_residual, epxx, epyy, epxy, saved_deltaU
 
-def tangent_stiffness(X,T, material_param, limit, b, box, total_loading, F, saved_stress_xx, saved_stress_yy, saved_stress_xy, saved_delta_lambda, gone_plastic):
+def tangent_stiffness(X,T, material_param, limit, b, box, total_loading, F, saved_stress_xx, saved_stress_yy, saved_stress_xy, saved_delta_lambda, gone_plastic,analysis_type):
 
 
     Xgauss, Wgauss = Quadrature(1, 3)
@@ -504,7 +677,10 @@ def tangent_stiffness(X,T, material_param, limit, b, box, total_loading, F, save
     angles = material_param['angles']
     thickness = material_param['thickness']
 
-    globalK = np.zeros((6*X.shape[0],6*X.shape[0]))
+    if analysis_type[0,2] == 1:
+        globalK = np.zeros((6*X.shape[0],6*X.shape[0]))
+    else:
+        globalK = sp.lil_matrix((6*X.shape[0],6*X.shape[0]))
 
     nPlies = thickness.shape[0]
     nT = T.shape[0]
@@ -574,13 +750,17 @@ def tangent_stiffness(X,T, material_param, limit, b, box, total_loading, F, save
 
 
         elemK = src_code.core.ElemMat(X,T,k,gp,Wgauss,K)
-        globalK[np.ix_(Tie1 - 1, Tie1 - 1)] += elemK
+        if analysis_type[0,2] == 1:
+            globalK[np.ix_(Tie1 - 1, Tie1 - 1)] += elemK
+        else:
+
+            globalK[np.ix_(Tie1 - 1, Tie1 - 1)] += sp.lil_matrix(elemK)
 
         k+=1
 
 
 
 
-    fixed_borders, globalK, M, F = applying_BC(total_loading,X,T,b,box,globalK,F)
+    fixed_borders, globalK, M, F = applying_BC(total_loading,X,T,b,box,globalK,F, analysis_type)
 
     return globalK, Q_data

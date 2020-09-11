@@ -1,4 +1,4 @@
-﻿<!--
+﻿﻿<!--
 
 -->
 
@@ -64,7 +64,8 @@
 
 This is a personal project small solver for the **F**inite **e**lement analysis of **C**omposite **LA**minate **P**lates = **_FeCLAP_** for rectangular geometries.
 This solver supports **static, modal, transient and non linear analysis** using a perfectly elasto-plastic model.
-
+Only triangular mesh from _distmes_ is available, and only rectangular geometries.
+The plastic model used is based on a Tsai-Hill Yield function, with no plastic hardening.
 
 <!-- GETTING STARTED -->
 ## Getting Started

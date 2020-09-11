@@ -16,7 +16,6 @@ print(
     '\nExample Cases For FeCLAP\n\nTIBA Azzeddine  -  2020\n')
 
 
-
 #------------------------    CASE  1 Non linear Response  -----------------------------
 #-------------------------------------------------------------------------------------
 #The Geometry
@@ -62,9 +61,10 @@ if not os.path.isdir(results_dir):
 """ A test with a Nodal loading in the location (0.7, 0.4)
 of  4000 N in the X direction, resulting with a plastic deformation
 """
-analysis_type = np.zeros((1,2))
+analysis_type = np.zeros((1,3))
 analysis_type[0,0] = 1
 analysis_type[0,1] = 2
+analysis_type[0,2] = 1
 print()
 Ngauss=3
 print()
@@ -235,6 +235,7 @@ if component != 0:
 # ----------------------------- END  CASE  1 ----------------------------------------------
 #----------------------------------------------------------------------------------------------
 
+
 #-----------------------    CASE  2  Modal Frequencies --------------------------------
 #-------------------------------------------------------------------------------------
 #The Geometry
@@ -281,8 +282,9 @@ if not os.path.isdir(results_dir):
 with boundary conditions free-free-free-free
 showing thus the rigid and flexible modes
 """
-analysis_type = np.zeros((1,2))
+analysis_type = np.zeros((1,3))
 analysis_type[0,0] = 3
+analysis_type[0,2] = 1
 print()
 Ngauss=3
 print()
@@ -352,17 +354,18 @@ mode_number = 2
 
 modal_anim = animate_mode(freq, modes, mode_number, modal_indexes, mesh_size, p, t)
 writervideo = animation.FFMpegWriter(fps=60)
-modal_anim.save(results_dir + "CASE 2 modal" + "_mode_" + str(mode_number) + ".mp4", writer=writervideo)
+modal_anim.save(results_dir + "CASE 2 modal_mode_" + str(mode_number) + ".mp4", writer=writervideo)
 
 mode_number = 8
 
 modal_anim = animate_mode(freq, modes, mode_number, modal_indexes, mesh_size, p, t)
 writervideo = animation.FFMpegWriter(fps=60)
-modal_anim.save(results_dir + "CASE 2 modal" + "_mode_" + str(mode_number) + ".mp4", writer=writervideo)
+modal_anim.save(results_dir + "CASE 2 modal_mode_" + str(mode_number) + ".mp4", writer=writervideo)
 
 
 # ----------------------------- END  CASE  2 ----------------------------------------------
 #----------------------------------------------------------------------------------------------
+
 
 #-----------------    CASE  3 Static Linear Imposed Displacement  ------------------------
 #-------------------------------------------------------------------------------------
@@ -409,9 +412,10 @@ if not os.path.isdir(results_dir):
 """ A static Linear Case with imposed displacement
  on the two ends of the plate
 """
-analysis_type = np.zeros((1,2))
+analysis_type = np.zeros((1,3))
 analysis_type[0,0] = 1
 analysis_type[0,1] = 1
+analysis_type[0,2] = 1
 print()
 Ngauss=3
 print()
@@ -563,3 +567,5 @@ if th == 0:
 # ----------------------------- END  CASE  3 ----------------------------------------------
 #----------------------------------------------------------------------------------------------
 
+print()
+print('ALL tests finished ')

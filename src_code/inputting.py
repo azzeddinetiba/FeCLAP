@@ -2,7 +2,7 @@
 
 import numpy as np
 
-def get_plies():
+def get_plies(analysis_type):
     N=int(input('Number of plies : '))
     PPT = np.zeros((N, 4))
     angles = np.zeros((N, 1))
@@ -23,7 +23,8 @@ def get_plies():
      PPT[i,2] = vLT
      GLT = float(input('GLT : '))
      PPT[i,3] = GLT
-     pho[i] = float(input('Density : '))
+     if analysis_type[0,0] != 1:
+        pho[i] = float(input('Density : '))
      thickness[i] = float(input('Ply thickness : '))
      i+=1
 
@@ -218,19 +219,25 @@ def get_boundaryconditions(analysis_type):
 
     ENFRCDS[:, np.arange(5, 10)] = ENFRCDS[:, [5, 6, 7, 9, 8]]
 
+    modes_numb = 0
+    if analysis_type[0,0] == 3 and analysis_type[0,2] == 0:
+        modes_numb = int(input('Number of modes extracted ? '))
+
     boundary_load = {'NX1':NX1, 'NY1':NY1, 'NX2':NX2, 'NY2':  NY2, 'NX3': NX3,\
                      'NY3':NY3,'NX4':NX4, 'NY4':NY4, 'MY1':MY1, 'MXY1':MXY1,\
                      'MX2':MX2, 'MXY2':MXY2, 'MY3':MY3, 'MXY3':MXY3, 'MX4':MX4,\
-                     'MXY4':MXY4,'boundaryconditions':boundaryconditions, 'ENFRCDS':ENFRCDS}
+                     'MXY4':MXY4,'boundaryconditions':boundaryconditions, 'ENFRCDS':ENFRCDS,'modes':modes_numb}
 
     return boundary_load
 
 def get_type():
-    analysis_type = np.zeros((1,2))
+    analysis_type = np.zeros((1,3))
     analysis_type[0,0] = int(input('Static 1 / Dynamic 2 / Frequency 3 : '))
 
     if analysis_type[0,0] == 1:
         analysis_type[0,1] = int(input('Elastic 1 / Plastic 2 :'))
+
+    analysis_type[0, 2] = int(input('Solver : Sparse 0 / Dense 1 : '))
 
     return analysis_type
 
@@ -241,7 +248,19 @@ def get_transient():
     delta_T = float(input('Time step :  [s] '))
     integration = int(input('Time integration : Backward euler scheme 1 / Newmark 2 / Explicit 3 :'))
 
-    transient = {'final_instant':tf, 'time_step':delta_T, 'scheme':integration}
+    beta = 0
+    gamma = 0
+    x = 0
+    xdot = 0
+    if integration == 2:
+        beta = float(input('Beta  :'))
+        gamma = float(input('gamma :'))
+    if integration == 2 or integration == 3:
+        x = float(input('Initial displacement : ? [m]'))
+        xdot = float(input('Initial velocity : ? [m/s]'))
+
+    transient = {'final_instant':tf, 'time_step':delta_T, 'scheme':integration,\
+                 'Beta': beta, 'Gamma':gamma, 'init_disp':x, 'init_V':xdot}
 
     return transient
 

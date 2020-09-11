@@ -2,6 +2,9 @@
 
 import numpy as np
 import math as m
+import scipy
+from scipy import sparse as sp
+
 
 def ElemMat(X,T,ie,gp,Wgauss,K):
 
@@ -522,3 +525,30 @@ def internal_force_elem(X, T, ie, gp, Wgauss, saved_stress_xx,saved_stress_yy,sa
 
 
         return qe
+
+
+def delete_row_csr(mat, i):
+    k = np.unique(i)
+    k = np.sort(k)
+
+    mat = mat.tocsr()
+    ii=0
+    while ii<len(k):
+        n = mat.indptr[k[ii]+1] - mat.indptr[k[ii]]
+        if n > 0:
+            mat.data[mat.indptr[k[ii]]:-n] = mat.data[mat.indptr[k[ii]+1]:]
+            mat.data = mat.data[:-n]
+            mat.indices[mat.indptr[k[ii]]:-n] = mat.indices[mat.indptr[k[ii]+1]:]
+            mat.indices = mat.indices[:-n]
+        mat.indptr[k[ii]:-1] = mat.indptr[k[ii]+1:]
+        mat.indptr[k[ii]:] -= n
+        mat.indptr = mat.indptr[:-1]
+        mat._shape = (mat._shape[0]-1, mat._shape[1])
+
+        k = k-1
+        ii+=1
+
+
+    mat = mat.tocsr()
+
+    return mat
