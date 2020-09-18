@@ -64,7 +64,7 @@ of  4000 N in the X direction, resulting with a plastic deformation
 analysis_type = np.zeros((1,3))
 analysis_type[0,0] = 1
 analysis_type[0,1] = 2
-analysis_type[0,2] = 1
+analysis_type[0,2] = 0
 print()
 Ngauss=3
 print()
@@ -99,7 +99,7 @@ f = lambda x, y: 0
 g = lambda x, y: 0
 h = lambda x, y: 0
 pointload = -1
-NODALLOAD = np.array([4000, 0, 0])
+NODALLOAD = np.array([3725, 0, 0])
 XY = np.zeros((1, 2))
 XY[0,0]=0.7
 XY[0,1]=0.4
@@ -127,7 +127,7 @@ surface_nodal_load = {'surf': surface_load, 'node': nodal_load}
 total_loading = {'Bc':boundary_load, 'surf_node':surface_nodal_load}
 print()
 
-Nincr = 18
+Nincr = 28
 Niter = 100
 
 limit = np.zeros((3, 3))
@@ -150,7 +150,7 @@ U, Fb, sxx, syy, sxy, saved_residual, epxx, epyy, epxy, saved_deltaU = \
 
 
 
-chosen_step = 15
+chosen_step = 25
 st = 0
 resul = np.zeros((Fb.shape[0], 1))
 resul = resul.T
@@ -222,7 +222,7 @@ if component != 0:
             plt.gca().set_aspect('equal')
 
 
-            sxx_used = sxx[chosen_step]
+            sxx_used = sxx[chosen_step - 1]
             sxx_used = sxx_used[1, :, lay - 1]
             plt.tripcolor(p[:, 0], p[:, 1], t, facecolors=sxx_used, edgecolors='k')
 
@@ -231,6 +231,37 @@ if component != 0:
             fig9.savefig(results_dir + titledef + ' .png')
             plt.show()
 
+
+#Finding the element to plot the stress
+
+
+x = XY[0,0]
+y = XY[0,1]
+
+i = 0
+while i < t.shape[0]:
+    if x <= np.max(p[t[i,:],0]) and  np.min(p[t[i,:],0]) <= x and  np.min(p[t[i,:],1]) <= y and y <= np.max(p[t[i,:],1]):
+        elementu = i
+        break
+    i += 1
+
+plotted_sxx = np.zeros((1,len(sxx)))
+plotted_epxx = np.zeros((1,len(epxx)))
+step=0
+while step<len(sxx):
+    plotted_sxx[0,step] = sxx[step][1,elementu,lay - 1]
+    ii = 0
+    while ii<step:
+        plotted_epxx[0,step] += epxx[ii][elementu,0]
+        ii+=1
+
+    step+=1
+
+fig = plt.figure()
+titledef = 'Stress Strain Curve in the applied load region '
+plt.plot(plotted_epxx, plotted_sxx, 'b-')
+plt.title(titledef)
+fig.savefig(results_dir + titledef + ' .png')
 
 # ----------------------------- END  CASE  1 ----------------------------------------------
 #----------------------------------------------------------------------------------------------

@@ -401,11 +401,12 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
 
     #The load is divided on equal incremental loads
     deltaFb = Fb/Nincr
-    if analysis_type[0,2] == 1:
-        Fb = np.zeros((deltaFb.shape[0],1))
+    if analysis_type[0, 2] == 1:
+        Fb = np.zeros((deltaFb.shape[0], 1))
         Fb = Fb.T[0]
     else:
-        Fb = sp.lil_matrix((deltaFb.shape[0],1))
+        Fb = sp.lil_matrix((deltaFb.shape[0], 1))
+
     saved_residual = []
     sxx = []
     syy = []
@@ -448,6 +449,7 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
 
         count=0
 
+        gone_plastic = 0
         ii=0
         while ii < Niter:
 
@@ -455,30 +457,134 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
             data_text += data_tmp
             print(data_tmp)
 
-            u = deltaU[0::6]
-            v = deltaU[1::6]
-            w = deltaU[2::6]
-            thetax =  deltaU[4::6]
-            thetay = - deltaU[3::6]
 
-            strain = strain_calc(X,T,u,v)
+            if gone_plastic == 1:
+                data_tmp = '\nComputing the new stiffness matrix'
+                data_text += data_tmp
+                print(data_tmp)
+                if analysis_type[0,2] == 1:
+                    globalK, Q_data = tangent_stiffness(X, T, material_param, limit, b, box, total_loading, np.zeros((deltaFb.shape[0],1)), saved_stress_xx, saved_stress_yy, saved_stress_xy, saved_delta_lambda, gone_plastic, analysis_type)
+                else:
+                    globalK, Q_data = tangent_stiffness(X, T, material_param, limit, b, box, total_loading, sp.lil_matrix((deltaFb.shape[0],1)), saved_stress_xx, saved_stress_yy, saved_stress_xy, saved_delta_lambda, gone_plastic, analysis_type)
+                    globalK = globalK.tocsr()
+                count += 1
 
 
-            if (ii != 0):
+            if (ii != 0 or i!=0):
 
+                print( ' Computing Internal forces ')
                 if analysis_type[0,2] == 1:
                     q = np.zeros((Nn, 1))
                 else:
                     q = sp.lil_matrix((Nn,1))
 
                 k = 0
-                while k<TT:
+                while k < TT:
+
 
                     Tie = T[k, :] + 1
                     Tie1 = np.concatenate((np.arange(6 * Tie[0] - 5, 6 * Tie[0] + 1),
                                            np.arange(6 * Tie[1] - 5, 6 * Tie[1] + 1),
                                            np.arange(6 * Tie[2] - 5, 6 * Tie[2] + 1)), 0)
 
+
+                    qe = internal_force_elem(X, T, k, gp, Wgauss, saved_stress_xx, saved_stress_yy, saved_stress_xy,
+                                             thickness, mid_lay, pos)
+                    if analysis_type[0, 2] == 1:
+                        q[Tie1 - 1, :] += qe
+                    else:
+                        q[Tie1 - 1, :] += sp.lil_matrix(qe)
+
+                    k+=1
+
+
+                q = applying_Fix_q(total_loading, X, T, b, box, q)
+
+
+            if analysis_type[0, 2] == 1:
+                q = q.T
+                q = q[0]
+
+
+            if analysis_type[0,2] == 1:
+                residual = Fb + deltaFb - q
+            else:
+                if ii==0:
+                    q = sp.lil_matrix(q)
+
+                if ii==0 and i == 0 :
+                    residual = sp.lil_matrix(Fb + deltaFb) - q.T
+                else:
+                    residual = sp.lil_matrix(Fb + deltaFb) - q
+                residual = residual.tolil()
+
+
+
+
+            residual = applying_Fix_q(total_loading, X, T, b, box, residual)
+            if analysis_type[0,2] == 0:
+                residual = residual.tocsr()
+                nonzero_mask = np.array(np.abs(residual[residual.nonzero()]) < 1e-14)[0]
+                rows = residual.nonzero()[0][nonzero_mask]
+                residual[rows, 0] = 0
+
+
+
+            if analysis_type[0,2] == 1:
+                tolerance = np.linalg.norm(residual)/np.linalg.norm(Fb+deltaFb)
+            else:
+                tolerance = sp.linalg.norm(residual)/sp.linalg.norm(sp.csr_matrix(Fb+deltaFb))
+
+            data_tmp = '\nResidual: '+str(tolerance)+' \n'
+            data_text += data_tmp
+            print(data_tmp)
+
+
+
+            if ( tolerance < 0.001 )  or ( count > 0 and tolerance < 0.05 ):
+
+
+                saved_residual.append(residual)
+
+
+                saved_stress_xx_ev = saved_stress_xx
+                saved_stress_yy_ev = saved_stress_yy
+                saved_stress_xy_ev = saved_stress_xy
+
+
+                sxx.append(saved_stress_xx_ev)
+                syy.append(saved_stress_yy_ev)
+                sxy.append(saved_stress_xy_ev)
+
+
+                epxx.append(saved_strain_xx)
+                epyy.append(saved_strain_yy)
+                epxy.append(saved_strain_xy)
+
+                saved_deltaU.append(deltaU)
+
+                break
+
+            else:
+
+                if analysis_type[0,2] == 1:
+                    dU = np.linalg.solve(globalK, residual)
+                else:
+                    dU = sp.linalg.spsolve(globalK, residual)
+
+
+                deltaU = deltaU + dU
+
+                u = deltaU[0::6]
+                v = deltaU[1::6]
+                w = deltaU[2::6]
+                thetax = deltaU[4::6]
+                thetay = - deltaU[3::6]
+
+                strain = strain_calc(X, T, u, v)
+
+                k=0
+                while k < TT:
 
                     j=0
                     count2 = 0
@@ -532,9 +638,10 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
                             interm = rtrnAlg.reshape((1, 4))
                             interm = np.array(interm[0])
 
+
                             previous_stress = interm[0:3]
 
-                            if (interm[3]>1e-7 and ii==1 and count2 == 0):
+                            if (interm[3]>1e-7 and ii == 0 and count2 == 0):
                                 data_tmp = '\nPlasticity occurring in the layer '+str(j+1)+', spotted at the element number, '+str(k)
                                 data_text += data_tmp
                                 print(data_tmp)
@@ -557,97 +664,14 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
 
                         j+=1
 
-                    qe = internal_force_elem(X, T, k, gp, Wgauss, saved_stress_xx,saved_stress_yy,saved_stress_xy,thickness,mid_lay,pos)
-                    if analysis_type[0,2] == 1:
-                        q[Tie1 - 1, :] += qe
-                    else:
-                        q[Tie1 - 1, :] += sp.lil_matrix(qe)
+
                     k+=1
 
 
-                q = applying_Fix_q(total_loading, X, T, b, box, q)
+                check_yield = saved_delta_lambda[saved_delta_lambda > 1e-7]
+                if check_yield.shape[0] != 0:
+                    gone_plastic = 1
 
-                if analysis_type[0,2] == 1:
-                    q = q.T
-                    q = q[0]
-
-
-            check_yield = saved_delta_lambda[saved_delta_lambda>1e-7]
-            if check_yield.shape[0]!=0:
-                gone_plastic = 1
-
-
-
-            if gone_plastic == 1:
-                data_tmp = '\nComputing the new stiffness matrix'
-                data_text += data_tmp
-                print(data_tmp)
-                if analysis_type[0,2] == 1:
-                    globalK, Q_data = tangent_stiffness(X, T, material_param, limit, b, box, total_loading, np.zeros((deltaFb.shape[0],1)), saved_stress_xx, saved_stress_yy, saved_stress_xy, saved_delta_lambda, gone_plastic, analysis_type)
-                else:
-                    globalK, Q_data = tangent_stiffness(X, T, material_param, limit, b, box, total_loading, sp.lil_matrix((deltaFb.shape[0],1)), saved_stress_xx, saved_stress_yy, saved_stress_xy, saved_delta_lambda, gone_plastic, analysis_type)
-                    globalK = globalK.tocsr()
-                count+=1
-
-            if analysis_type[0,2] == 1:
-                residual = Fb + deltaFb - q
-            else:
-                if ii==0:
-                    q = sp.lil_matrix(q)
-
-                if ii==0 and i == 0 :
-                    residual = sp.lil_matrix( Fb + deltaFb ) - q.T
-                else:
-                    residual = sp.lil_matrix( Fb + deltaFb ) - q
-                residual = residual.tolil()
-
-            residual = applying_Fix_q(total_loading, X, T, b, box, residual)
-            if analysis_type[0,2] == 0:
-                residual = residual.tocsr()
-
-            if analysis_type[0,2] == 1:
-                tolerance = np.linalg.norm(residual)/np.linalg.norm(Fb+deltaFb)
-            else:
-                tolerance = sp.linalg.norm(residual)/sp.linalg.norm(sp.csr_matrix(Fb+deltaFb))
-
-            data_tmp = '\nResidual: '+str(tolerance)+' \n'
-            data_text += data_tmp
-            print(data_tmp)
-
-
-
-            if ( tolerance < 0.001 )  or ( count>1 and tolerance < 0.06 ):
-
-
-                saved_residual.append(residual)
-
-
-                saved_stress_xx_ev = saved_stress_xx
-                saved_stress_yy_ev = saved_stress_yy
-                saved_stress_xy_ev = saved_stress_xy
-
-
-                sxx.append(saved_stress_xx_ev)
-                syy.append(saved_stress_yy_ev)
-                sxy.append(saved_stress_xy_ev)
-
-
-                epxx.append(saved_strain_xx)
-                epyy.append(saved_strain_yy)
-                epxy.append(saved_strain_xy)
-
-                saved_deltaU.append(deltaU)
-
-                break
-
-            else:
-
-                if analysis_type[0,2] == 1:
-                    dU = np.linalg.solve(globalK,residual)
-                else:
-                    dU = sp.linalg.spsolve(globalK, residual)
-
-                deltaU = deltaU + dU
 
             ii+=1
 

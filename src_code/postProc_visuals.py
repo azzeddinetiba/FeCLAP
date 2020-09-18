@@ -827,7 +827,6 @@ def Plastic_Post_proc(U, p, t, material_param, Fb, sxx, syy, sxy, saved_residual
     ax.plot_trisurf(p[:, 0], p[:, 1], t, w, linewidth=0.2, antialiased=True, cmap='jet')
     fig.savefig(results_dir + 'Transversal Displacement w (Oz) .png')
     plt.show()
-    print('press any key to continue')
 
     print()
 
@@ -890,7 +889,7 @@ def Plastic_Post_proc(U, p, t, material_param, Fb, sxx, syy, sxy, saved_residual
                 plt.gca().set_aspect('equal')
 
                 if component == 1:
-                    sxx_used = sxx[chosen_step]
+                    sxx_used = sxx[chosen_step-1]
                     sxx_used = sxx_used[1,:,lay-1]
                     plt.tripcolor(p[:, 0], p[:, 1], t, facecolors=sxx_used, edgecolors='k')
                 elif component == 2:

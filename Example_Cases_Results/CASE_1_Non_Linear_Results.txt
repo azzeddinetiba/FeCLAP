@@ -5,174 +5,234 @@ Residual: 1.0
 
 Increment : 1
 iteration : 1
-Residual: 1.2683433946888961e-15 
+Residual: 4.468477932482739e-16 
 
 Increment : 2
 iteration : 0
-Residual: 0.5000000000000006 
+Residual: 0.5000000000000001 
 
 Increment : 2
 iteration : 1
-Residual: 4.746772518797557e-16 
+Residual: 3.7753700824422387e-16 
 
 Increment : 3
 iteration : 0
-Residual: 0.33333333333333354 
+Residual: 0.3333333333333335 
 
 Increment : 3
 iteration : 1
-Residual: 4.627018892647534e-16 
+Residual: 2.8910735850214647e-16 
 
 Increment : 4
 iteration : 0
-Residual: 0.25000000000000017 
+Residual: 0.2500000000000001 
 
 Increment : 4
 iteration : 1
-Residual: 2.664612526585419e-16 
+Residual: 1.626969804438459e-16 
 
 Increment : 5
 iteration : 0
-Residual: 0.20000000000000007 
+Residual: 0.19999999999999993 
 
 Increment : 5
 iteration : 1
-Residual: 2.6595503728486407e-16 
+Residual: 3.733809635512991e-16 
 
 Increment : 6
 iteration : 0
-Residual: 0.1666666666666668 
+Residual: 0.1666666666666669 
 
 Increment : 6
 iteration : 1
-Residual: 2.4607190239020917e-16 
+Residual: 2.1587280178731067e-16 
 
 Increment : 7
 iteration : 0
-Residual: 0.142857142857143 
+Residual: 0.1428571428571427 
 
 Increment : 7
 iteration : 1
-Residual: 2.1404369316244434e-16 
+Residual: 2.9450349928722154e-16 
 
 Increment : 8
 iteration : 0
-Residual: 0.1250000000000001 
+Residual: 0.1250000000000002 
 
 Increment : 8
 iteration : 1
-Residual: 2.3250806969107236e-16 
+Residual: 1.4619506642848137e-16 
 
 Increment : 9
 iteration : 0
-Residual: 0.11111111111111122 
+Residual: 0.11111111111111109 
 
 Increment : 9
 iteration : 1
-Residual: 1.479471212037387e-16 
+Residual: 1.7171492314954833e-16 
 
 Increment : 10
 iteration : 0
-Residual: 0.10000000000000007 
+Residual: 0.09999999999999998 
 
 Increment : 10
 iteration : 1
-Residual: 2.585151172771699e-16 
+Residual: 3.75330570773057e-16 
 
 Increment : 11
 iteration : 0
-Residual: 0.09090909090909108 
+Residual: 0.0909090909090912 
 
 Increment : 11
 iteration : 1
-Residual: 2.4018447445572657e-16 
+Residual: 2.1442155229604044e-16 
 
 Increment : 12
 iteration : 0
-Residual: 0.0833333333333335 
+Residual: 0.08333333333333318 
 
 Increment : 12
 iteration : 1
-Residual: 2.579706381154564e-16 
+Residual: 2.41140698402244e-16 
 
 Increment : 13
 iteration : 0
-Residual: 0.07692307692307675 
+Residual: 0.07692307692307704 
 
 Increment : 13
 iteration : 1
-Residual: 1.9949764129143057e-16 
+Residual: 2.119206653290708e-16 
 
 Increment : 14
 iteration : 0
-Residual: 0.07142857142857142 
+Residual: 0.0714285714285713 
 
 Increment : 14
 iteration : 1
-Residual: 4.484414169848321e-16 
+Residual: 2.0126706660196183e-16 
 
 Increment : 15
 iteration : 0
-Residual: 0.06666666666666693 
+Residual: 0.06666666666666678 
 
 Increment : 15
 iteration : 1
-Plasticity occurring in the layer 1, spotted at the element number, 35
-Computing the new stiffness matrix
-Residual: 0.015389183698447608 
-
-Increment : 15
-iteration : 2
-Computing the new stiffness matrix
-Residual: 0.07638079166186962 
-
-Increment : 15
-iteration : 3
-Computing the new stiffness matrix
-Residual: 0.061461941519957236 
-
-Increment : 15
-iteration : 4
-Computing the new stiffness matrix
-Residual: 0.042224769560228144 
+Residual: 2.0882193286645003e-16 
 
 Increment : 16
 iteration : 0
-Computing the new stiffness matrix
-Residual: 0.09776661996071197 
+Residual: 0.0625000000000002 
 
 Increment : 16
 iteration : 1
-Plasticity occurring in the layer 1, spotted at the element number, 35
-Plasticity occurring in the layer 1, spotted at the element number, 75
-Plasticity occurring in the layer 1, spotted at the element number, 127
-Computing the new stiffness matrix
-Residual: 0.05243374070506604 
+Residual: 1.5257186105253938e-16 
 
 Increment : 17
 iteration : 0
-Computing the new stiffness matrix
-Residual: 0.07350135362775395 
+Residual: 0.05882352941176469 
 
 Increment : 17
 iteration : 1
-Plasticity occurring in the layer 1, spotted at the element number, 35
-Plasticity occurring in the layer 1, spotted at the element number, 75
-Plasticity occurring in the layer 1, spotted at the element number, 77
-Plasticity occurring in the layer 1, spotted at the element number, 127
-Computing the new stiffness matrix
-Residual: 0.05342219963460721 
+Residual: 2.5750834327134683e-16 
 
 Increment : 18
 iteration : 0
-Computing the new stiffness matrix
-Residual: 0.06344372158385458 
+Residual: 0.05555555555555536 
 
 Increment : 18
 iteration : 1
+Residual: 2.566300475855424e-16 
+
+Increment : 19
+iteration : 0
+Residual: 0.05263157894736859 
+
+Increment : 19
+iteration : 1
+Residual: 2.3722470256410213e-16 
+
+Increment : 20
+iteration : 0
+Residual: 0.05000000000000016 
+
+Increment : 20
+iteration : 1
+Residual: 2.2588233388026594e-16 
+
+Increment : 21
+iteration : 0
+Residual: 0.04761904761904745 
+
+Increment : 21
+iteration : 1
+Residual: 1.5450010824746025e-16 
+
+Increment : 22
+iteration : 0
+Residual: 0.04545454545454545 
+
+Increment : 22
+iteration : 1
+Residual: 2.0891657385081862e-16 
+
+Increment : 23
+iteration : 0
+Residual: 0.04347826086956536 
+
+Increment : 23
+iteration : 1
+Residual: 2.245159482757753e-16 
+
+Increment : 24
+iteration : 0
+Residual: 0.04166666666666652 
+
+Plasticity occurring in the layer 1, spotted at the element number, 35
+Increment : 24
+iteration : 1
+Computing the new stiffness matrix
+Residual: 0.006395057148394341 
+
+Increment : 25
+iteration : 0
+Residual: 0.04049473864509301 
+
+Plasticity occurring in the layer 1, spotted at the element number, 35
+Increment : 25
+iteration : 1
+Computing the new stiffness matrix
+Residual: 0.002710119089743727 
+
+Increment : 26
+iteration : 0
+Residual: 0.038306855174442704 
+
+Plasticity occurring in the layer 1, spotted at the element number, 35
+Increment : 26
+iteration : 1
+Computing the new stiffness matrix
+Residual: 0.0038676530060919806 
+
+Increment : 27
+iteration : 0
+Residual: 0.03696332014964692 
+
 Plasticity occurring in the layer 1, spotted at the element number, 35
 Plasticity occurring in the layer 1, spotted at the element number, 75
-Plasticity occurring in the layer 1, spotted at the element number, 77
 Plasticity occurring in the layer 1, spotted at the element number, 127
+Increment : 27
+iteration : 1
 Computing the new stiffness matrix
-Residual: 0.03224582830807127 
+Residual: 0.04398614814110461 
+
+Increment : 28
+iteration : 0
+Residual: 0.05778299069321963 
+
+Plasticity occurring in the layer 1, spotted at the element number, 35
+Plasticity occurring in the layer 1, spotted at the element number, 75
+Plasticity occurring in the layer 1, spotted at the element number, 127
+Increment : 28
+iteration : 1
+Computing the new stiffness matrix
+Residual: 0.01112043196449769 
