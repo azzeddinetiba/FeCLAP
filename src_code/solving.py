@@ -472,7 +472,10 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
 
             if (ii != 0 or i!=0):
 
-                print( ' Computing Internal forces ')
+                data_tmp = '\nComputing Internal forces ' + ' \n'
+                data_text += data_tmp
+                print(data_tmp)
+
                 if analysis_type[0,2] == 1:
                     q = np.zeros((Nn, 1))
                 else:
@@ -544,24 +547,24 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
             if ( tolerance < 0.001 )  or ( count > 0 and tolerance < 0.05 ):
 
 
-                saved_residual.append(residual)
+                saved_residual.append(tolerance)
 
 
                 saved_stress_xx_ev = saved_stress_xx
                 saved_stress_yy_ev = saved_stress_yy
                 saved_stress_xy_ev = saved_stress_xy
 
+                sxx.append(np.ndarray.copy(saved_stress_xx_ev))
+                syy.append(np.ndarray.copy(saved_stress_yy_ev))
+                sxy.append(np.ndarray.copy(saved_stress_xy_ev))
 
-                sxx.append(saved_stress_xx_ev)
-                syy.append(saved_stress_yy_ev)
-                sxy.append(saved_stress_xy_ev)
+
+                epxx.append(np.ndarray.copy(saved_strain_xx))
+                epyy.append(np.ndarray.copy(saved_strain_yy))
+                epxy.append(np.ndarray.copy(saved_strain_xy))
 
 
-                epxx.append(saved_strain_xx)
-                epyy.append(saved_strain_yy)
-                epxy.append(saved_strain_xy)
-
-                saved_deltaU.append(deltaU)
+                saved_deltaU.append(np.ndarray.copy(deltaU))
 
                 break
 
@@ -680,7 +683,6 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
         Fb = Fb + deltaFb
 
         i+=1
-
 
 
     n = text_file.write(data_text)

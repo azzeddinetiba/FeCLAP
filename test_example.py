@@ -99,7 +99,7 @@ f = lambda x, y: 0
 g = lambda x, y: 0
 h = lambda x, y: 0
 pointload = -1
-NODALLOAD = np.array([3725, 0, 0])
+NODALLOAD = np.array([4025, 0, 0])
 XY = np.zeros((1, 2))
 XY[0,0]=0.7
 XY[0,1]=0.4
@@ -127,7 +127,7 @@ surface_nodal_load = {'surf': surface_load, 'node': nodal_load}
 total_loading = {'Bc':boundary_load, 'surf_node':surface_nodal_load}
 print()
 
-Nincr = 28
+Nincr = 31
 Niter = 100
 
 limit = np.zeros((3, 3))
@@ -150,7 +150,7 @@ U, Fb, sxx, syy, sxy, saved_residual, epxx, epyy, epxy, saved_deltaU = \
 
 
 
-chosen_step = 25
+chosen_step = 28
 st = 0
 resul = np.zeros((Fb.shape[0], 1))
 resul = resul.T
@@ -167,9 +167,9 @@ thetax = resul[4::6]
 
 fig = plt.figure()
 ax = fig.gca(projection='3d')
-plt.title('Transversal Displacement w (Oz) ')
+plt.title('Transversal Displacement w (Oz) at step = ' + str(chosen_step))
 ax.plot_trisurf(p[:, 0], p[:, 1], t, w, linewidth=0.2, antialiased=True, cmap='jet')
-fig.savefig(results_dir + 'CASE 1  Transversal Displacement w (Oz) .png')
+fig.savefig(results_dir + 'CASE 1  Transversal Displacement w (Oz) step = ' + str(chosen_step)+'.png')
 plt.show()
 
 print()
@@ -178,16 +178,16 @@ fig2 = plt.figure()
 plt.gca().set_aspect('equal')
 plt.tricontourf(p[:, 0], p[:, 1], t, u, 500, cmap="jet")
 plt.colorbar()
-plt.title('Displacement u (Ox) ')
-fig2.savefig(results_dir + 'CASE 1  Displacement u (Ox) .png')
+plt.title('Displacement u (Ox) at step = ' + str(chosen_step))
+fig2.savefig(results_dir + 'CASE 1  Displacement u (Ox) step = ' + str(chosen_step)+'.png')
 plt.show()
 
 fig3 = plt.figure()
 plt.gca().set_aspect('equal')
 plt.tricontourf(p[:, 0], p[:, 1], t, v, 500, cmap="jet")
 plt.colorbar()
-plt.title('Displacement v (Oy) ')
-fig3.savefig(results_dir + 'CASE 1  Displacement v (Oy) .png')
+plt.title('Displacement v (Oy) at step = ' + str(chosen_step))
+fig3.savefig(results_dir + 'CASE 1  Displacement v (Oy) step = ' + str(chosen_step)+'.png')
 plt.show()
 
 
@@ -195,9 +195,9 @@ fig4 = plt.figure()
 plt.gca().set_aspect('equal')
 plt.tricontourf(p[:, 0], p[:, 1], t, thetax, 500, cmap="jet")
 plt.colorbar()
-plt.title('Rotation on (Ox) ')
+plt.title('Rotation on (Ox) at step = ' + str(chosen_step))
 
-fig4.savefig(results_dir + 'CASE 1  Rotation on (Ox) .png')
+fig4.savefig(results_dir + 'CASE 1  Rotation on (Ox) step = ' + str(chosen_step)+'.png')
 plt.show()
 
 
@@ -205,8 +205,8 @@ fig5 = plt.figure()
 plt.gca().set_aspect('equal')
 plt.tricontourf(p[:, 0], p[:, 1], t, thetay, 500, cmap="jet")
 plt.colorbar()
-plt.title('Rotation on (Oy)')
-fig5.savefig(results_dir + 'CASE 1  Rotation on (Oy) .png')
+plt.title('Rotation on (Oy) at step = ' + str(chosen_step))
+fig5.savefig(results_dir + 'CASE 1  Rotation on (Oy) step = ' + str(chosen_step)+'.png')
 plt.show()
 
 
@@ -214,8 +214,9 @@ component = 1
 
 if component != 0:
             lay = 1
-            chosen_step = chosen_step
+            chosen_step = 28
             titledef = 'CASE 1  Stress Sxx (Ox)'
+            titledef += ' at step '+ str(chosen_step)
 
 
             fig9 = plt.figure()
@@ -257,11 +258,12 @@ while step<len(sxx):
 
     step+=1
 
-fig = plt.figure()
+fig6 = plt.figure()
 titledef = 'Stress Strain Curve in the applied load region '
-plt.plot(plotted_epxx, plotted_sxx, 'b-')
+plt.plot(plotted_epxx[0], plotted_sxx[0], 'b-')
 plt.title(titledef)
-fig.savefig(results_dir + titledef + ' .png')
+fig6.savefig(results_dir + ' CASE 1 '+ titledef + ' .png')
+plt.show()
 
 # ----------------------------- END  CASE  1 ----------------------------------------------
 #----------------------------------------------------------------------------------------------
