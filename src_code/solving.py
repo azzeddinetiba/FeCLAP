@@ -463,9 +463,9 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
                 data_text += data_tmp
                 print(data_tmp)
                 if analysis_type[0,2] == 1:
-                    globalK, Q_data = tangent_stiffness(X, T, material_param, limit, b, box, total_loading, np.zeros((deltaFb.shape[0],1)), saved_stress_xx, saved_stress_yy, saved_stress_xy, saved_delta_lambda, gone_plastic, analysis_type)
+                    globalK = tangent_stiffness(X, T, material_param, limit, b, box, total_loading, np.zeros((deltaFb.shape[0],1)), saved_stress_xx, saved_stress_yy, saved_stress_xy, saved_delta_lambda, gone_plastic, analysis_type)
                 else:
-                    globalK, Q_data = tangent_stiffness(X, T, material_param, limit, b, box, total_loading, sp.lil_matrix((deltaFb.shape[0],1)), saved_stress_xx, saved_stress_yy, saved_stress_xy, saved_delta_lambda, gone_plastic, analysis_type)
+                    globalK = tangent_stiffness(X, T, material_param, limit, b, box, total_loading, sp.lil_matrix((deltaFb.shape[0],1)), saved_stress_xx, saved_stress_yy, saved_stress_xy, saved_delta_lambda, gone_plastic, analysis_type)
                     globalK = globalK.tocsr()
                 count += 1
 
@@ -711,9 +711,6 @@ def tangent_stiffness(X,T, material_param, limit, b, box, total_loading, F, save
     nT = T.shape[0]
 
 
-    Q_data = np.zeros((nT,nPlies,3,3))
-
-
     k=0
     while k<nT:
 
@@ -752,11 +749,6 @@ def tangent_stiffness(X,T, material_param, limit, b, box, total_loading, F, save
                     new_Q = NonLinearModule.Ktangent(stress_used, Tr, limit, Q_used)
 
 
-
-                    #if gone_plastic == 1:
-                    #    Q_data[k,j,:,:] = new_Q
-
-
                     if thick!=1:
                         A = A + (thickness[j][0]/6) * new_Q
                         B = B + (thickness[j][0]/6) * (pos[j][0] + thick * 0.5 * thickness[j][0]) * new_Q
@@ -781,8 +773,6 @@ def tangent_stiffness(X,T, material_param, limit, b, box, total_loading, F, save
 
 
 
-
-
         elemK = src_code.core.ElemMat(X,T,k,gp,Wgauss,K)
         if analysis_type[0,2] == 1:
             globalK[np.ix_(Tie1 - 1, Tie1 - 1)] += elemK
@@ -793,8 +783,6 @@ def tangent_stiffness(X,T, material_param, limit, b, box, total_loading, F, save
         k+=1
 
 
-
-
     fixed_borders, globalK, M, F = applying_BC(total_loading,X,T,b,box,globalK,F, analysis_type)
 
-    return globalK, Q_data
+    return globalK
