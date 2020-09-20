@@ -2,8 +2,6 @@
 
 import numpy as np
 import math as m
-import scipy
-from scipy import sparse as sp
 
 
 def ElemMat(X,T,ie,gp,Wgauss,K):
@@ -50,7 +48,7 @@ def ElemMat(X,T,ie,gp,Wgauss,K):
     L1=gp
 
     ii=0
-    while ii < Wgauss.shape[0] :
+    while ii < Wgauss.shape[0]:
      L = L1[ii,:]
      ddP = np.zeros((9, 6))
 
@@ -197,8 +195,11 @@ def ElemMat(X,T,ie,gp,Wgauss,K):
 
 
 
+     if len(K)!=3:
+        Ke += Wgauss[ii] * np.linalg.det(J)*np.dot(np.dot(B.T, K), B)
+     else:
+        Ke += Wgauss[ii] * np.linalg.det(J) * np.dot(np.dot(B.T, K[ii]), B)
 
-     Ke += Wgauss[ii] * np.linalg.det(J)*np.dot(np.dot(B.T, K), B)
      ii+=1
 
     return Ke
@@ -501,14 +502,14 @@ def internal_force_elem(X, T, ie, gp, Wgauss, saved_stress_xx,saved_stress_yy,sa
                                  [dN1dy ,dN1dx ,0            ,0            ,0            ,0 ,dN2dy ,dN2dx ,0            ,0            ,0             ,0 ,dN3dy ,dN3dx ,0            ,0            ,0           ,0],
                                  [0     ,0     ,ddN11[0,0]   ,ddN12[0,0]   ,ddN13[0,0]   ,0 ,0     ,0     ,ddN21[0,0]   ,ddN22[0,0]   ,ddN23[0,0]    ,0 ,0     ,0     ,ddN31[0,0]   ,ddN32[0,0]   ,ddN33[0,0]  ,0],
                                  [0     ,0     ,ddN11[1,1]   ,ddN12[1,1]   ,ddN13[1,1]   ,0 ,0     ,0     ,ddN21[1,1]   ,ddN22[1,1]   ,ddN23[1,1]    ,0 ,0     ,0     ,ddN31[1,1]   ,ddN32[1,1]   ,ddN33[1,1]  ,0],
-                                 [0     ,0     ,2*ddN11[0,1] ,2*ddN12[0,1] ,2*ddN13[0,1] ,0 ,0     ,0     ,2*ddN21[0,1] ,2*ddN22[0,1] ,2*ddN23[0,1]  ,0 ,0     ,0     ,2*ddN31[0,1] ,2*ddN32[0,1] ,2*ddN33[0,1] ,0]])
+                                 [0     ,0     ,2*ddN11[0,1] ,2*ddN12[0,1] ,2*ddN13[0,1] ,0 ,0     ,0     ,2*ddN21[0,1] ,2*ddN22[0,1] ,2*ddN23[0,1]  ,0 ,0     ,0     ,2*ddN31[0,1] ,2*ddN32[0,1] ,2*ddN33[0,1],0]])
 
                      stress = np.array(
-                         [[saved_stress_xx[thick, ie, jj]], [saved_stress_yy[thick, ie, jj]],
-                          [saved_stress_xy[thick, ie, jj]],
-                          [saved_stress_xx[thick, ie, jj] * (pos[jj][0] + thick * 0.5 * thickness[jj][0])],
-                          [saved_stress_yy[thick, ie, jj] * (pos[jj][0] + thick * 0.5 * thickness[jj][0])],
-                          [saved_stress_xy[thick, ie, jj] * (pos[jj][0] + thick * 0.5 * thickness[jj][0])]])
+                         [[saved_stress_xx[ii, thick, ie, jj]], [saved_stress_yy[ii, thick, ie, jj]],
+                          [saved_stress_xy[ii, thick, ie, jj]],
+                          [saved_stress_xx[ii, thick, ie, jj] * (pos[jj][0] + thick * 0.5 * thickness[jj][0])],
+                          [saved_stress_yy[ii, thick, ie, jj] * (pos[jj][0] + thick * 0.5 * thickness[jj][0])],
+                          [saved_stress_xy[ii, thick, ie, jj] * (pos[jj][0] + thick * 0.5 * thickness[jj][0])]])
 
 
                      if thick !=1:

@@ -78,8 +78,6 @@ if analysis_type[0,0] != 3:
 
     if analysis_type[0,1] == 2:
 
-        print('\n Warning: The Non Linear Module is still experimental for out-of plane loads')
-
         plast_param = get_plastic()
 
 

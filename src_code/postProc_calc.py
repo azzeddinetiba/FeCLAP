@@ -2,6 +2,11 @@
 
 import numpy as np
 import math as m
+import src_code.numerical_integration
+
+Ngauss = 3
+gp = src_code.numerical_integration.Gauss3n(Ngauss)
+gp = gp[0]
 
 
 def strain_calc(X,T,u,v):
@@ -37,8 +42,17 @@ def strain_calc(X,T,u,v):
 
 def k_calc(X,T,w,thetax,thetay,ie):
 
-    k=np.zeros((9,1))
+    thetay = -thetay
+    tmp = thetay
+    thetay = thetax
+    thetax = tmp
+
+    del tmp
+
+
+    k = np.zeros((9,1))
     xe = X[T[ie, :], :]
+
     b = np.zeros((1, 3))
     b[0, 0] = xe[1, 1] - xe[2, 1]
     b[0, 1] = xe[2, 1] - xe[0, 1]
@@ -67,7 +81,7 @@ def k_calc(X,T,w,thetax,thetay,ie):
 
     A = (1/(2*delta))*np.array([[b[0,0],b[0,1],b[0,2]] , [c[0,0],c[0,1],c[0,2]]])
 
-    Le1=np.eye(3)
+    Le1 = gp
 
     for i in [0,1,2]:
         L = Le1[i, :]

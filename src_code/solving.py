@@ -425,15 +425,15 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
     saved_strain_yy = np.zeros((TT, 1))
     saved_strain_xy = np.zeros((TT, 1))
 
-    saved_stress_xx = np.zeros((3, TT, Nplies))
-    saved_stress_yy = np.zeros((3, TT, Nplies))
-    saved_stress_xy = np.zeros((3, TT, Nplies))
+    saved_stress_xx = np.zeros((3, 3, TT, Nplies))
+    saved_stress_yy = np.zeros((3, 3, TT, Nplies))
+    saved_stress_xy = np.zeros((3, 3, TT, Nplies))
 
-    saved_stress_xx_ev = np.zeros((3, TT, Nplies))
-    saved_stress_yy_ev = np.zeros((3, TT, Nplies))
-    saved_stress_xy_ev = np.zeros((3, TT, Nplies))
+    saved_stress_xx_ev = np.zeros((3, 3, TT, Nplies))
+    saved_stress_yy_ev = np.zeros((3, 3, TT, Nplies))
+    saved_stress_xy_ev = np.zeros((3, 3, TT, Nplies))
 
-    saved_delta_lambda = np.zeros((3,TT, Nplies))
+    saved_delta_lambda = np.zeros((3, 3, TT, Nplies))
 
 
     q = np.zeros((Nn, 1))
@@ -463,9 +463,9 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
                 data_text += data_tmp
                 print(data_tmp)
                 if analysis_type[0,2] == 1:
-                    globalK, Q_data = tangent_stiffness(X, T, material_param, limit, b, box, total_loading, np.zeros((deltaFb.shape[0],1)), saved_stress_xx, saved_stress_yy, saved_stress_xy, saved_delta_lambda, gone_plastic, analysis_type)
+                    globalK = tangent_stiffness(X, T, material_param, limit, b, box, total_loading, np.zeros((deltaFb.shape[0],1)), saved_stress_xx, saved_stress_yy, saved_stress_xy, saved_delta_lambda, gone_plastic, analysis_type)
                 else:
-                    globalK, Q_data = tangent_stiffness(X, T, material_param, limit, b, box, total_loading, sp.lil_matrix((deltaFb.shape[0],1)), saved_stress_xx, saved_stress_yy, saved_stress_xy, saved_delta_lambda, gone_plastic, analysis_type)
+                    globalK = tangent_stiffness(X, T, material_param, limit, b, box, total_loading, sp.lil_matrix((deltaFb.shape[0],1)), saved_stress_xx, saved_stress_yy, saved_stress_xy, saved_delta_lambda, gone_plastic, analysis_type)
                     globalK = globalK.tocsr()
                 count += 1
 
@@ -604,7 +604,7 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
                                            [m.sin(theta) ** 2,              m.cos(theta) ** 2,              -2 * m.sin(theta) * m.cos(theta)],
                                            [-m.sin(theta) * m.cos(theta),   m.sin(theta) * m.cos(theta),   (m.cos(theta) ** 2) - m.sin(theta) ** 2]])
 
-                            th = pos[j] + thick * thickness[j]/2
+                            th = pos[j] + thick * thickness[j][0]/2
 
                             kappa = k_calc(X, T, w, thetax, thetay, k)
 
@@ -623,43 +623,42 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
                                 laySTRAINxy = strain[k + 2 * TT] + th * kappa[3*l + 2]
                                 laySTRAINxy = laySTRAINxy[0]
 
-                                deltaStrain_used += (1/3) * np.array([laySTRAINxx, laySTRAINyy, laySTRAINxy])
+                                deltaStrain_used = np.array([laySTRAINxx, laySTRAINyy, laySTRAINxy])
+
+                                previous_stress = np.array(
+                                    [saved_stress_xx_ev[l, thick, k, j], saved_stress_yy_ev[l, thick, k, j],
+                                     saved_stress_xy_ev[l, thick, k, j]])
+
+                                Q_used = Q[np.arange(3 * j, 3 * j + 3), :]
+
+                                rtrnAlg = NonLinearModule.returnAlg(previous_stress, Tr, limit, Q_used,
+                                                                    deltaStrain_used)
+
+                                interm = rtrnAlg.reshape((1, 4))
+                                interm = np.array(interm[0])
+
+                                previous_stress = interm[0:3]
+
+                                if (interm[3] > 1e-7 and ii == 0 and count2 == 0):
+                                    data_tmp = '\nPlasticity occurring in the layer ' + str(
+                                        j + 1) + ', spotted at the element number, ' + str(k)
+                                    data_text += data_tmp
+                                    print(data_tmp)
+                                    count2 += 1
+
+                                saved_delta_lambda[l, thick, k, j] = interm[3]
+
+                                saved_strain_xx[k, 0] = deltaStrain_used[0]
+                                saved_strain_yy[k, 0] = deltaStrain_used[1]
+                                saved_strain_xy[k, 0] = deltaStrain_used[2]
+
+                                saved_stress_xx[l, thick, k, j] = previous_stress[0]
+                                saved_stress_yy[l, thick, k, j] = previous_stress[1]
+                                saved_stress_xy[l, thick, k, j] = previous_stress[2]
+
 
                                 l+=1
 
-
-
-
-
-                            previous_stress = np.array([saved_stress_xx_ev[thick, k, j], saved_stress_yy_ev[thick, k, j], saved_stress_xy_ev[thick, k, j]])
-
-                            Q_used = Q[np.arange(3*j,3*j+3), :]
-
-
-                            rtrnAlg = NonLinearModule.returnAlg(previous_stress, Tr, limit, Q_used, deltaStrain_used)
-
-                            interm = rtrnAlg.reshape((1, 4))
-                            interm = np.array(interm[0])
-
-
-                            previous_stress = interm[0:3]
-
-                            if (interm[3]>1e-7 and ii == 0 and count2 == 0):
-                                data_tmp = '\nPlasticity occurring in the layer '+str(j+1)+', spotted at the element number, '+str(k)
-                                data_text += data_tmp
-                                print(data_tmp)
-                                count2+=1
-
-                            saved_delta_lambda[thick, k,j] = interm[3]
-
-                            saved_strain_xx[k,0] = deltaStrain_used[0]
-                            saved_strain_yy[k,0] = deltaStrain_used[1]
-                            saved_strain_xy[k,0] = deltaStrain_used[2]
-
-
-                            saved_stress_xx[thick, k,j] = previous_stress[0]
-                            saved_stress_yy[thick, k,j] = previous_stress[1]
-                            saved_stress_xy[thick, k,j] = previous_stress[2]
 
 
 
@@ -712,9 +711,6 @@ def tangent_stiffness(X,T, material_param, limit, b, box, total_loading, F, save
     nT = T.shape[0]
 
 
-    Q_data = np.zeros((nT,nPlies,3,3))
-
-
     k=0
     while k<nT:
 
@@ -737,41 +733,43 @@ def tangent_stiffness(X,T, material_param, limit, b, box, total_loading, F, save
 
             Q_used = Q[np.arange(3 * j, 3 * j + 3), :]
 
+            K = []
 
-            thick=0
-            while thick<3:
-                stress_used = np.array([saved_stress_xx[thick,k,j],saved_stress_yy[thick,k,j],saved_stress_xy[thick,k,j],saved_delta_lambda[thick,k,j]])
-
-
-                new_Q = NonLinearModule.Ktangent(stress_used, Tr, limit, Q_used)
+            l=0
+            while l<3:
 
 
-
-                if gone_plastic == 1:
-                    Q_data[k,j,:,:] = new_Q
-
+                thick=0
+                while thick<3:
 
 
-                if thick!=1:
-                    A = A + (thickness[j][0]/6) * new_Q
-                    B = B + (thickness[j][0]/6) * (pos[j][0] + thick * 0.5 * thickness[j][0]) * new_Q
-                    D = D + (thickness[j][0]/6) * ((pos[j][0] + thick * 0.5 * thickness[j][0])**2) * new_Q
-                else:
-                    A = A + 4 * (thickness[j][0]/6) * new_Q
-                    B = B + 4 * (thickness[j][0]/6) * (pos[j][0] + thick * 0.5 * thickness[j][0]) * new_Q
-                    D = D + 4 * (thickness[j][0]/6) * ((pos[j][0] + thick * 0.5 * thickness[j][0])**2) * new_Q
+                    stress_used = np.array([saved_stress_xx[l, thick,k,j],saved_stress_yy[l, thick,k,j],saved_stress_xy[l, thick,k,j],saved_delta_lambda[l, thick,k,j]])
 
-                thick+=1
+
+                    new_Q = NonLinearModule.Ktangent(stress_used, Tr, limit, Q_used)
+
+
+                    if thick!=1:
+                        A = A + (thickness[j][0]/6) * new_Q
+                        B = B + (thickness[j][0]/6) * (pos[j][0] + thick * 0.5 * thickness[j][0]) * new_Q
+                        D = D + (thickness[j][0]/6) * ((pos[j][0] + thick * 0.5 * thickness[j][0])**2) * new_Q
+                    else:
+                        A = A + 4 * (thickness[j][0]/6) * new_Q
+                        B = B + 4 * (thickness[j][0]/6) * (pos[j][0] + thick * 0.5 * thickness[j][0]) * new_Q
+                        D = D + 4 * (thickness[j][0]/6) * ((pos[j][0] + thick * 0.5 * thickness[j][0])**2) * new_Q
+
+                    thick+=1
+
+                K.append( np.ndarray.copy(np.array([[A[0, 0], A[0, 1], A[0, 2], -B[0, 0], -B[0, 1], -B[0, 2]],
+                              [A[1, 0], A[1, 1], A[1, 2], -B[1, 0], -B[1, 1], -B[1, 2]],
+                              [A[2, 0], A[2, 1], A[2, 2], -B[2, 0], -B[2, 1], -B[2, 2]],
+                              [-B[0, 0], -B[0, 1], -B[0, 2], D[0, 0], D[0, 1], D[0, 2]],
+                              [-B[1, 0], -B[1, 1], -B[1, 2], D[1, 0], D[1, 1], D[1, 2]],
+                              [-B[2, 0], -B[2, 1], -B[2, 2], D[2, 0], D[2, 1], D[2, 2]]])))
+
+                l+=1
 
             j+=1
-
-
-        K = np.array([[A[0, 0], A[0, 1], A[0, 2], -B[0, 0], -B[0, 1], -B[0, 2]],
-                          [A[1, 0], A[1, 1], A[1, 2], -B[1, 0], -B[1, 1], -B[1, 2]],
-                          [A[2, 0], A[2, 1], A[2, 2], -B[2, 0], -B[2, 1], -B[2, 2]],
-                          [-B[0, 0], -B[0, 1], -B[0, 2], D[0, 0], D[0, 1], D[0, 2]],
-                          [-B[1, 0], -B[1, 1], -B[1, 2], D[1, 0], D[1, 1], D[1, 2]],
-                          [-B[2, 0], -B[2, 1], -B[2, 2], D[2, 0], D[2, 1], D[2, 2]]])
 
 
 
@@ -785,8 +783,6 @@ def tangent_stiffness(X,T, material_param, limit, b, box, total_loading, F, save
         k+=1
 
 
-
-
     fixed_borders, globalK, M, F = applying_BC(total_loading,X,T,b,box,globalK,F, analysis_type)
 
-    return globalK, Q_data
+    return globalK
