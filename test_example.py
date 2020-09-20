@@ -35,10 +35,10 @@ p, t, b = mesh(x1, x2, y1, y2, h, radius, xh, yh)
 
 
 # Material and Plies properties ( See Documentation )
-N = 1
+N = 2
 thickness = 0.00027 * np.ones((N, 1))
 pho = 3500 * np.ones((N, 1))
-angles = np.array([[90]])
+angles = np.array([[90],[30]])
 TH = sum(thickness) / 2
 PPT = np.concatenate(
     (181e9 * np.ones((N, 1)), 10.3e9 * np.ones((N, 1)), 0.3 * np.ones((N, 1)), 7.17e9 * np.ones((N, 1))), axis=1)
@@ -99,10 +99,10 @@ f = lambda x, y: 0
 g = lambda x, y: 0
 h = lambda x, y: 0
 pointload = -1
-NODALLOAD = np.array([4025, 0, 0])
+NODALLOAD = np.array([2025, 0, 0])
 XY = np.zeros((1, 2))
-XY[0,0]=0.7
-XY[0,1]=0.4
+XY[0,0] = 0.7
+XY[0,1] = 0.4
 load = 3
 NODALLOAD1 = np.array([NODALLOAD])
 pointload1 = ([])
@@ -141,7 +141,7 @@ limit[2, 2] = 1 / SLT
 
 plast_param = {'increments': Nincr, 'iterations': Niter, 'yield_limit': limit}
 
-transient =0
+transient = 0
 
 U, Fb, sxx, syy, sxy, saved_residual, epxx, epyy, epxy, saved_deltaU = \
             FEM(total_loading, p, t, b, Ngauss, box,
@@ -224,7 +224,7 @@ if component != 0:
 
 
             sxx_used = sxx[chosen_step - 1]
-            sxx_used = sxx_used[1, :, lay - 1]
+            sxx_used = sxx_used[1, 1, :, lay - 1]
             plt.tripcolor(p[:, 0], p[:, 1], t, facecolors=sxx_used, edgecolors='k')
 
             plt.colorbar()
@@ -250,7 +250,7 @@ plotted_sxx = np.zeros((1,len(sxx)))
 plotted_epxx = np.zeros((1,len(epxx)))
 step=0
 while step<len(sxx):
-    plotted_sxx[0,step] = sxx[step][1,elementu,lay - 1]
+    plotted_sxx[0,step] = sxx[step][1,1,elementu,lay - 1]
     ii = 0
     while ii<step:
         plotted_epxx[0,step] += epxx[ii][elementu,0]

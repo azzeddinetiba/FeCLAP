@@ -130,7 +130,7 @@ The result files and plots will be stored in the directory _Results_.
 
 To use the binary version, donwnload [*_FeCLAP_*](https://github.com/azzeddinetiba/FeCLAP/releases/tag/1.0) for the FeCLAP v1.0 and run _Main.exe_ (Some animation features could not work properly)
 
-**_test_examples.py_** includes 3 example cases, these could be solved simply by running the script, the results generated will be stored in the **_Example_Cases_Results_** Directory, and replace the existing reference results.
+**_test_examples.py_** includes 3 example cases, these could be solved simply by running the script, the results generated will be stored in the **_Example_Cases_Results_** Directory, and replace the existing reference results. So make sure you store those files to compare later.
 (Remember to exit the generated figures to allow the script to keep running). The text file for the first case results however will be stored in the main **_Results_** Directory 
 
 _For more info, Please refer to the [Documentation]( ) (Under construction)_
@@ -144,11 +144,13 @@ Here are some screenshots for some results gotten from this code.
 
 [![screen3][Screen3]]()
 
-[![screen4][Screen3]]()
+[![screen4][Screen4]]()
 
-[![screen5][Screen4]]()
+[![screen5][Screen5]]()
 
-[![screen6][Screen5]]()
+[![screen6][Screen6]]()
+
+[![screen7][Screen7]]()
 
 
 
@@ -201,3 +203,4 @@ Project Link: [FeCLAP Github Link](https://github.com/azzeddinetiba/FeCLAP)
 [Screen4]: logo/StressThick.png
 [Screen5]: logo/TransientAnal.png
 [Screen6]: logo/TransDisp.png
+[Screen7]: logo/NLN.png
