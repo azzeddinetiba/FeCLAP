@@ -25,7 +25,11 @@ def FEM(total_loading,X,T,b,Ngauss,box,analysis_type,transient,material_param, *
 
     K, M, F = Assembly2D(X,T,surface_load,Wgauss,gp,Ngauss,Klaw,pho,thickness,analysis_type)
 
-    fixed_borders, K, M, F = applying_BC(total_loading,X,T,b,box,K,F, analysis_type,M)
+    if analysis_type[0,0]!=1:
+        fixed_borders, K, M, F = applying_BC(total_loading,X,T,b,box,K,F, analysis_type,M)
+    else:
+        fixed_borders, K, M, F = applying_BC(total_loading,X,T,b,box,K,F, analysis_type)
+
 
 
 
@@ -437,7 +441,7 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
 
 
     q = np.zeros((Nn, 1))
-    q = applying_Fix_q(total_loading, X, T, b, box, q)
+    q = applying_Fix_q(total_loading, X, T, b, box, q, analysis_type)
     q = q.T
     q = q[0]
 
@@ -501,7 +505,7 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
                     k+=1
 
 
-                q = applying_Fix_q(total_loading, X, T, b, box, q)
+                q = applying_Fix_q(total_loading, X, T, b, box, q, analysis_type)
 
 
             if analysis_type[0, 2] == 1:
@@ -524,7 +528,7 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
 
 
 
-            residual = applying_Fix_q(total_loading, X, T, b, box, residual)
+            residual = applying_Fix_q(total_loading, X, T, b, box, residual, analysis_type)
             if analysis_type[0,2] == 0:
                 residual = residual.tocsr()
                 nonzero_mask = np.array(np.abs(residual[residual.nonzero()]) < 1e-14)[0]

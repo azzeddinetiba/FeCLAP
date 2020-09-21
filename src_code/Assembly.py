@@ -246,11 +246,11 @@ def applying_BC(total_loading,X,T,b,box,K,F, analysis_type,*args):
        K[border1[np.arange(c,border1.size,6)]-1,:]=0
        if isthereM != 0:
            M[border1[np.arange(c,border1.size,6)]-1,:]=0
-           M[np.ix_(border1[np.arange(c, border1.size, 6)] - 1, border1[np.arange(c, border1.size, 6)] - 1)] -= np.diag(np.diag(M[np.ix_(border1[np.arange(c,border1.size,6)]-1, border1[np.arange(c,border1.size,6)]-1)])) - np.eye(border1[np.arange(c,border1.size,6)].size)
+           M[np.ix_(border1[np.arange(c, border1.size, 6)] - 1, border1[np.arange(c, border1.size, 6)] - 1)] -= diag_mat(M[np.ix_(border1[np.arange(c,border1.size,6)]-1, border1[np.arange(c,border1.size,6)]-1)],analysis_type[0,2]) - np.eye(border1[np.arange(c,border1.size,6)].size)
 
        F[border1[np.arange(c,border1.size,6)]-1]=ENFRCDS1[0, c]
        #K[np.ix_(border1[np.arange(c,border1.size,6)]-1, border1[np.arange(c,border1.size,6)]-1)]=np.eye(border1[np.arange(c,border1.size,6)].size)
-       K[np.ix_(border1[np.arange(c, border1.size, 6)] - 1, border1[np.arange(c, border1.size, 6)] - 1)] -= np.diag(np.diag(K[np.ix_(border1[np.arange(c,border1.size,6)]-1, border1[np.arange(c,border1.size,6)]-1)])) - np.eye(border1[np.arange(c,border1.size,6)].size)
+       K[np.ix_(border1[np.arange(c, border1.size, 6)] - 1, border1[np.arange(c, border1.size, 6)] - 1)] -= diag_mat(K[np.ix_(border1[np.arange(c,border1.size,6)]-1, border1[np.arange(c,border1.size,6)]-1)],analysis_type[0,2]) - np.eye(border1[np.arange(c,border1.size,6)].size)
 
     elif boundaryconditions[0] == 5:
         K[border1[::6] - 1, :] = 0
@@ -426,12 +426,12 @@ def applying_BC(total_loading,X,T,b,box,K,F, analysis_type,*args):
        K[border2[np.arange(c,border2.size,6)]-1,:]=0
        F[border2[np.arange(c,border2.size,6)]-1,:]=ENFRCDS1[1, c]
        #K[np.ix_(border2[np.arange(c,border2.size,6)]-1, border2[np.arange(c,border2.size,6)]-1)]=np.eye(border2[np.arange(c,border2.size,6)].size)
-       K[np.ix_(border2[np.arange(c, border2.size, 6)] - 1, border2[np.arange(c, border2.size, 6)] - 1)] -= np.diag(np.diag(K[np.ix_(border2[np.arange(c, border2.size, 6)] - 1, border2[np.arange(c, border2.size, 6)] - 1)]))  - np.eye(border2[np.arange(c,border2.size,6)].size)
+       K[np.ix_(border2[np.arange(c, border2.size, 6)] - 1, border2[np.arange(c, border2.size, 6)] - 1)] -= diag_mat(K[np.ix_(border2[np.arange(c, border2.size, 6)] - 1, border2[np.arange(c, border2.size, 6)] - 1)],analysis_type[0,2])  - np.eye(border2[np.arange(c,border2.size,6)].size)
 
        if isthereM != 0:
 
            M[border2[np.arange(c,border2.size,6)]-1,:]=0
-           M[np.ix_(border2[np.arange(c, border2.size, 6)] - 1, border2[np.arange(c, border2.size, 6)] - 1)] -= np.diag(np.diag(K[np.ix_(border2[np.arange(c, border2.size, 6)] - 1, border2[np.arange(c, border2.size, 6)] - 1)]))  - np.eye(border2[np.arange(c,border2.size,6)].size)
+           M[np.ix_(border2[np.arange(c, border2.size, 6)] - 1, border2[np.arange(c, border2.size, 6)] - 1)] -= diag_mat(K[np.ix_(border2[np.arange(c, border2.size, 6)] - 1, border2[np.arange(c, border2.size, 6)] - 1)],analysis_type[0,2])  - np.eye(border2[np.arange(c,border2.size,6)].size)
 
 
     elif boundaryconditions[1] == 5:
@@ -595,7 +595,7 @@ def applying_BC(total_loading,X,T,b,box,K,F, analysis_type,*args):
        K[border3[np.arange(c,border3.size,6)]-1,:]=0
        F[border3[np.arange(c,border3.size,6)]-1]=ENFRCDS1[2, c]
        #K[np.ix_(border3[np.arange(c,border3.size,6)]-1, border3[np.arange(c,border3.size,6)]-1)]=np.eye(border3[np.arange(c,border3.size,6)].size)
-       K[np.ix_(border3[np.arange(c,border3.size,6)]-1, border3[np.arange(c,border3.size,6)]-1)] -= np.diag(np.diag(K[np.ix_(border3[np.arange(c,border3.size,6)]-1, border3[np.arange(c,border3.size,6)]-1)])) - np.eye(border3[np.arange(c,border3.size,6)].size)
+       K[np.ix_(border3[np.arange(c,border3.size,6)]-1, border3[np.arange(c,border3.size,6)]-1)] -= diag_mat(K[np.ix_(border3[np.arange(c,border3.size,6)]-1, border3[np.arange(c,border3.size,6)]-1)],analysis_type[0,2]) - np.eye(border3[np.arange(c,border3.size,6)].size)
 
     elif boundaryconditions[2] == 5:
         K[border3[::6] - 1, :] = 0
@@ -769,7 +769,7 @@ def applying_BC(total_loading,X,T,b,box,K,F, analysis_type,*args):
        K[border4[np.arange(c,border4.size,6)]-1,:]=0
        F[border4[np.arange(c,border4.size,6)]-1,:]=ENFRCDS1[3, c]
        #K[np.ix_(border4[np.arange(c,border4.size,6)]-1, border4[np.arange(c,border4.size,6)]-1)]=np.eye(border4[np.arange(c,border4.size,6)].size)
-       K[np.ix_(border4[np.arange(c, border4.size, 6)] - 1, border4[np.arange(c, border4.size, 6)] - 1)] -= np.diag(np.diag(K[np.ix_(border4[np.arange(c, border4.size, 6)] - 1, border4[np.arange(c, border4.size, 6)] - 1)])) - np.eye(border4[np.arange(c,border4.size,6)].size)
+       K[np.ix_(border4[np.arange(c, border4.size, 6)] - 1, border4[np.arange(c, border4.size, 6)] - 1)] -= diag_mat(K[np.ix_(border4[np.arange(c, border4.size, 6)] - 1, border4[np.arange(c, border4.size, 6)] - 1)],analysis_type[0,2]) - np.eye(border4[np.arange(c,border4.size,6)].size)
 
     elif boundaryconditions[3] == 5:
         K[border4[::6] - 1, :] = 0
@@ -1036,7 +1036,7 @@ def BCMAssembly(X,T,b,F,j,fixedx,xy):
     return FBCM
 
 
-def applying_Fix_q(total_loading, X, T, b, box, F, *args):
+def applying_Fix_q(total_loading, X, T, b, box, F, analysis_type, *args):
 
         isthereM = len(args)
         if isthereM != 0:
@@ -1218,13 +1218,11 @@ def applying_Fix_q(total_loading, X, T, b, box, F, *args):
                 if isthereM != 0:
                     M[border1[np.arange(c, border1.size, 6)] - 1, :] = 0
                     M[np.ix_(border1[np.arange(c, border1.size, 6)] - 1,
-                             border1[np.arange(c, border1.size, 6)] - 1)] -= np.diag(np.diag(M[np.ix_(
+                             border1[np.arange(c, border1.size, 6)] - 1)] -= diag_mat(M[np.ix_(
                         border1[np.arange(c, border1.size, 6)] - 1,
-                        border1[np.arange(c, border1.size, 6)] - 1)])) - np.eye(
+                        border1[np.arange(c, border1.size, 6)] - 1)],analysis_type[0,2]) - np.eye(
                         border1[np.arange(c, border1.size, 6)].size)
 
-                F[border1[np.arange(c, border1.size, 6)] - 1] = ENFRCDS1[0, c]
-                # K[np.ix_(border1[np.arange(c,border1.size,6)]-1, border1[np.arange(c,border1.size,6)]-1)]=np.eye(border1[np.arange(c,border1.size,6)].size)
 
 
         elif boundaryconditions[0] == 5:
@@ -1353,16 +1351,13 @@ def applying_Fix_q(total_loading, X, T, b, box, F, *args):
         elif boundaryconditions[1] == 4:
             srch = np.nonzero(ENFRCDS2[1, :])
             for c in srch[0]:
-                F[border2[np.arange(c, border2.size, 6)] - 1, :] = ENFRCDS1[1, c]
-                # K[np.ix_(border2[np.arange(c,border2.size,6)]-1, border2[np.arange(c,border2.size,6)]-1)]=np.eye(border2[np.arange(c,border2.size,6)].size)
-
 
                 if isthereM != 0:
                     M[border2[np.arange(c, border2.size, 6)] - 1, :] = 0
                     M[np.ix_(border2[np.arange(c, border2.size, 6)] - 1,
-                             border2[np.arange(c, border2.size, 6)] - 1)] -= np.diag(np.diag(M[np.ix_(
+                             border2[np.arange(c, border2.size, 6)] - 1)] -= diag_mat(M[np.ix_(
                         border2[np.arange(c, border2.size, 6)] - 1,
-                        border2[np.arange(c, border2.size, 6)] - 1)])) - np.eye(
+                        border2[np.arange(c, border2.size, 6)] - 1)],analysis_type[0,2]) - np.eye(
                         border2[np.arange(c, border2.size, 6)].size)
 
 
@@ -1477,11 +1472,7 @@ def applying_Fix_q(total_loading, X, T, b, box, F, *args):
             if boundaryconditions[1] == 2:
 
                 F[border2 - 1] = 0
-        elif boundaryconditions[2] == 4:
-            srch = np.nonzero(ENFRCDS2[2, :])
-            for c in srch[0]:
-                F[border3[np.arange(c, border3.size, 6)] - 1] = ENFRCDS1[2, c]
-                # K[np.ix_(border3[np.arange(c,border3.size,6)]-1, border3[np.arange(c,border3.size,6)]-1)]=np.eye(border3[np.arange(c,border3.size,6)].size)
+
 
 
         elif boundaryconditions[2] == 5:
@@ -1604,11 +1595,6 @@ def applying_Fix_q(total_loading, X, T, b, box, F, *args):
             if boundaryconditions[0] == 2:
 
                 F[border1[np.arange(0, 6)] - 1] = 0
-        elif boundaryconditions[3] == 4:
-            srch = np.nonzero(ENFRCDS2[3, :])
-            for c in srch[0]:
-                F[border4[np.arange(c, border4.size, 6)] - 1, :] = ENFRCDS1[3, c]
-                # K[np.ix_(border4[np.arange(c,border4.size,6)]-1, border4[np.arange(c,border4.size,6)]-1)]=np.eye(border4[np.arange(c,border4.size,6)].size)
 
 
         elif boundaryconditions[3] == 5:

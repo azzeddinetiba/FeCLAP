@@ -2,7 +2,7 @@
 
 import numpy as np
 import math as m
-
+import scipy.sparse as sp
 
 def ElemMat(X,T,ie,gp,Wgauss,K):
 
@@ -553,3 +553,12 @@ def delete_row_csr(mat, i):
     mat = mat.tocsr()
 
     return mat
+
+def diag_mat(K, anal_type):
+
+    if anal_type == 0:
+        r = sp.diags(K.diagonal())
+    else:
+        r = np.diag(np.diag(K))
+
+    return r

@@ -736,17 +736,6 @@ def General_Post_proc(U, p, t, material_param):
     thetay = -U[3::6]
     thetax = U[4::6]
 
-    k=0
-    while k<t.shape[0]:
-        print('nodes')
-        print(p[t[k,:],:])
-        kappa = k_calc(p, t, w, thetax, thetay, k)
-        print(kappa[[0,1]])
-        print(kappa[[3,4]])
-        print(kappa[[6,7]])
-
-        k+=1
-
 
     fig = plt.figure()
     ax = fig.gca(projection='3d')
