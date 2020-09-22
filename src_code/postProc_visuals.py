@@ -891,15 +891,15 @@ def Plastic_Post_proc(U, p, t, material_param, Fb, sxx, syy, sxy, saved_residual
 
                 if component == 1:
                     sxx_used = sxx[chosen_step-1]
-                    sxx_used = sxx_used[1,:,lay-1]
+                    sxx_used = sxx_used[1, 1,:,lay-1]
                     plt.tripcolor(p[:, 0], p[:, 1], t, facecolors=sxx_used, edgecolors='k')
                 elif component == 2:
                     syy_used = syy[chosen_step]
-                    syy_used = syy_used[1,:,lay-1]
+                    syy_used = syy_used[1, 1,:,lay-1]
                     plt.tripcolor(p[:, 0], p[:, 1], t, facecolors=syy_used, edgecolors='k')
                 else:
                     sxy_used = sxy[chosen_step]
-                    sxy_used = sxy_used[1,:,lay-1]
+                    sxy_used = sxy_used[1, 1,:,lay-1]
                     plt.tripcolor(p[:, 0], p[:, 1], t, facecolors=sxy_used, edgecolors='k')
                 plt.colorbar()
                 plt.title(titledef)
@@ -907,3 +907,50 @@ def Plastic_Post_proc(U, p, t, material_param, Fb, sxx, syy, sxy, saved_residual
                 plt.show()
                 print('press any key to continue')
 
+
+
+    yessen = int(input('Plot a stress strain curve for a node ?\n1 Yes / 0 No  \n'))
+
+    if yessen == 1:
+        x = float(input('x coordinate of the plotted node : '))
+        y = float(input('y coordinate of the plotted node : '))
+
+        i = 0
+        while i < t.shape[0]:
+            if x <= np.max(p[t[i, :], 0]) and np.min(p[t[i, :], 0]) <= x and np.min(p[t[i, :], 1]) <= y and y <= np.max(
+                    p[t[i, :], 1]):
+                elementu = i
+                break
+            i += 1
+
+        component = int(input('Plot Sxx 1 / Syy 2 / Sxy 3 / Exit 0? '))
+        component -= 1
+        lay = int(input('Layer number ? '))
+
+        stress_list = [sxx, syy, sxy]
+        strain_list = [epxx, epyy, epxy]
+
+        stress = stress_list[component]
+        ep = strain_list[component]
+
+        del stress_list
+        del strain_list
+
+        plotted_stress = np.zeros((1, len(stress)))
+        plotted_ep = np.zeros((1, len(ep)))
+        step = 0
+        while step < len(stress):
+            plotted_stress[0, step] = stress[step][1, 1, elementu, lay - 1]
+            ii = 0
+            while ii < step:
+                plotted_ep[0, step] += ep[ii][elementu, 0]
+                ii += 1
+
+            step += 1
+
+        fig10 = plt.figure()
+        titledef = 'Stress Strain Curve in the applied load region'
+        plt.plot(plotted_ep[0], plotted_stress[0], 'b-')
+        plt.title(titledef)
+        fig10.savefig(results_dir + titledef + '.png')
+        plt.show()
