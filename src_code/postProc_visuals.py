@@ -44,7 +44,7 @@ def show_deformation(p,t,u, v, w, thetax, thetay):
             fig6.savefig(results_dir + titledef + ' .png')
 
             plt.show()
-            print('press any key to continue')
+            print('Exit the figure to continue')
 
         else:
             th = float(input('Thickness = '))
@@ -81,7 +81,7 @@ def show_deformation(p,t,u, v, w, thetax, thetay):
             fig7.savefig(results_dir + titledef + ' .png')
 
             plt.show()
-            print('press any key to continue')
+            print('Exit the figure to continue')
 
 
 def show_stress(p,t,u, v, w, thetax, thetay, pos, Qprime, thickness):
@@ -113,7 +113,7 @@ def show_stress(p,t,u, v, w, thetax, thetay, pos, Qprime, thickness):
             fig8.savefig(results_dir + titledef + ' .png')
 
             plt.show()
-            print('press any key to continue')
+            print('Exit the figure to continue')
 
         else:
             sxx, syy, sxy = stress_calc(p, t, u, v, w, thetax, thetay, th, pos, Qprime, thickness)
@@ -151,7 +151,7 @@ def show_stress(p,t,u, v, w, thetax, thetay, pos, Qprime, thickness):
             fig9.savefig(results_dir + titledef + ' .png')
 
             plt.show()
-            print('press any key to continue')
+            print('Exit the figure to continue')
 
 
 def show_displacement_thickness(p,u, v, thetax, thetay, pos, thickness, N):
@@ -195,7 +195,7 @@ def show_displacement_thickness(p,u, v, thetax, thetay, pos, thickness, N):
         fig10.savefig(results_dir + titledef + ' .png')
 
         plt.show()
-        print('press any key to continue')
+        print('Exit the figure to continue')
 
 
 def show_strain_thickness(p,t,u, v, w, thetax, thetay, pos, thickness, N):
@@ -254,7 +254,7 @@ def show_strain_thickness(p,t,u, v, w, thetax, thetay, pos, thickness, N):
         fig11.savefig(results_dir + titledef + ' .png')
 
         plt.show()
-        print('press any key to continue')
+        print('Exit the figure to continue')
 
 
 def show_stress_thickness(p,t,u, v, w, thetax, thetay, pos, Qprime, thickness, N):
@@ -373,7 +373,7 @@ def show_stress_thickness(p,t,u, v, w, thetax, thetay, pos, Qprime, thickness, N
         fig11.savefig(results_dir + titledef + ' .png')
 
         plt.show()
-        print('press any key to continue')
+        print('Exit the figure to continue')
 
 
 def show_deformation_LT(p,t,u, v, w, thetax, thetay,pos,thickness, angles):
@@ -408,7 +408,7 @@ def show_deformation_LT(p,t,u, v, w, thetax, thetay,pos,thickness, angles):
             fig12.savefig(results_dir + titledef + ' .png')
 
             plt.show()
-            print('press any key to continue')
+            print('Exit the figure to continue')
 
         else:
             th = float(input('Thickness = '))
@@ -445,7 +445,7 @@ def show_deformation_LT(p,t,u, v, w, thetax, thetay,pos,thickness, angles):
             fig13.savefig(results_dir + titledef + ' .png')
 
             plt.show()
-            print('press any key to continue')
+            print('Exit the figure to continue')
 
 
 def show_stress_LT(p,t,u, v, w, thetax, thetay, pos, Qprime, thickness, angles):
@@ -477,7 +477,7 @@ def show_stress_LT(p,t,u, v, w, thetax, thetay, pos, Qprime, thickness, angles):
             fig14.savefig(results_dir + titledef + ' .png')
 
             plt.show()
-            print('press any key to continue')
+            print('Exit the figure to continue')
 
         else:
             sxx, syy, sxy = stress_LT_calc(p,t,u,v,w,thetax,thetay,th,pos,Qprime,thickness, angles)
@@ -514,7 +514,7 @@ def show_stress_LT(p,t,u, v, w, thetax, thetay, pos, Qprime, thickness, angles):
             fig15.savefig(results_dir + titledef + ' .png')
 
             plt.show()
-            print('press any key to continue')
+            print('Exit the figure to continue')
 
 
 def show_Hoffman_stress(p,t,u,v,w,thetax,thetay,pos,Qprime,thickness, angles):
@@ -547,7 +547,7 @@ def show_Hoffman_stress(p,t,u,v,w,thetax,thetay,pos,Qprime,thickness, angles):
             fig16.savefig(results_dir + titledef + ' .png')
 
             plt.show()
-            print('press any key to continue')
+            print('Exit the figure to continue')
 
         else:
             fig17 = plt.figure()
@@ -565,7 +565,7 @@ def show_Hoffman_stress(p,t,u,v,w,thetax,thetay,pos,Qprime,thickness, angles):
             fig17.savefig(results_dir + titledef + ' .png')
 
             plt.show()
-            print('press any key to continue')
+            print('Exit the figure to continue')
 
 
 def animate_mode(frq,modes,mode_number,modal_indexes,mesh_size,p,t):
@@ -721,7 +721,7 @@ def transient_postProc(transient, U, p, t):
             trans_anim.save(results_dir+'transient.mp4', writer=writer)
 
 
-def General_Post_proc(U, p, t, material_param):
+def General_Post_proc(U, p, t, material_param, bbox):
 
 
     thickness = material_param['thickness']
@@ -736,53 +736,58 @@ def General_Post_proc(U, p, t, material_param):
     thetay = -U[3::6]
     thetax = U[4::6]
 
+    plot_defor = int(input('Plot the Contour plots on the deformed shapes \n1 Yes / 0 No ? : '))
+    if plot_defor == 1:
+        defp = deformed_shape(p, t, u, v, bbox)
+    else:
+        defp = p
 
     fig = plt.figure()
     ax = fig.gca(projection='3d')
     plt.title('Transversal Displacement w (Oz) ')
-    ax.plot_trisurf(p[:, 0], p[:, 1], t, w, linewidth=0.2, antialiased=True, cmap='jet')
+    ax.plot_trisurf(defp[:, 0], defp[:, 1], t, w, linewidth=0.2, antialiased=True, cmap='jet')
     fig.savefig(results_dir + 'Transversal Displacement w (Oz) .png')
     plt.show()
-    print('press any key to continue')
+    print('Exit the figure to continue')
 
     print()
 
     fig2 = plt.figure()
     plt.gca().set_aspect('equal')
-    plt.tricontourf(p[:, 0], p[:, 1], t, u, 500, cmap="jet")
+    plt.tricontourf(defp[:, 0], defp[:, 1], t, u, 500, cmap="jet")
     plt.colorbar()
     plt.title('Displacement u (Ox) ')
     fig2.savefig(results_dir + 'Displacement u (Ox) .png')
     plt.show()
-    print('press any key to continue')
+    print('Exit the figure to continue')
 
     fig3 = plt.figure()
     plt.gca().set_aspect('equal')
-    plt.tricontourf(p[:, 0], p[:, 1], t, v, 500, cmap="jet")
+    plt.tricontourf(defp[:, 0], defp[:, 1], t, v, 500, cmap="jet")
     plt.colorbar()
     plt.title('Displacement v (Oy) ')
     fig3.savefig(results_dir + 'Displacement v (Oy) .png')
     plt.show()
-    print('press any key to continue')
+    print('Exit the figure to continue')
 
     fig4 = plt.figure()
     plt.gca().set_aspect('equal')
-    plt.tricontourf(p[:, 0], p[:, 1], t, thetax, 500, cmap="jet")
+    plt.tricontourf(defp[:, 0], defp[:, 1], t, thetax, 500, cmap="jet")
     plt.colorbar()
     plt.title('Rotation on (Ox) ')
 
     fig4.savefig(results_dir + 'Rotation on (Ox) .png')
     plt.show()
-    print('press any key to continue')
+    print('Exit the figure to continue')
 
     fig5 = plt.figure()
     plt.gca().set_aspect('equal')
-    plt.tricontourf(p[:, 0], p[:, 1], t, thetay, 500, cmap="jet")
+    plt.tricontourf(defp[:, 0], defp[:, 1], t, thetay, 500, cmap="jet")
     plt.colorbar()
     plt.title('Rotation on (Oy)')
     fig5.savefig(results_dir + 'Rotation on (Oy) .png')
     plt.show()
-    print('press any key to continue')
+    print('Exit the figure to continue')
 
     show_deformation(p, t, u, v, w, thetax, thetay)
 
@@ -838,7 +843,7 @@ def Plastic_Post_proc(U, p, t, material_param, Fb, sxx, syy, sxy, saved_residual
     plt.title('Displacement u (Ox) ')
     fig2.savefig(results_dir + 'Displacement u (Ox) .png')
     plt.show()
-    print('press any key to continue')
+    print('Exit the figure to continue')
 
     fig3 = plt.figure()
     plt.gca().set_aspect('equal')
@@ -847,7 +852,7 @@ def Plastic_Post_proc(U, p, t, material_param, Fb, sxx, syy, sxy, saved_residual
     plt.title('Displacement v (Oy) ')
     fig3.savefig(results_dir + 'Displacement v (Oy) .png')
     plt.show()
-    print('press any key to continue')
+    print('Exit the figure to continue')
 
     fig4 = plt.figure()
     plt.gca().set_aspect('equal')
@@ -857,7 +862,7 @@ def Plastic_Post_proc(U, p, t, material_param, Fb, sxx, syy, sxy, saved_residual
 
     fig4.savefig(results_dir + 'Rotation on (Ox) .png')
     plt.show()
-    print('press any key to continue')
+    print('Exit the figure to continue')
 
     fig5 = plt.figure()
     plt.gca().set_aspect('equal')
@@ -866,7 +871,7 @@ def Plastic_Post_proc(U, p, t, material_param, Fb, sxx, syy, sxy, saved_residual
     plt.title('Rotation on (Oy)')
     fig5.savefig(results_dir + 'Rotation on (Oy) .png')
     plt.show()
-    print('press any key to continue')
+    print('Exit the figure to continue')
 
 
 
@@ -905,7 +910,7 @@ def Plastic_Post_proc(U, p, t, material_param, Fb, sxx, syy, sxy, saved_residual
                 plt.title(titledef)
                 fig9.savefig(results_dir + titledef + ' .png')
                 plt.show()
-                print('press any key to continue')
+                print('Exit the figure to continue')
 
 
 
@@ -954,3 +959,48 @@ def Plastic_Post_proc(U, p, t, material_param, Fb, sxx, syy, sxy, saved_residual
         plt.title(titledef)
         fig10.savefig(results_dir + titledef + '.png')
         plt.show()
+
+
+def deformed_shape(p, t, u, v, bbox):
+
+    xmin, ymin, xmax, ymax = bbox
+
+    if (np.max(u) > 1e-12):
+        asp_ratio_x = 0.2 * (xmax - xmin)/np.max(np.abs(u))
+    else:
+        asp_ratio_x = 1000
+
+    if (np.max(u) > 1e-12):
+        asp_ratio_y = 0.2 * (ymax - ymin) / np.max(np.abs(v))
+    else:
+        asp_ratio_y = 1000
+
+
+    defp = np.zeros(p.shape)
+
+    defp[:,0] = p[:,0] + asp_ratio_x*u
+    defp[:,1] = p[:,1] + asp_ratio_y*v
+
+    fig11 = plt.gcf()
+    from distmesh.plotting import SimplexCollection
+
+    fig11.clf()
+    ax = fig11.gca()
+    c = SimplexCollection()
+    ax.add_collection(c)
+    ax.set_xlim(xmin-asp_ratio_x*(np.max(-u)), xmax+asp_ratio_x*(np.max(u)))
+    ax.set_ylim(ymin-asp_ratio_y*(np.max(-v)), ymax+asp_ratio_y*(np.max(v)))
+    ax.set_aspect('equal')
+    ax.set_axis_off()
+    fig11.canvas.draw()
+    c.set_simplices((defp, t))
+    fig11.canvas.draw()
+
+    titledef = 'In-Plane deformed Shape (x aspect ratio = '
+    titledef += str(asp_ratio_x)
+    titledef += ', y aspect ratio = '
+    titledef += str(asp_ratio_y)
+    titledef += ')'
+    fig11.savefig(results_dir + titledef + '.png')
+
+    return defp

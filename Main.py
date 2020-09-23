@@ -177,7 +177,7 @@ if analysis_type[0,0] == 1:
 
     else:
 
-        src_code.postProc_visuals.General_Post_proc(U, p, t, material_param)
+        src_code.postProc_visuals.General_Post_proc(U, p, t, material_param, (x1,y1,x2,y2))
 
 
 if analysis_type[0,0] == 2:
