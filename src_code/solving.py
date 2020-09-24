@@ -542,6 +542,7 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
             else:
                 tolerance = sp.linalg.norm(residual)/sp.linalg.norm(sp.csr_matrix(Fb+deltaFb))
 
+            print(q)
             data_tmp = '\nResidual: '+str(tolerance)+' \n'
             data_text += data_tmp
             print(data_tmp)
@@ -614,8 +615,7 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
 
                             l=0
 
-                            deltaStrain_used = np.zeros((1,3))
-                            deltaStrain_used = deltaStrain_used[0]
+
                             while l<3:
 
                                 laySTRAINxx = strain[k] + th * kappa[3*l]
