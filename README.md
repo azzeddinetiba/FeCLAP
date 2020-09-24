@@ -115,7 +115,7 @@ python setup.py install
 ```
 * Add to _FeCLAP\build\lib.win32-3.7\NonLinearModule\__init__.py_
 the line :
-```sh
+```python
 from .NonLinearModule import * 
 ```
 
