@@ -542,7 +542,6 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
             else:
                 tolerance = sp.linalg.norm(residual)/sp.linalg.norm(sp.csr_matrix(Fb+deltaFb))
 
-            print(q)
             data_tmp = '\nResidual: '+str(tolerance)+' \n'
             data_text += data_tmp
             print(data_tmp)
@@ -594,27 +593,25 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
                 k=0
                 while k < TT:
 
+                    kappa = k_calc(X, T, w, thetax, thetay, k)
+
                     j=0
                     count2 = 0
                     while j<Nplies:
 
+                        theta = angles[j]
+
+                        Tr = np.array([[m.cos(theta) ** 2, m.sin(theta) ** 2, 2 * m.sin(theta) * m.cos(theta)],
+                                       [m.sin(theta) ** 2, m.cos(theta) ** 2, -2 * m.sin(theta) * m.cos(theta)],
+                                       [-m.sin(theta) * m.cos(theta), m.sin(theta) * m.cos(theta),
+                                        (m.cos(theta) ** 2) - m.sin(theta) ** 2]])
 
                         thick = 0
                         while thick < 3:
 
-
-                            theta = angles[j]
-
-                            Tr = np.array([[m.cos(theta) ** 2,              m.sin(theta) ** 2,              2 * m.sin(theta) * m.cos(theta)],
-                                           [m.sin(theta) ** 2,              m.cos(theta) ** 2,              -2 * m.sin(theta) * m.cos(theta)],
-                                           [-m.sin(theta) * m.cos(theta),   m.sin(theta) * m.cos(theta),   (m.cos(theta) ** 2) - m.sin(theta) ** 2]])
-
                             th = pos[j] + thick * thickness[j][0]/2
 
-                            kappa = k_calc(X, T, w, thetax, thetay, k)
-
                             l=0
-
 
                             while l<3:
 

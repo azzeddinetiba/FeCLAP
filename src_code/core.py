@@ -500,9 +500,9 @@ def internal_force_elem(X, T, ie, gp, Wgauss, saved_stress_xx,saved_stress_yy,sa
                      B=np.array([[dN1dx ,0     ,0            ,0            ,0            ,0 ,dN2dx ,0     ,0            ,0            ,0             ,0 ,dN3dx ,0     ,0            ,0            ,0           ,0],
                                  [0     ,dN1dy ,0            ,0            ,0            ,0 ,0     ,dN2dy ,0            ,0            ,0             ,0 ,0     ,dN3dy ,0            ,0            ,0           ,0],
                                  [dN1dy ,dN1dx ,0            ,0            ,0            ,0 ,dN2dy ,dN2dx ,0            ,0            ,0             ,0 ,dN3dy ,dN3dx ,0            ,0            ,0           ,0],
-                                 [0     ,0     ,ddN11[0,0]   ,ddN12[0,0]   ,ddN13[0,0]   ,0 ,0     ,0     ,ddN21[0,0]   ,ddN22[0,0]   ,ddN23[0,0]    ,0 ,0     ,0     ,ddN31[0,0]   ,ddN32[0,0]   ,ddN33[0,0]  ,0],
-                                 [0     ,0     ,ddN11[1,1]   ,ddN12[1,1]   ,ddN13[1,1]   ,0 ,0     ,0     ,ddN21[1,1]   ,ddN22[1,1]   ,ddN23[1,1]    ,0 ,0     ,0     ,ddN31[1,1]   ,ddN32[1,1]   ,ddN33[1,1]  ,0],
-                                 [0     ,0     ,2*ddN11[0,1] ,2*ddN12[0,1] ,2*ddN13[0,1] ,0 ,0     ,0     ,2*ddN21[0,1] ,2*ddN22[0,1] ,2*ddN23[0,1]  ,0 ,0     ,0     ,2*ddN31[0,1] ,2*ddN32[0,1] ,2*ddN33[0,1],0]])
+                                 [0     ,0     ,-ddN11[0,0]   ,-ddN12[0,0]   ,-ddN13[0,0]   ,0 ,0     ,0     ,-ddN21[0,0]   ,-ddN22[0,0]   ,-ddN23[0,0]    ,0 ,0     ,0     ,-ddN31[0,0]   ,-ddN32[0,0]   ,-ddN33[0,0]  ,0],
+                                 [0     ,0     ,-ddN11[1,1]   ,-ddN12[1,1]   ,-ddN13[1,1]   ,0 ,0     ,0     ,-ddN21[1,1]   ,-ddN22[1,1]   ,-ddN23[1,1]    ,0 ,0     ,0     ,-ddN31[1,1]   ,-ddN32[1,1]   ,-ddN33[1,1]  ,0],
+                                 [0     ,0     ,-2*ddN11[0,1] ,-2*ddN12[0,1] ,-2*ddN13[0,1] ,0 ,0     ,0     ,-2*ddN21[0,1] ,-2*ddN22[0,1] ,-2*ddN23[0,1]  ,0 ,0     ,0     ,-2*ddN31[0,1] ,-2*ddN32[0,1] ,-2*ddN33[0,1],0]])
 
                      stress = np.array(
                          [[saved_stress_xx[ii, thick, ie, jj]], [saved_stress_yy[ii, thick, ie, jj]],
@@ -522,7 +522,6 @@ def internal_force_elem(X, T, ie, gp, Wgauss, saved_stress_xx,saved_stress_yy,sa
                 thick+=1
 
             jj += 1
-
 
 
         return qe
