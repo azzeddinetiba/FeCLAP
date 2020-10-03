@@ -99,7 +99,7 @@ f = lambda x, y: 0
 g = lambda x, y: 0
 h = lambda x, y: 0
 pointload = -1
-NODALLOAD = np.array([2025, 0, 0])
+NODALLOAD = np.array([4025, 0, 0])
 XY = np.zeros((1, 2))
 XY[0,0] = 0.7
 XY[0,1] = 0.4
@@ -249,8 +249,9 @@ while i < t.shape[0]:
 plotted_sxx = np.zeros((1,len(sxx)))
 plotted_epxx = np.zeros((1,len(epxx)))
 step=0
+lay=2
 while step<len(sxx):
-    plotted_sxx[0,step] = sxx[step][1,1,elementu,lay - 1]
+    plotted_sxx[0,step] = sxx[step][1,2,elementu,lay - 1]
     ii = 0
     while ii<step:
         plotted_epxx[0,step] += epxx[ii][elementu,0]
@@ -259,7 +260,9 @@ while step<len(sxx):
     step+=1
 
 fig6 = plt.figure()
-titledef = 'Stress Strain Curve in the applied load region '
+titledef = 'Stress Strain Curve in the applied load region, Layer'
+titledef += str(lay)
+titledef += ', Top height'
 plt.plot(plotted_epxx[0], plotted_sxx[0], 'b-')
 plt.title(titledef)
 fig6.savefig(results_dir + ' CASE 1 '+ titledef + ' .png')

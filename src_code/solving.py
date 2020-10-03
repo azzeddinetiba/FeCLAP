@@ -632,6 +632,7 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
 
                                 Q_used = Q[np.arange(3 * j, 3 * j + 3), :]
 
+
                                 rtrnAlg = NonLinearModule.returnAlg(previous_stress, Tr, limit, Q_used,
                                                                     deltaStrain_used)
 
@@ -660,13 +661,9 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
 
                                 l+=1
 
-
-
-
                             thick+=1
 
                         j+=1
-
 
                     k+=1
 

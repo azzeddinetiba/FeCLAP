@@ -84,9 +84,7 @@ yield::~yield()
 
 double yield::getvalue()
 {
-    double r;
-    r = val;
-    return r;
+    return val;
 }
 
 VectorXd returnAlg (Map<VectorXd> &init_sigma, Map<MatrixXd> &Tr, Map<MatrixXd> &limit, Map<MatrixXd> &Q, Map<VectorXd> &delta_strain)
@@ -101,8 +99,7 @@ VectorXd returnAlg (Map<VectorXd> &init_sigma, Map<MatrixXd> &Tr, Map<MatrixXd> 
 
     sigma_trial = init_sigma + Q*delta_strain;
     yield f(sigma_trial, Tr, limit); q = f.getvalue();
-    //std::cout<<"first q is"<<std::endl;
-    //std::cout<<q;
+
 
     state_sigma = sigma_trial;
 
