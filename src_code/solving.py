@@ -441,7 +441,7 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
 
 
     q = np.zeros((Nn, 1))
-    q = applying_Fix_q(total_loading, X, T, b, box, q, analysis_type)
+    #q = applying_Fix_q(total_loading, X, T, b, box, q, analysis_type, Nincr)
     q = q.T
     q = q[0]
 
@@ -505,7 +505,8 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
                     k+=1
 
 
-                q = applying_Fix_q(total_loading, X, T, b, box, q, analysis_type)
+                if ii!=0:
+                    q = applying_Fix_q(total_loading, X, T, b, box, q, analysis_type,[Nincr, i])
 
 
             if analysis_type[0, 2] == 1:
@@ -527,8 +528,8 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
 
 
 
-
-            residual = applying_Fix_q(total_loading, X, T, b, box, residual, analysis_type)
+            if ii==0:
+                residual = applying_Fix_q(total_loading, X, T, b, box, residual, analysis_type, [Nincr, i])
             if analysis_type[0,2] == 0:
                 residual = residual.tocsr()
                 nonzero_mask = np.array(np.abs(residual[residual.nonzero()]) < 1e-14)[0]
@@ -538,9 +539,11 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
 
 
             if analysis_type[0,2] == 1:
-                tolerance = np.linalg.norm(residual)/np.linalg.norm(Fb+deltaFb)
+                if (not (1 in total_loading['Bc']['ENFRCDS'][:,np.arange(5,10)])) or ii==0 :
+                    tolerance = np.linalg.norm(residual)/np.linalg.norm(Fb+deltaFb)
             else:
-                tolerance = sp.linalg.norm(residual)/sp.linalg.norm(sp.csr_matrix(Fb+deltaFb))
+                if (not (1 in total_loading['Bc']['ENFRCDS'][:,np.arange(5,10)])) or ii==0 :
+                    tolerance = sp.linalg.norm(residual)/sp.linalg.norm(sp.csr_matrix(Fb+deltaFb))
 
             data_tmp = '\nResidual: '+str(tolerance)+' \n'
             data_text += data_tmp
@@ -548,7 +551,7 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
 
 
 
-            if ( tolerance < 0.001 )  or ( count > 0 and tolerance < 0.05 ):
+            if (( tolerance < 1e-5 )  or ( count > 0 and tolerance < 0.05 ) ):
 
 
                 saved_residual.append(tolerance)
@@ -576,8 +579,11 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
 
                 if analysis_type[0,2] == 1:
                     dU = np.linalg.solve(globalK, residual)
+                    tolerance = np.linalg.norm(dU)
+
                 else:
                     dU = sp.linalg.spsolve(globalK, residual)
+                    tolerance = np.linalg.norm(dU)
 
 
                 deltaU = deltaU + dU

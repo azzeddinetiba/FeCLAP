@@ -1036,7 +1036,10 @@ def BCMAssembly(X,T,b,F,j,fixedx,xy):
     return FBCM
 
 
-def applying_Fix_q(total_loading, X, T, b, box, F, analysis_type, *args):
+def applying_Fix_q(total_loading, X, T, b, box, F, analysis_type, Nincr1, *args):
+
+        Nincr = Nincr1[0]
+        curr_incr = Nincr1[1]
 
         isthereM = len(args)
         if isthereM != 0:
@@ -1149,7 +1152,13 @@ def applying_Fix_q(total_loading, X, T, b, box, F, analysis_type, *args):
 
             ENFRCDS1 = np.array([ENFRCDS[:, np.arange(0, 5)]])
             ENFRCDS2 = np.array([ENFRCDS[:, np.arange(5, 10)]])
-            ENFRCDS1 = ENFRCDS1[0]
+            ENFRCDS1 = ENFRCDS1[0]/Nincr
+            load_step = ENFRCDS1
+            if curr_incr != 0:
+                i=0
+                while i<curr_incr:
+                    ENFRCDS1 += load_step
+                    i+=1
             ENFRCDS2 = ENFRCDS2[0]
             x1 = box[0, 0]
             y1 = box[0, 1]
@@ -1215,6 +1224,7 @@ def applying_Fix_q(total_loading, X, T, b, box, F, analysis_type, *args):
         elif boundaryconditions[0] == 4:
             srch = np.nonzero(ENFRCDS2[0, :])
             for c in srch[0]:
+                F[border1[np.arange(c, border1.size, 6)] - 1] = ENFRCDS1[0, c]
                 if isthereM != 0:
                     M[border1[np.arange(c, border1.size, 6)] - 1, :] = 0
                     M[np.ix_(border1[np.arange(c, border1.size, 6)] - 1,
@@ -1351,7 +1361,7 @@ def applying_Fix_q(total_loading, X, T, b, box, F, analysis_type, *args):
         elif boundaryconditions[1] == 4:
             srch = np.nonzero(ENFRCDS2[1, :])
             for c in srch[0]:
-
+                F[border2[np.arange(c, border2.size, 6)] - 1] = ENFRCDS1[1, c]
                 if isthereM != 0:
                     M[border2[np.arange(c, border2.size, 6)] - 1, :] = 0
                     M[np.ix_(border2[np.arange(c, border2.size, 6)] - 1,
@@ -1470,9 +1480,19 @@ def applying_Fix_q(total_loading, X, T, b, box, F, analysis_type, *args):
             F[border3[np.arange(3, border3.size, 6)] - 1] += BCMAssembly(X, T, b3, MY3, 2, x2, 1)
             F[border3[np.arange(4, border3.size, 6)] - 1] += BCMAssembly(X, T, b3, MXY3, 2, x2, 2)
             if boundaryconditions[1] == 2:
-
                 F[border2 - 1] = 0
 
+        elif boundaryconditions[2] == 4:
+            srch = np.nonzero(ENFRCDS2[2, :])
+            for c in srch[0]:
+                F[border3[np.arange(c, border3.size, 6)] - 1] = ENFRCDS1[2, c]
+                if isthereM != 0:
+                    M[border3[np.arange(c, border3.size, 6)] - 1, :] = 0
+                    M[np.ix_(border3[np.arange(c, border3.size, 6)] - 1,
+                             border3[np.arange(c, border3.size, 6)] - 1)] -= diag_mat(M[np.ix_(
+                        border3[np.arange(c, border3.size, 6)] - 1,
+                        border3[np.arange(c, border3.size, 6)] - 1)],analysis_type[0,2]) - np.eye(
+                        border3[np.arange(c, border3.size, 6)].size)
 
 
         elif boundaryconditions[2] == 5:
@@ -1595,6 +1615,19 @@ def applying_Fix_q(total_loading, X, T, b, box, F, analysis_type, *args):
             if boundaryconditions[0] == 2:
 
                 F[border1[np.arange(0, 6)] - 1] = 0
+
+
+        elif boundaryconditions[3] == 4:
+            srch = np.nonzero(ENFRCDS2[3, :])
+            for c in srch[0]:
+                F[border4[np.arange(c, border4.size, 6)] - 1] = ENFRCDS1[3, c]
+                if isthereM != 0:
+                    M[border4[np.arange(c, border4.size, 6)] - 1, :] = 0
+                    M[np.ix_(border4[np.arange(c, border4.size, 6)] - 1,
+                             border4[np.arange(c, border4.size, 6)] - 1)] -= diag_mat(M[np.ix_(
+                        border4[np.arange(c, border4.size, 6)] - 1,
+                        border4[np.arange(c, border4.size, 6)] - 1)],analysis_type[0,2]) - np.eye(
+                        border4[np.arange(c, border4.size, 6)].size)
 
 
         elif boundaryconditions[3] == 5:
