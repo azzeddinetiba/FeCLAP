@@ -505,8 +505,7 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
                     k+=1
 
 
-                if ii!=0:
-                    q = applying_Fix_q(total_loading, X, T, b, box, q, analysis_type,[Nincr, i])
+                #q = applying_Fix_q(total_loading, X, T, b, box, q, analysis_type,[Nincr, i])
 
 
             if analysis_type[0, 2] == 1:
@@ -528,8 +527,7 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
 
 
 
-            if ii==0:
-                residual = applying_Fix_q(total_loading, X, T, b, box, residual, analysis_type, [Nincr, i])
+            residual = applying_Fix_q(total_loading, X, T, b, box, residual, analysis_type, [Nincr, i])
             if analysis_type[0,2] == 0:
                 residual = residual.tocsr()
                 nonzero_mask = np.array(np.abs(residual[residual.nonzero()]) < 1e-14)[0]
@@ -577,13 +575,23 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
 
             else:
 
-                if analysis_type[0,2] == 1:
-                    dU = np.linalg.solve(globalK, residual)
-                    tolerance = np.linalg.norm(dU)
+
+
+                if 1 in total_loading['Bc']['ENFRCDS'][:,np.arange(5,10)]:
+                    bnd = src_code.Assembly.get_boundaries(X, b, box)
+                    alpha_e, dU_e, dU_u = disp_controlled_method(globalK, raw_globalK,\
+                                                                 residual, deltaFb, bnd, analysis_type)
+
+                    dU = dU_u + alpha_e * dU_e
 
                 else:
-                    dU = sp.linalg.spsolve(globalK, residual)
-                    tolerance = np.linalg.norm(dU)
+                    if analysis_type[0, 2] == 1:
+                        dU = np.linalg.solve(globalK, residual)
+                        tolerance = np.linalg.norm(dU) / np.linalg.norm(U)
+
+                    else:
+                        dU = sp.linalg.spsolve(globalK, residual)
+                        tolerance = np.linalg.norm(dU) / sp.linalg.norm(U)
 
 
                 deltaU = deltaU + dU
@@ -790,3 +798,60 @@ def tangent_stiffness(X,T, material_param, limit, b, box, total_loading, F, save
     fixed_borders, globalK, M, F = applying_BC(total_loading,X,T,b,box,globalK,F, analysis_type)
 
     return globalK
+
+
+def disp_controlled_method(globalK, residual, deltaFb, bnd, Nincr,
+                           analysis_type, total_loading, boundaryconditions):
+
+    border1 = bnd[0]
+    border2 = bnd[1]
+    border3 = bnd[2]
+    border4 = bnd[3]
+
+    ENFRCDS = total_loading['Bc']['ENFRCDS']
+
+    ENFRCDS1 = np.array([ENFRCDS[:, np.arange(0, 5)]])
+    ENFRCDS2 = np.array([ENFRCDS[:, np.arange(5, 10)]])
+    ENFRCDS1 = ENFRCDS1[0] / Nincr
+    ENFRCDS2 = ENFRCDS2[0]
+
+
+    if analysis_type[0, 2] == 1:
+        dU_u = np.linalg.solve(globalK, residual)
+        dU_e = np.linalg.solve(globalK, deltaFb)
+
+
+    else:
+        dU_u = sp.linalg.spsolve(globalK, residual)
+        dU_e = sp.linalg.spsolve(globalK, deltaFb)
+
+    alpha_e = np.zeros(dU_u.shape)
+
+    if boundaryconditions[0] == 4:
+        used_indexes = border1[np.arange(c, border1.size, 6)] - 1
+        srch = np.nonzero(ENFRCDS2[0, :])
+        for c in srch[0]:
+            alpha_e[used_indexes] =\
+                ENFRCDS1[0, c] - dU_u[used_indexes]/dU_e[used_indexes]
+    if boundaryconditions[1] == 4:
+        used_indexes = border2[np.arange(c, border2.size, 6)] - 1
+        srch = np.nonzero(ENFRCDS2[1, :])
+        for c in srch[0]:
+            alpha_e[used_indexes] =\
+                ENFRCDS1[1, c] - dU_u[used_indexes]/dU_e[used_indexes]
+    if boundaryconditions[2] == 4:
+        used_indexes = border3[np.arange(c, border3.size, 6)] - 1
+        srch = np.nonzero(ENFRCDS2[2, :])
+        for c in srch[0]:
+            alpha_e[used_indexes] =\
+                ENFRCDS1[2, c] - dU_u[used_indexes]/dU_e[used_indexes]
+    if boundaryconditions[3] == 4:
+        used_indexes = border4[np.arange(c, border4.size, 6)] - 1
+        srch = np.nonzero(ENFRCDS2[3, :])
+        for c in srch[0]:
+            alpha_e[used_indexes] =\
+                ENFRCDS1[3, c] - dU_u[used_indexes]/dU_e[used_indexes]
+
+
+
+    return alpha_e, dU_e, dU_u
