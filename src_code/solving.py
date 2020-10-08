@@ -587,11 +587,13 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
                 else:
                     if analysis_type[0, 2] == 1:
                         dU = np.linalg.solve(globalK, residual)
+                    if 1 in total_loading['Bc']['ENFRCDS'][:, np.arange(5, 10)]:
                         tolerance = np.linalg.norm(dU) / np.linalg.norm(U)
 
                     else:
                         dU = sp.linalg.spsolve(globalK, residual)
-                        tolerance = np.linalg.norm(dU) / sp.linalg.norm(U)
+                    if 1 in total_loading['Bc']['ENFRCDS'][:, np.arange(5, 10)]:
+                        tolerance = np.linalg.norm(dU) / np.linalg.norm(U)
 
 
                 deltaU = deltaU + dU

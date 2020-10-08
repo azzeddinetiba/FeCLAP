@@ -72,6 +72,11 @@ See [Usage](#usage) for using the solver.
 ### Prerequisites
 
 This project requires the following libraries:
+* Cython
+```sh
+pip install cython
+```
+
 * Numpy
 ```sh
 pip install numpy
@@ -82,20 +87,13 @@ pip install numpy
 pip install scipy
 ```
 
-* Cython
-```sh
-pip install cython
-```
-
 * Eigency
 ```sh
-pip install eigency
+pip install rmjarvis.eigency
 ```
 
 * distmesh
-```sh
-pip install distmesh
-```
+_Instead of installing via pip, we recommend icnluding the distmesh source code folder into the remaining FeCLAP folder, avoiding thus Lapack incompatibility issues._
 
 ### Installation
  
@@ -113,14 +111,11 @@ git clone https://github.com/azzeddinetiba/FeCLAP.git
 python setup.py build
 python setup.py install
 ```
-* Add to _FeCLAP\build\lib.win32-3.7\NonLinearModule\__init__.py_
-the line :
+* Create and add to _FeCLAP\NonLinearModule\\_ or _FeCLAP\NonLinearModule-1.0-py3.8-win-amd64.egg\NonLinearModule\\\_
+the file ```\__init\__.py``` (Folder names vary depending on the python version, and the environment used) with:
 ```python
 from .NonLinearModule import * 
 ```
-
-* Copy the  _\lib.win32-3.7\NonLinearModule_ files to the
-_FeCLAP\NonLinearModule_ folder
 
 <!-- USAGE EXAMPLES -->
 ## Usage
