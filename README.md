@@ -92,7 +92,7 @@ pip install scipy
 pip install rmjarvis.eigency
 ```
 
-* distmesh
+* distmesh \
 _Instead of installing via pip, we recommend icnluding the distmesh source code folder into the remaining FeCLAP folder, avoiding thus Lapack incompatibility issues._
 
 ### Installation

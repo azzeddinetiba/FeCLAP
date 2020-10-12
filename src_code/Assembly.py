@@ -596,7 +596,6 @@ def applying_BC(total_loading,X,T,b,box,K,F, analysis_type,*args):
        F[border3[np.arange(c,border3.size,6)]-1]=ENFRCDS1[2, c]
        #K[np.ix_(border3[np.arange(c,border3.size,6)]-1, border3[np.arange(c,border3.size,6)]-1)]=np.eye(border3[np.arange(c,border3.size,6)].size)
        K[np.ix_(border3[np.arange(c,border3.size,6)]-1, border3[np.arange(c,border3.size,6)]-1)] -= diag_mat(K[np.ix_(border3[np.arange(c,border3.size,6)]-1, border3[np.arange(c,border3.size,6)]-1)],analysis_type[0,2]) - np.eye(border3[np.arange(c,border3.size,6)].size)
-
     elif boundaryconditions[2] == 5:
         K[border3[::6] - 1, :] = 0
         K[:, border3[::6] - 1] = 0
@@ -1204,6 +1203,7 @@ def applying_Fix_q(total_loading, X, T, b, box, F, analysis_type, Nincr1, *args)
         everyborder[2, :] = np.concatenate((border3, np.zeros((1, border_size - border3.shape[0]))), axis=None)
         everyborder[3, :] = np.concatenate((border4, np.zeros((1, border_size - border4.shape[0]))), axis=None)
         everyborder = everyborder.astype(int)
+
 
         if boundaryconditions[0] == 1:
             F[border1[np.arange(0, border1.size, 6)] - 1] += BCAssembly(X, T, b1, NX1, 2, x1)

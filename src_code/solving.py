@@ -8,6 +8,7 @@ from src_code.inputting import *
 import os
 import NonLinearModule
 import src_code.core
+import copy
 
 def FEM(total_loading,X,T,b,Ngauss,box,analysis_type,transient,material_param, *args):
 
@@ -25,10 +26,23 @@ def FEM(total_loading,X,T,b,Ngauss,box,analysis_type,transient,material_param, *
 
     K, M, F = Assembly2D(X,T,surface_load,Wgauss,gp,Ngauss,Klaw,pho,thickness,analysis_type)
 
+
+    if (1 in total_loading['Bc']['ENFRCDS'][:, np.arange(5, 10)]):
+        raw_K = copy.deepcopy(K)
+        total_loading2 = copy.deepcopy(total_loading)
+        tmp_bnd_cnd = total_loading2['Bc']['boundaryconditions']
+        total_loading2['Bc']['boundaryconditions'][tmp_bnd_cnd==4]=0
+
+
     if analysis_type[0,0]!=1:
         fixed_borders, K, M, F = applying_BC(total_loading,X,T,b,box,K,F, analysis_type,M)
+        if (1 in total_loading['Bc']['ENFRCDS'][:, np.arange(5, 10)]):
+            _, raw_K, _, _ = applying_BC(total_loading2, X, T, b, box, raw_K, copy.deepcopy(F), analysis_type, M)
+
     else:
         fixed_borders, K, M, F = applying_BC(total_loading,X,T,b,box,K,F, analysis_type)
+        if (1 in total_loading['Bc']['ENFRCDS'][:, np.arange(5, 10)]):
+            _, raw_K, _, _ = applying_BC(total_loading2, X, T, b, box, raw_K, copy.deepcopy(F), analysis_type)
 
 
 
@@ -47,6 +61,7 @@ def FEM(total_loading,X,T,b,Ngauss,box,analysis_type,transient,material_param, *
             else:
 
                 K = K.tocsr()
+
                 F = F.tocsr()
 
                 U = sp.linalg.spsolve(K, F)
@@ -65,8 +80,14 @@ def FEM(total_loading,X,T,b,Ngauss,box,analysis_type,transient,material_param, *
             else:
                 Fb = F
 
-            U, Fb, sxx, syy, sxy, saved_residual, epxx, epyy, epxy, saved_deltaU = \
-                plastic_analysis(X, T, K, Fb, plast_param, material_param, b, box, total_loading, Ngauss, analysis_type)
+            if (1 in total_loading['Bc']['ENFRCDS'][:, np.arange(5, 10)]):
+                U, Fb, sxx, syy, sxy, saved_residual, epxx, epyy, epxy, saved_deltaU = \
+                    plastic_analysis(X, T, K, Fb, plast_param, material_param, b, box,\
+                                     total_loading, Ngauss, analysis_type, raw_K)
+            else:
+                U, Fb, sxx, syy, sxy, saved_residual, epxx, epyy, epxy, saved_deltaU = \
+                    plastic_analysis(X, T, K, Fb, plast_param, material_param, b, box,\
+                                     total_loading, Ngauss, analysis_type)
             return  U, Fb, sxx, syy, sxy, saved_residual, epxx, epyy, epxy, saved_deltaU
 
 
@@ -361,7 +382,13 @@ def FEM(total_loading,X,T,b,Ngauss,box,analysis_type,transient,material_param, *
         return K, F, SOL
 
 
-def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, total_loading, Ngauss, analysis_type):
+def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, total_loading, Ngauss, analysis_type, *args):
+
+
+    isthereM = len(args)
+    if isthereM != 0:
+        raw_globalK = args[0]
+
 
     script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     results_dir = os.path.join(script_dir, 'Results/')
@@ -375,6 +402,9 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
 
     if analysis_type[0,2] == 0:
         globalK = globalK.tocsr()
+        if isthereM != 0:
+            raw_globalK = raw_globalK.tocsr()
+
 
     TT=T.shape[0]
 
@@ -396,21 +426,25 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
     limit = plast_param['yield_limit']
 
 
-    i=0
-    while i<Nplies:
-        if pos[i]*(pos[i]+thickness[i])<=0:
+    i = 0
+    while i < Nplies:
+        if pos[i]*(pos[i]+thickness[i]) <= 0:
             mid_lay = i
             break
-        i +=1
+        i += 1
 
     #The load is divided on equal incremental loads
     deltaFb = Fb/Nincr
     if analysis_type[0, 2] == 1:
         Fb = np.zeros((deltaFb.shape[0], 1))
         Fb = Fb.T[0]
+        saved_force_level = np.zeros(deltaFb.shape)
+        saved_force_level = saved_force_level.T[0]
     else:
         Fb = sp.lil_matrix((deltaFb.shape[0], 1))
+        saved_force_level = sp.lil_matrix((deltaFb.shape[0],1))
 
+    dU = []
     saved_residual = []
     sxx = []
     syy = []
@@ -445,6 +479,8 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
     q = q.T
     q = q[0]
 
+    tolerance = 1
+
     i=0
     while i<Nincr:
 
@@ -467,9 +503,18 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
                 data_text += data_tmp
                 print(data_tmp)
                 if analysis_type[0,2] == 1:
-                    globalK = tangent_stiffness(X, T, material_param, limit, b, box, total_loading, np.zeros((deltaFb.shape[0],1)), saved_stress_xx, saved_stress_yy, saved_stress_xy, saved_delta_lambda, gone_plastic, analysis_type)
+                    if (1 in total_loading['Bc']['ENFRCDS'][:,np.arange(5,10)]):
+                        globalK, raw_globalK = tangent_stiffness(X, T, material_param, limit, b, box, total_loading, np.zeros((deltaFb.shape[0],1)), saved_stress_xx, saved_stress_yy, saved_stress_xy, saved_delta_lambda, gone_plastic, analysis_type)
+
+                    else:
+                        globalK = tangent_stiffness(X, T, material_param, limit, b, box, total_loading, np.zeros((deltaFb.shape[0],1)), saved_stress_xx, saved_stress_yy, saved_stress_xy, saved_delta_lambda, gone_plastic, analysis_type)
+
                 else:
-                    globalK = tangent_stiffness(X, T, material_param, limit, b, box, total_loading, sp.lil_matrix((deltaFb.shape[0],1)), saved_stress_xx, saved_stress_yy, saved_stress_xy, saved_delta_lambda, gone_plastic, analysis_type)
+                    if (1 in total_loading['Bc']['ENFRCDS'][:,np.arange(5,10)]):
+                        globalK, raw_globalK = tangent_stiffness(X, T, material_param, limit, b, box, total_loading, sp.lil_matrix((deltaFb.shape[0],1)), saved_stress_xx, saved_stress_yy, saved_stress_xy, saved_delta_lambda, gone_plastic, analysis_type)
+                        raw_globalK = raw_globalK.tocsr()
+                    else:
+                        globalK = tangent_stiffness(X, T, material_param, limit, b, box, total_loading, sp.lil_matrix((deltaFb.shape[0],1)), saved_stress_xx, saved_stress_yy, saved_stress_xy, saved_delta_lambda, gone_plastic, analysis_type)
                     globalK = globalK.tocsr()
                 count += 1
 
@@ -502,32 +547,55 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
                     else:
                         q[Tie1 - 1, :] += sp.lil_matrix(qe)
 
-                    k+=1
-
+                    k += 1
 
                 #q = applying_Fix_q(total_loading, X, T, b, box, q, analysis_type,[Nincr, i])
-
 
             if analysis_type[0, 2] == 1:
                 q = q.T
                 q = q[0]
 
+            force_level = Fb+deltaFb
+            if 1 in total_loading['Bc']['ENFRCDS'][:, np.arange(5, 10)]:
+
+                if i == 0 and ii == 0:
+                    bnd = src_code.Assembly.get_boundaries(X, b, box)
+                    bc = total_loading['Bc']['boundaryconditions']
+                elif i == 0:
+                    RF, imposed_borders = src_code.postProc_calc.Reaction_Force\
+                    (raw_globalK, deltaFb, total_loading, bnd, bc)
+                    force_level[imposed_borders, 0] = RF.T[0]
+                else:
+                    RF, imposed_borders = src_code.postProc_calc.Reaction_Force\
+                    (raw_globalK, deltaFb, total_loading, bnd, bc)
+                    force_level[imposed_borders, 0] = RF.T[0]
 
             if analysis_type[0,2] == 1:
-                residual = Fb + deltaFb - q
+                if 1 in total_loading['Bc']['ENFRCDS'][:, np.arange(5, 10)]:
+                    residual = saved_force_level + force_level - q
+                else:
+                    residual = force_level - q
             else:
-                if ii==0:
+                if ii == 0:
                     q = sp.lil_matrix(q)
 
-                if ii==0 and i == 0 :
-                    residual = sp.lil_matrix(Fb + deltaFb) - q.T
+                if 1 in total_loading['Bc']['ENFRCDS'][:, np.arange(5, 10)]:
+                    if ii == 0 and i == 0:
+                        residual = sp.lil_matrix(saved_force_level + force_level) - q.T
+                    else:
+                        residual = sp.lil_matrix(saved_force_level + force_level) - q
+
                 else:
-                    residual = sp.lil_matrix(Fb + deltaFb) - q
+                    if ii == 0 and i == 0:
+                        residual = sp.lil_matrix(force_level) - q.T
+                    else:
+                        residual = sp.lil_matrix(force_level) - q
+
                 residual = residual.tolil()
 
 
-
             residual = applying_Fix_q(total_loading, X, T, b, box, residual, analysis_type, [Nincr, i])
+
             if analysis_type[0,2] == 0:
                 residual = residual.tocsr()
                 nonzero_mask = np.array(np.abs(residual[residual.nonzero()]) < 1e-14)[0]
@@ -537,11 +605,20 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
 
 
             if analysis_type[0,2] == 1:
-                if (not (1 in total_loading['Bc']['ENFRCDS'][:,np.arange(5,10)])) or ii==0 :
-                    tolerance = np.linalg.norm(residual)/np.linalg.norm(Fb+deltaFb)
+                if (not (1 in total_loading['Bc']['ENFRCDS'][:,np.arange(5,10)])) or ii == 0:
+                    tolerance = np.linalg.norm(residual)/np.linalg.norm(saved_force_level+force_level)
+                    criterion = ((tolerance < 1e-7) or (count > 0 and tolerance < 0.05))
+                else:
+                    tolerance = np.linalg.norm(dU) / np.linalg.norm(deltaU)
+                    criterion = tolerance < 0.05
+
             else:
-                if (not (1 in total_loading['Bc']['ENFRCDS'][:,np.arange(5,10)])) or ii==0 :
-                    tolerance = sp.linalg.norm(residual)/sp.linalg.norm(sp.csr_matrix(Fb+deltaFb))
+                if (not (1 in total_loading['Bc']['ENFRCDS'][:,np.arange(5,10)])) or ii == 0:
+                    tolerance = sp.linalg.norm(residual)/sp.linalg.norm(sp.csr_matrix(saved_force_level+force_level))
+                    criterion = ((tolerance < 1e-7) or (count > 0 and tolerance < 0.05))
+                else:
+                    tolerance = np.linalg.norm(dU) / np.linalg.norm(deltaU)
+                    criterion = tolerance < 0.05
 
             data_tmp = '\nResidual: '+str(tolerance)+' \n'
             data_text += data_tmp
@@ -549,7 +626,7 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
 
 
 
-            if (( tolerance < 1e-5 )  or ( count > 0 and tolerance < 0.05 ) ):
+            if criterion:
 
 
                 saved_residual.append(tolerance)
@@ -576,27 +653,38 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
             else:
 
 
-
                 if 1 in total_loading['Bc']['ENFRCDS'][:,np.arange(5,10)]:
-                    bnd = src_code.Assembly.get_boundaries(X, b, box)
-                    alpha_e, dU_e, dU_u = disp_controlled_method(globalK, raw_globalK,\
-                                                                 residual, deltaFb, bnd, analysis_type)
+                    if ii != 0 or i != 0:
 
-                    dU = dU_u + alpha_e * dU_e
+                        if ii == 0:
+                            alpha_e, dU_e, dU_u = disp_controlled_method(globalK, raw_globalK, residual,\
+                                                                  force_level, bnd, Nincr,analysis_type,\
+                                                                  total_loading, bc, [])
+                        else:
+                            alpha_e, dU_e, dU_u = disp_controlled_method(globalK, raw_globalK, residual,\
+                                                                  force_level, bnd, Nincr,analysis_type,\
+                                                                  total_loading, bc, deltaU)
+                        dU = dU_u + alpha_e * dU_e
+
+                    else:
+
+                        if analysis_type[0, 2] == 1:
+                            dU = np.linalg.solve(globalK, residual)
+
+                        else:
+                            dU = sp.linalg.spsolve(globalK, residual)
+
+
 
                 else:
                     if analysis_type[0, 2] == 1:
                         dU = np.linalg.solve(globalK, residual)
-                    if 1 in total_loading['Bc']['ENFRCDS'][:, np.arange(5, 10)]:
-                        tolerance = np.linalg.norm(dU) / np.linalg.norm(U)
 
                     else:
                         dU = sp.linalg.spsolve(globalK, residual)
-                    if 1 in total_loading['Bc']['ENFRCDS'][:, np.arange(5, 10)]:
-                        tolerance = np.linalg.norm(dU) / np.linalg.norm(U)
-
 
                 deltaU = deltaU + dU
+
 
                 u = deltaU[0::6]
                 v = deltaU[1::6]
@@ -627,9 +715,9 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
 
                             th = pos[j] + thick * thickness[j][0]/2
 
-                            l=0
+                            l = 0
 
-                            while l<3:
+                            while l < 3:
 
                                 laySTRAINxx = strain[k] + th * kappa[3*l]
                                 laySTRAINxx = laySTRAINxx[0]
@@ -648,16 +736,16 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
 
                                 Q_used = Q[np.arange(3 * j, 3 * j + 3), :]
 
-
                                 rtrnAlg = NonLinearModule.returnAlg(previous_stress, Tr, limit, Q_used,
                                                                     deltaStrain_used)
 
                                 interm = rtrnAlg.reshape((1, 4))
                                 interm = np.array(interm[0])
 
+
                                 previous_stress = interm[0:3]
 
-                                if (interm[3] > 1e-7 and ii == 0 and count2 == 0):
+                                if (interm[3] > 1e-7 and count2 == 0):
                                     data_tmp = '\nPlasticity occurring in the layer ' + str(
                                         j + 1) + ', spotted at the element number, ' + str(k)
                                     data_text += data_tmp
@@ -691,8 +779,10 @@ def plastic_analysis(X, T, globalK, Fb, plast_param, material_param, b, box, tot
 
             ii+=1
 
+        saved_force_level = saved_force_level + force_level
 
         U = U + deltaU
+
         Fb = Fb + deltaFb
 
         i+=1
@@ -774,7 +864,7 @@ def tangent_stiffness(X,T, material_param, limit, b, box, total_loading, F, save
 
                     thick+=1
 
-                K.append( np.ndarray.copy(np.array([[A[0, 0], A[0, 1], A[0, 2], -B[0, 0], -B[0, 1], -B[0, 2]],
+                K.append(np.ndarray.copy(np.array([[A[0, 0], A[0, 1], A[0, 2], -B[0, 0], -B[0, 1], -B[0, 2]],
                               [A[1, 0], A[1, 1], A[1, 2], -B[1, 0], -B[1, 1], -B[1, 2]],
                               [A[2, 0], A[2, 1], A[2, 2], -B[2, 0], -B[2, 1], -B[2, 2]],
                               [-B[0, 0], -B[0, 1], -B[0, 2], D[0, 0], D[0, 1], D[0, 2]],
@@ -791,19 +881,36 @@ def tangent_stiffness(X,T, material_param, limit, b, box, total_loading, F, save
         if analysis_type[0,2] == 1:
             globalK[np.ix_(Tie1 - 1, Tie1 - 1)] += elemK
         else:
-
             globalK[np.ix_(Tie1 - 1, Tie1 - 1)] += sp.lil_matrix(elemK)
 
         k+=1
 
+    raw_globalK = copy.deepcopy(globalK)
+
+
+    if 1 in total_loading['Bc']['ENFRCDS'][:, np.arange(5, 10)]:
+
+        total_loading2 = copy.deepcopy(total_loading)
+        tmp_bnd_cnd = total_loading2['Bc']['boundaryconditions']
+        total_loading2['Bc']['boundaryconditions'][tmp_bnd_cnd==4] = 0
+
+        _, raw_globalK, _, _ = applying_BC(total_loading2,X,T,b,box,raw_globalK,F, analysis_type)
 
     fixed_borders, globalK, M, F = applying_BC(total_loading,X,T,b,box,globalK,F, analysis_type)
 
-    return globalK
+    if 1 in total_loading['Bc']['ENFRCDS'][:, np.arange(5, 10)]:
+        return globalK, raw_globalK
+    else:
+        return globalK
 
 
-def disp_controlled_method(globalK, residual, deltaFb, bnd, Nincr,
-                           analysis_type, total_loading, boundaryconditions):
+def disp_controlled_method(globalK, raw_globalK, residual, deltaFb, bnd, Nincr,
+                           analysis_type, total_loading, boundaryconditions, old_dU):
+
+    if len(old_dU)==0:
+        old_dU= np.zeros(residual.shape)
+        old_dU = old_dU.T[0]
+
 
     border1 = bnd[0]
     border2 = bnd[1]
@@ -817,43 +924,45 @@ def disp_controlled_method(globalK, residual, deltaFb, bnd, Nincr,
     ENFRCDS1 = ENFRCDS1[0] / Nincr
     ENFRCDS2 = ENFRCDS2[0]
 
-
     if analysis_type[0, 2] == 1:
-        dU_u = np.linalg.solve(globalK, residual)
-        dU_e = np.linalg.solve(globalK, deltaFb)
+        dU_u = np.linalg.solve(raw_globalK, residual)
+        dU_e = np.linalg.solve(raw_globalK, deltaFb)
 
 
     else:
-        dU_u = sp.linalg.spsolve(globalK, residual)
-        dU_e = sp.linalg.spsolve(globalK, deltaFb)
+        dU_u = sp.linalg.spsolve(raw_globalK, residual)
+        dU_e = sp.linalg.spsolve(raw_globalK, deltaFb)
 
     alpha_e = np.zeros(dU_u.shape)
 
     if boundaryconditions[0] == 4:
-        used_indexes = border1[np.arange(c, border1.size, 6)] - 1
         srch = np.nonzero(ENFRCDS2[0, :])
         for c in srch[0]:
+            used_indexes = border1[np.arange(c, border1.size, 6)] - 1
             alpha_e[used_indexes] =\
-                ENFRCDS1[0, c] - dU_u[used_indexes]/dU_e[used_indexes]
+                (ENFRCDS1[0, c] - old_dU[used_indexes] - dU_u[used_indexes])/dU_e[used_indexes]
+
     if boundaryconditions[1] == 4:
-        used_indexes = border2[np.arange(c, border2.size, 6)] - 1
         srch = np.nonzero(ENFRCDS2[1, :])
         for c in srch[0]:
+            used_indexes = border2[np.arange(c, border2.size, 6)] - 1
             alpha_e[used_indexes] =\
-                ENFRCDS1[1, c] - dU_u[used_indexes]/dU_e[used_indexes]
+                (ENFRCDS1[1, c] - old_dU[used_indexes] - dU_u[used_indexes])/dU_e[used_indexes]
+
     if boundaryconditions[2] == 4:
-        used_indexes = border3[np.arange(c, border3.size, 6)] - 1
         srch = np.nonzero(ENFRCDS2[2, :])
         for c in srch[0]:
+            used_indexes = border3[np.arange(c, border3.size, 6)] - 1
             alpha_e[used_indexes] =\
-                ENFRCDS1[2, c] - dU_u[used_indexes]/dU_e[used_indexes]
+                (ENFRCDS1[2, c] - old_dU[used_indexes] - dU_u[used_indexes])/dU_e[used_indexes]
+
     if boundaryconditions[3] == 4:
-        used_indexes = border4[np.arange(c, border4.size, 6)] - 1
         srch = np.nonzero(ENFRCDS2[3, :])
         for c in srch[0]:
+            used_indexes = border4[np.arange(c, border4.size, 6)] - 1
             alpha_e[used_indexes] =\
-                ENFRCDS1[3, c] - dU_u[used_indexes]/dU_e[used_indexes]
+                (ENFRCDS1[3, c] - old_dU[used_indexes] - dU_u[used_indexes])/dU_e[used_indexes]
 
-
-
+    alpha_e[0:used_indexes[0]+1:6] = alpha_e[used_indexes[0]]
+    alpha_e[used_indexes[-1]::6] = alpha_e[used_indexes[-1]]
     return alpha_e, dU_e, dU_u
