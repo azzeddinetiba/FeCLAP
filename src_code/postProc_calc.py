@@ -2,6 +2,7 @@
 
 import numpy as np
 import math as m
+import scipy.sparse as sp
 import src_code.numerical_integration
 
 Ngauss = 3
@@ -499,3 +500,31 @@ def Hoffman(SLLt, SLLc, STTt, STTc, SLT, X,T,u,v,w,thetax,thetay,th,pos,Qprime,t
 
     return Hoffman_stress
 
+def Reaction_Force(raw_globalK, deltaU, total_loading, bnd, boundaryconditions):
+
+    border1 = bnd[0]
+    border2 = bnd[1]
+    border3 = bnd[2]
+    border4 = bnd[3]
+
+    ENFRCDS = total_loading['Bc']['ENFRCDS']
+
+    ENFRCDS2 = np.array([ENFRCDS[:, np.arange(5, 10)]])
+    ENFRCDS2 = ENFRCDS2[0]
+    all_used_indexes = np.array([0])
+
+    if boundaryconditions[0] == 4:
+        all_used_indexes = np.concatenate((all_used_indexes, border1))
+
+    if boundaryconditions[1] == 4:
+        all_used_indexes = np.concatenate((all_used_indexes, border2))
+
+    if boundaryconditions[2] == 4:
+        all_used_indexes = np.concatenate((all_used_indexes, border3))
+
+    if boundaryconditions[3] == 4:
+        all_used_indexes = np.concatenate((all_used_indexes, border4))
+
+    all_used_indexes = all_used_indexes[1::]
+    RF = raw_globalK[all_used_indexes, :] * sp.csr_matrix(deltaU)
+    return RF, all_used_indexes

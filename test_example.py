@@ -59,7 +59,7 @@ if not os.path.isdir(results_dir):
 
 
 """ A test with a Nodal loading in the location (0.7, 0.4)
-of  2025 N in the X direction, resulting with a plastic deformation
+of 4025 N in the X direction, resulting with a plastic deformation
 """
 analysis_type = np.zeros((1,3))
 analysis_type[0,0] = 1
