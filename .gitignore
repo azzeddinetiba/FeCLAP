@@ -2,3 +2,4 @@ Results/
 *.tex
 __pycache__/
 src_code/__pycache__/
+test_disp_control.py
