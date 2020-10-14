@@ -60,8 +60,8 @@
 
 This is a personal project small solver for the **F**inite **e**lement analysis of **C**omposite **LA**minate **P**lates = **_FeCLAP_** for rectangular geometries.
 This solver supports **static, modal, transient and non linear analysis** using a perfectly elasto-plastic model.
-Only triangular mesh from _distmes_ is available, and only rectangular geometries.
-The plastic model used is based on a Tsai-Hill Yield function, with no plastic hardening.
+Only triangular mesh from _distmesh_ is available, and only rectangular geometries.
+The plastic model used is based on a Tsai-Hill yield function, with no plastic hardening.
 
 <!-- GETTING STARTED -->
 ## Getting Started
@@ -123,7 +123,7 @@ from .NonLinearModule import *
 The solver is used by running **_Main.py_** and the user can follow the instructions on how to input the model data.
 The result files and plots will be stored in the directory _Results_.
 
-To use the binary version, donwnload [*_FeCLAP_*](https://github.com/azzeddinetiba/FeCLAP/releases/tag/1.0) for the FeCLAP v1.0 and run _Main.exe_ (Some animation features could not work properly)
+To use the binary version, donwnload [*_FeCLAP_*](https://github.com/azzeddinetiba/FeCLAP/releases/tag/1.1.0) for the FeCLAP v1.1.0 and run _Main.exe_ (Some animation features could not work properly)
 
 **_test_examples.py_** includes 3 example cases, these could be solved simply by running the script, the results generated will be stored in the **_Example_Cases_Results_** Directory, and replace the existing reference results. So make sure you store those files to compare later.
 (Remember to exit the generated figures to allow the script to keep running). The text file for the first case results however will be stored in the main **_Results_** Directory 
