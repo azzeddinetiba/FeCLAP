@@ -170,8 +170,12 @@ Project Link: [FeCLAP Github Link](https://github.com/azzeddinetiba/FeCLAP)
 ## Acknowledgements
 
 * [P.-O. Persson, G. Strang, A Simple Mesh Generator in MATLAB. SIAM Review, Volume 46 (2), pp. 329-345, June 2004](https://github.com/bfroehle/pydistmesh)
-* [KRISTIAN KRABBENHØFT, BASIC COMPUTATIONAL PLASTICITY, June 2002](http://homes.civil.aau.dk/lda/continuum/)
 
+<!-- REFERENCES -->
+## References
+
+* [KRISTIAN KRABBENHØFT, BASIC COMPUTATIONAL PLASTICITY, June 2002](http://homes.civil.aau.dk/lda/continuum/)
+* Experimental imposed plastic displacement. Powell, G. and Simons, J. (1981), Improved iteration strategy for nonlinear structures. Int. J. Numer. Meth. Engng., 17: 1455-1467. doi:10.1002/nme.1620171003
 
 
 
