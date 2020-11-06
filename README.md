@@ -9,9 +9,9 @@
 [![Code Size][codesize-shield]][codesize-url]
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
-[![LinkedIn][linkedin-shield]][linkedin-url]
 [![version][version-shield]][release-url]
 [![commits][commits-shield]][commits-url]
+[![LinkedIn][linkedin-shield]][linkedin-url]
 
 <!-- PROJECT LOGO -->
 <br />
@@ -189,7 +189,7 @@ Project Link: [FeCLAP Github Link](https://github.com/azzeddinetiba/FeCLAP)
 [issues-shield]: https://img.shields.io/github/issues/azzeddinetiba/FeCLAP.svg?style=flat-square
 [issues-url]: https://github.com/azzeddinetiba/FeCLAP/issues
 [license-shield]: https://img.shields.io/github/license/othneildrew/Best-README-Template.svg?style=flat-square
-[linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=flat-square&logo=linkedin&colorB=555
+[linkedin-shield]: https://img.shields.io/badge/-LinkedIn-blue.svg?style=plastic&logo=linkedin
 [commits-shield]: https://img.shields.io/github/commits-since/azzeddinetiba/FeCLAP/v0.2?color=lightgreen&style=plastic
 [commits-url]: https://github.com/azzeddinetiba/FeCLAP/commits
 [linkedin-url]: https://www.linkedin.com/in/azzeddine-tiba/
