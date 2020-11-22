@@ -70,29 +70,16 @@ Ngauss=3
 print()
 
 
-NX1 = lambda y: 0
-NY1 = lambda y: 0
-NX2 = lambda x: 0
-NY2 = lambda x: 0
-NX3 = lambda y: 0
-NY3 = lambda y: 0
-NX4 = lambda x: 0
-NY4 = lambda x: 0
-MY1 = lambda y: 0
-MXY1 = lambda y: 0
-MX2 = lambda x: 0
-MXY2 = lambda x: 0
-MY3 = lambda y: 0
-MXY3 = lambda y: 0
-MX4 = lambda x: 0
-MXY4 = lambda x: 0
+NX = []
+NY = []
+Mben = []
+Mtor = []
+modes_numb = 0
 
 boundaryconditions = np.array([2, 2, 2, 2])
 ENFRCDS = np.zeros((4, 10))
-boundary_load = {'NX1': NX1, 'NY1': NY1, 'NX2': NX2, 'NY2': NY2, 'NX3': NX3, \
-                 'NY3': NY3, 'NX4': NX4, 'NY4': NY4, 'MY1': MY1, 'MXY1': MXY1, \
-                 'MX2': MX2, 'MXY2': MXY2, 'MY3': MY3, 'MXY3': MXY3, 'MX4': MX4, \
-                 'MXY4': MXY4, 'boundaryconditions': boundaryconditions, 'ENFRCDS': ENFRCDS}
+boundary_load = {'NX': NX, 'NY': NY, 'Mbending': Mben, 'Mtorsion': Mtor, \
+                 'boundaryconditions': boundaryconditions, 'ENFRCDS': ENFRCDS, 'modes': modes_numb}
 print()
 
 f = lambda x, y: 0
@@ -325,23 +312,11 @@ print()
 Ngauss=3
 print()
 
-NX1 = lambda y: 0
-NY1 = lambda y: 0
-NX2 = lambda x: 0
-NY2 = lambda x: 0
-NX3 = lambda y: 0
-NY3 = lambda y: 0
-NX4 = lambda x: 0
-NY4 = lambda x: 0
-MY1 = lambda y: 0
-MXY1 = lambda y: 0
-MX2 = lambda x: 0
-MXY2 = lambda x: 0
-MY3 = lambda y: 0
-MXY3 = lambda y: 0
-MX4 = lambda x: 0
-MXY4 = lambda x: 0
-
+modes_numb = 647
+NX = []
+NY = []
+Mben = []
+Mtor = []
 
 transient = 0
 f = lambda x, y: 0
@@ -362,10 +337,8 @@ surface_load = {'z': f, 'x': g, 'y': h}
 boundaryconditions = np.array([0, 0, 0, 0])
 ENFRCDS = np.zeros((4, 10))
 
-boundary_load = {'NX1': NX1, 'NY1': NY1, 'NX2': NX2, 'NY2': NY2, 'NX3': NX3, \
-                 'NY3': NY3, 'NX4': NX4, 'NY4': NY4, 'MY1': MY1, 'MXY1': MXY1, \
-                 'MX2': MX2, 'MXY2': MXY2, 'MY3': MY3, 'MXY3': MXY3, 'MX4': MX4, \
-                 'MXY4': MXY4, 'boundaryconditions': boundaryconditions, 'ENFRCDS': ENFRCDS}
+boundary_load = {'NX': NX, 'NY': NY, 'Mbending': Mben, 'Mtorsion': Mtor, \
+                 'boundaryconditions': boundaryconditions, 'ENFRCDS': ENFRCDS, 'modes': modes_numb}
 nodal_load = {'coord': pointload, 'value': NODALLOAD}
 load = 1
 surface_nodal_load = {'surf': surface_load, 'node': nodal_load}
@@ -457,22 +430,11 @@ Ngauss=3
 print()
 
 
-NX1 = lambda y: 0
-NY1 = lambda y: 0
-NX2 = lambda x: 0
-NY2 = lambda x: 0
-NX3 = lambda y: 0
-NY3 = lambda y: 0
-NX4 = lambda x: 0
-NY4 = lambda x: 0
-MY1 = lambda y: 0
-MXY1 = lambda y: 0
-MX2 = lambda x: 0
-MXY2 = lambda x: 0
-MY3 = lambda y: 0
-MXY3 = lambda y: 0
-MX4 = lambda x: 0
-MXY4 = lambda x: 0
+NX = []
+NY = []
+Mben = []
+Mtor = []
+modes_numb = 0
 
 boundaryconditions = np.array([4, 0, 4, 0])
 ENFRCDS = np.zeros((4, 10))
@@ -486,10 +448,8 @@ ENFRCDS[:, np.arange(2, 5)] = -ENFRCDS[:, np.arange(2, 5)]
 
 ENFRCDS[:, np.arange(5, 10)] = ENFRCDS[:, [5, 6, 7, 9, 8]]
 
-boundary_load = {'NX1': NX1, 'NY1': NY1, 'NX2': NX2, 'NY2': NY2, 'NX3': NX3, \
-                 'NY3': NY3, 'NX4': NX4, 'NY4': NY4, 'MY1': MY1, 'MXY1': MXY1, \
-                 'MX2': MX2, 'MXY2': MXY2, 'MY3': MY3, 'MXY3': MXY3, 'MX4': MX4, \
-                 'MXY4': MXY4, 'boundaryconditions': boundaryconditions, 'ENFRCDS': ENFRCDS}
+boundary_load = {'NX': NX, 'NY': NY, 'Mbending': Mben, 'Mtorsion': Mtor, \
+                 'boundaryconditions': boundaryconditions, 'ENFRCDS': ENFRCDS, 'modes': modes_numb}
 print()
 
 f = lambda x, y: 0
