@@ -4,6 +4,7 @@ from src_code.core import *
 from src_code.loading import *
 from src_code.boundary_conditions import *
 from scipy import sparse as sp
+nborders = 4
 
 def Assembly2D(X,T,surface_load,Wgauss,gp,Ngauss,Klaw,pho,thickness,analysis_type):
 
@@ -59,855 +60,216 @@ def applying_BC(total_loading,X,T,b,box,K,F, analysis_type,*args):
     surface_nodal_load = total_loading['surf_node']
     nodal_load = surface_nodal_load['node']
 
-    NX1 = boundary_load['NX1']
-    NY1 = boundary_load['NY1']
-    NX2 = boundary_load['NX2']
-    NY2 = boundary_load['NY2']
-    NX3 = boundary_load['NX3']
-    NY3 = boundary_load['NY3']
-    NX4 = boundary_load['NX4']
-    NY4 = boundary_load['NY4']
-    MY1 = boundary_load['MY1']
-    MXY1 = boundary_load['MXY1']
-    MX2 = boundary_load['MX2']
-    MXY2 = boundary_load['MXY2']
-    MY3 = boundary_load['MY3']
-    MXY3 = boundary_load['MXY3']
-    MX4 = boundary_load['MX4']
-    MXY4 = boundary_load['MXY4']
+
+    NX = boundary_load['NX']
+    NY = boundary_load['NY']
+    Mben = boundary_load['Mbending']
+    Mtor = boundary_load['Mtorsion']
     boundaryconditions = boundary_load['boundaryconditions']
     ENFRCDS = boundary_load['ENFRCDS']
 
+    coor = [2, 1]
 
     pointload = nodal_load['coord']
     NODALLOAD = nodal_load['value']
 
 
-    ind=0
-    while ind<4:
-        i=0
-        while i<b.shape[1]:
-            if b[ind,i]==0:
-                if ind==0:
-                 b1=b[ind,np.arange(0,i)]
-                elif ind==1:
-                 b2 = b[ind, np.arange(0, i)]
-                elif ind==2:
-                 b3 = b[ind, np.arange(0, i)]
-                elif ind==3:
-                 b4 = b[ind, np.arange(0, i)]
-                break
-            elif b[ind,i]!=0 and i==b.shape[1]-1:
-                if ind==0:
-                 b1=b[ind,np.arange(0,i+1)]
-                elif ind==1:
-                 b2 = b[ind, np.arange(0, i+1)]
-                elif ind==2:
-                 b3 = b[ind, np.arange(0, i+1)]
-                elif ind==3:
-                 b4 = b[ind, np.arange(0, i+1)]
-                break
-            i+=1
-        ind+=1
-
-
-
-    ii=0
-    while ii< b1.size:
-     min = ii
-     kk=ii+1
-     while kk< b1.size:
-      if X[b1[kk]-1, 1] < X[b1[min]-1, 1]:
-        min = kk
-
-      kk+=1
-     rempl = b1[min]
-     b1[min] = b1[ii]
-     b1[ii] = rempl
-     ii+=1
-
-    ii = 0
-    while ii < b2.size:
-         min = ii
-         kk = ii + 1
-         while kk < b2.size:
-             if X[b2[kk]-1, 0] < X[b2[min]-1, 0]:
-                 min = kk
-
-             kk += 1
-         rempl = b2[min]
-         b2[min] = b2[ii]
-         b2[ii] = rempl
-         ii += 1
-
-    ii = 0
-    while ii < b3.size:
-         min = ii
-         kk = ii + 1
-         while kk < b3.size:
-             if X[b3[kk]-1, 1] < X[b3[min]-1, 1]:
-                 min = kk
-
-             kk += 1
-         rempl = b3[min]
-         b3[min] = b3[ii]
-         b3[ii] = rempl
-         ii += 1
-
-
-    ii = 0
-    while ii < b4.size:
-     min = ii
-     kk = ii + 1
-     while kk < b4.size:
-      if X[b4[kk]-1, 0] < X[b4[min]-1, 0]:
-         min = kk
-      kk += 1
-
-     rempl = b4[min]
-     b4[min] = b4[ii]
-     b4[ii] = rempl
-     ii += 1
-
-     ENFRCDS1 = np.array([ENFRCDS[:, np.arange(0,5)]])
-     ENFRCDS2 = np.array([ENFRCDS[:, np.arange(5,10)]])
-     ENFRCDS1 = ENFRCDS1[0]
-     ENFRCDS2 = ENFRCDS2[0]
-     x1 = box[0,0]
-     y1 = box[0,1]
-     x2 = box[1,0]
-     y2 = box[1,1]
-
-    border1 = np.zeros((1, 6*b1.size))
-    ii=0
-    while ii<b1.size:
-        border1[0,np.arange(6 * ii , 6 * ii+6)]=np.arange(6 * b1[ii] - 5, 6 * b1[ii]+1)
-        ii+=1
-    border1=border1.astype(int)
-    border1 = border1[0]
-
-    border2 = np.zeros((1, 6 * b2.size))
-    ii = 0
-    while ii < b2.size:
-        border2[0,np.arange(6 * ii , 6 * ii+6)]=np.arange(6 * b2[ii] - 5, 6 * b2[ii]+1)
-        ii += 1
-    border2 = border2.astype(int)
-    border2 = border2[0]
-
-    border3 = np.zeros((1, 6 * b3.size))
-    ii = 0
-    while ii < b3.size:
-        border3[0,np.arange(6 * ii, 6 * ii + 6)] = np.arange(6 * b3[ii] - 5, 6 * b3[ii]+1)
-        ii += 1
-    border3 = border3.astype(int)
-    border3 = border3[0]
-
-    border4 = np.zeros((1, 6 * b4.size))
-    ii = 0
-    while ii < b4.size:
-     border4[0,np.arange(6 * ii, 6 * ii + 6)] = np.arange(6 * b4[ii] - 5, 6 * b4[ii]+1)
-     ii += 1
-    border4 = border4.astype(int)
-    border4 = border4[0]
-
-    border_size = max(border1.shape[0], border2.shape[0], border3.shape[0], border4.shape[0])
-    everyborder = np.zeros((4, border_size))
-    everyborder[0, :] = np.concatenate((border1, np.zeros((1, border_size - border1.shape[0]))), axis=None)
-    everyborder[1, :] = np.concatenate((border2, np.zeros((1, border_size - border2.shape[0]))), axis=None)
-    everyborder[2, :] = np.concatenate((border3, np.zeros((1, border_size - border3.shape[0]))), axis=None)
-    everyborder[3, :] = np.concatenate((border4, np.zeros((1, border_size - border4.shape[0]))), axis=None)
-    everyborder = everyborder.astype(int)
-
-
-
-    if boundaryconditions[0] == 1:
-      F[border1[np.arange(0,border1.size,6)]-1] += BCAssembly(X, T, b1, NX1, 2, x1)
-      F[border1[np.arange(1,border1.size,6)]-1] += BCAssembly(X, T, b1, NY1, 2, x1)
-    elif boundaryconditions[0] == 2:
-      K[border1-1,:]=0
-      K[:, border1-1]=0
-
-      if isthereM != 0:
-
-          M[border1-1,:]=0
-          M[:, border1-1]=0
-          M[np.ix_(border1 - 1, border1 - 1)] = np.eye(border1.size)
-
-      F[border1-1] = 0
-      K[np.ix_(border1-1, border1-1)] = np.eye(border1.size)
-
-
-    elif boundaryconditions[0] == 3:
-      F[border1[np.arange(3,border1.size,6)]-1,:] += BCMAssembly(X, T, b1, MY1, 2, x1, 1)
-      F[border1[np.arange(4,border1.size,6)]-1,:] += BCMAssembly(X, T, b1, MXY1, 2, x1, 2)
-    elif boundaryconditions[0] == 4:
-      srch=np.nonzero(ENFRCDS2[0,:])
-      for c in srch[0]:
-       K[border1[np.arange(c,border1.size,6)]-1,:]=0
-       if isthereM != 0:
-           M[border1[np.arange(c,border1.size,6)]-1,:]=0
-           M[np.ix_(border1[np.arange(c, border1.size, 6)] - 1, border1[np.arange(c, border1.size, 6)] - 1)] -= diag_mat(M[np.ix_(border1[np.arange(c,border1.size,6)]-1, border1[np.arange(c,border1.size,6)]-1)],analysis_type[0,2]) - np.eye(border1[np.arange(c,border1.size,6)].size)
-
-       F[border1[np.arange(c,border1.size,6)]-1]=ENFRCDS1[0, c]
-       #K[np.ix_(border1[np.arange(c,border1.size,6)]-1, border1[np.arange(c,border1.size,6)]-1)]=np.eye(border1[np.arange(c,border1.size,6)].size)
-       K[np.ix_(border1[np.arange(c, border1.size, 6)] - 1, border1[np.arange(c, border1.size, 6)] - 1)] -= diag_mat(K[np.ix_(border1[np.arange(c,border1.size,6)]-1, border1[np.arange(c,border1.size,6)]-1)],analysis_type[0,2]) - np.eye(border1[np.arange(c,border1.size,6)].size)
-
-    elif boundaryconditions[0] == 5:
-        K[border1[::6] - 1, :] = 0
-        K[:, border1[::6] - 1] = 0
-        if isthereM != 0:
-
-            M[border1[::6] - 1, :] = 0
-            M[:, border1[::6] - 1] = 0
-            M[np.ix_(border1[::6] - 1, border1[::6] - 1)] = np.eye(border1[::6].size)
-            M[border1[1::6] - 1, :] = 0
-            M[:, border1[1::6] - 1] = 0
-            M[np.ix_(border1[1::6] - 1, border1[1::6] - 1)] = np.eye(border1[1::6].size)
-            M[border1[2::6] - 1, :] = 0
-            M[:, border1[2::6] - 1] = 0
-            M[np.ix_(border1[2::6] - 1, border1[2::6] - 1)] = np.eye(border1[2::6].size)
-            M[border1[3::6] - 1, :] = 0
-            M[:, border1[3::6] - 1] = 0
-            M[np.ix_(border1[3::6] - 1, border1[3::6] - 1)] = np.eye(border1[3::6].size)
-
-        F[border1[::6] - 1] = 0
-        K[np.ix_(border1[::6] - 1, border1[::6] - 1)] = np.eye(border1[::6].size)
-        K[border1[1::6] - 1, :] = 0
-        K[:, border1[1::6] - 1] = 0
-        F[border1[1::6] - 1] = 0
-        K[np.ix_(border1[1::6] - 1, border1[1::6] - 1)] = np.eye(border1[1::6].size)
-        K[border1[2::6] - 1, :] = 0
-        K[:, border1[2::6] - 1] = 0
-        F[border1[2::6] - 1] = 0
-        K[np.ix_(border1[2::6] - 1, border1[2::6] - 1)] = np.eye(border1[2::6].size)
-        K[border1[3::6] - 1, :] = 0
-        K[:, border1[3::6] - 1] = 0
-        F[border1[3::6] - 1] = 0
-        K[np.ix_(border1[3::6] - 1, border1[3::6] - 1)] = np.eye(border1[3::6].size)
-
-    elif boundaryconditions[0] == 6:
-        K[border1[1::6] - 1, :] = 0
-        K[:, border1[1::6] - 1] = 0
-        if isthereM != 0:
-
-            M[border1[1::6] - 1, :] = 0
-            M[:, border1[1::6] - 1] = 0
-            M[np.ix_(border1[1::6] - 1, border1[1::6] - 1)] = np.eye(border1[1::6].size)
-            M[border1[2::6] - 1, :] = 0
-            M[:, border1[2::6] - 1] = 0
-            M[np.ix_(border1[2::6] - 1, border1[2::6] - 1)] = np.eye(border1[2::6].size)
-            M[border1[3::6] - 1, :] = 0
-            M[:, border1[3::6] - 1] = 0
-            M[np.ix_(border1[3::6] - 1, border1[3::6] - 1)] = np.eye(border1[3::6].size)
-
-        F[border1[1::6] - 1] = 0
-        K[np.ix_(border1[1::6] - 1, border1[1::6] - 1)] = np.eye(border1[1::6].size)
-        K[border1[2::6] - 1, :] = 0
-        K[:, border1[2::6] - 1] = 0
-        F[border1[2::6] - 1] = 0
-        K[np.ix_(border1[2::6] - 1, border1[2::6] - 1)] = np.eye(border1[2::6].size)
-        K[border1[3::6] - 1, :] = 0
-        K[:, border1[3::6] - 1] = 0
-        F[border1[3::6] - 1] = 0
-        K[np.ix_(border1[3::6] - 1, border1[3::6] - 1)] = np.eye(border1[3::6].size)
-
-    elif boundaryconditions[0] == 7:
-        K[border1[1::6] - 1, :] = 0
-        K[:, border1[1::6] - 1] = 0
-
-        if isthereM != 0:
-
-            M[border1[1::6] - 1, :] = 0
-            M[:, border1[1::6] - 1] = 0
-            M[np.ix_(border1[1::6] - 1, border1[1::6] - 1)] = np.eye(border1[1::6].size)
-            M[border1[::6] - 1, :] = 0
-            M[:, border1[::6] - 1] = 0
-            M[np.ix_(border1[::6] - 1, border1[::6] - 1)] = np.eye(border1[::6].size)
-            M[border1[4::6] - 1, :] = 0
-            M[:, border1[4::6] - 1] = 0
-            M[np.ix_(border1[4::6] - 1, border1[4::6] - 1)] = np.eye(border1[4::6].size)
-
-        F[border1[1::6] - 1] = 0
-        K[np.ix_(border1[1::6] - 1, border1[1::6] - 1)] = np.eye(border1[1::6].size)
-        K[border1[::6] - 1, :] = 0
-        K[:, border1[::6] - 1] = 0
-        F[border1[::6] - 1] = 0
-        K[np.ix_(border1[::6] - 1, border1[::6] - 1)] = np.eye(border1[::6].size)
-        K[border1[4::6] - 1, :] = 0
-        K[:, border1[4::6] - 1] = 0
-        F[border1[4::6] - 1] = 0
-        K[np.ix_(border1[4::6] - 1, border1[4::6] - 1)] = np.eye(border1[4::6].size)
-
-    elif boundaryconditions[0] == 8:
-        K[border1[1::6] - 1, :] = 0
-        K[:, border1[1::6] - 1] = 0
-
-        if isthereM != 0:
-
-            M[border1[1::6] - 1, :] = 0
-            M[:, border1[1::6] - 1] = 0
-            M[np.ix_(border1[1::6] - 1, border1[1::6] - 1)] = np.eye(border1[1::6].size)
-            M[border1[::6] - 1, :] = 0
-            M[:, border1[::6] - 1] = 0
-            M[np.ix_(border1[::6] - 1, border1[::6] - 1)] = np.eye(border1[::6].size)
-            M[border1[2::6] - 1, :] = 0
-            M[:, border1[2::6] - 1] = 0
-            M[np.ix_(border1[2::6] - 1, border1[2::6] - 1)] = np.eye(border1[2::6].size)
-            M[border1[4::6] - 1, :] = 0
-            M[:, border1[4::6] - 1] = 0
-            M[np.ix_(border1[4::6] - 1, border1[4::6] - 1)] = np.eye(border1[4::6].size)
-
-        F[border1[1::6] - 1] = 0
-        K[np.ix_(border1[1::6] - 1, border1[1::6] - 1)] = np.eye(border1[1::6].size)
-        K[border1[::6] - 1, :] = 0
-        K[:, border1[::6] - 1] = 0
-        F[border1[::6] - 1] = 0
-        K[np.ix_(border1[::6] - 1, border1[::6] - 1)] = np.eye(border1[::6].size)
-        K[border1[2::6] - 1, :] = 0
-        K[:, border1[2::6] - 1] = 0
-        F[border1[2::6] - 1] = 0
-        K[np.ix_(border1[2::6] - 1, border1[2::6] - 1)] = np.eye(border1[2::6].size)
-        K[border1[4::6] - 1, :] = 0
-        K[:, border1[4::6] - 1] = 0
-        F[border1[4::6] - 1] = 0
-        K[np.ix_(border1[4::6] - 1, border1[4::6] - 1)] = np.eye(border1[4::6].size)
-
-
-
-
-
-    if boundaryconditions[1] == 1:
-      F[border2[np.arange(0,border2.size,6)]-1,:] += BCAssembly(X, T, b2, NX2, 1, y1)
-      F[border2[np.arange(1,border2.size,6)]-1,:] += BCAssembly(X, T, b2, NY2, 1, y1)
-      if boundaryconditions[0] == 2:
-       K[border2[np.arange(0,6)]-1,:]=0
-       K[:, border2[np.arange(0,6)]-1]=0
-
-       if isthereM != 0:
-
-           M[border2[np.arange(0,6)]-1,:]=0
-           M[:, border2[np.arange(0,6)]-1]=0
-           M[np.ix_(border2[np.arange(0, 6)] - 1, border2[np.arange(0, 6)] - 1)] = np.eye(6)
-
-       F[border2[np.arange(0,6)]-1] = 0
-       K[np.ix_(border2[np.arange(0,6)]-1, border2[np.arange(0,6)]-1)] = np.eye(6)
-
-    elif boundaryconditions[1] == 2:
-      K[border2-1,:] = 0
-      K[:, border2-1] = 0
-
-      if isthereM != 0:
-
-          M[border2-1,:] = 0
-          M[:, border2-1] = 0
-          M[np.ix_(border2 - 1, border2 - 1)] = np.eye(border2.size)
-
-      F[border2-1] = 0
-      K[np.ix_(border2-1, border2-1)] = np.eye(border2.size)
-
-
-    elif boundaryconditions[1] == 3:
-     F[border2[np.arange(4,border2.size,6)]-1]+= BCMAssembly(X, T, b2, MX2, 1, y1, 2)
-     F[border2[np.arange(3,border2.size,6)]-1]+= BCMAssembly(X, T, b2, MXY2, 1, y1, 1)
-     if boundaryconditions[0] == 2:
-       K[border1-1,:]=0
-       K[:, border1-1]=0
-       F[border1-1] = 0
-       K[np.ix_(border1-1, border1-1)] = np.eye(border1.size)
-
-       if isthereM != 0:
-
-           M[border1-1,:]=0
-           M[:, border1-1]=0
-           M[np.ix_(border1-1, border1-1)] = np.eye(border1.size)
-    elif boundaryconditions[1] == 4:
-      srch=np.nonzero(ENFRCDS2[1,:])
-      for c in srch[0]:
-       K[border2[np.arange(c,border2.size,6)]-1,:]=0
-       F[border2[np.arange(c,border2.size,6)]-1,:]=ENFRCDS1[1, c]
-       #K[np.ix_(border2[np.arange(c,border2.size,6)]-1, border2[np.arange(c,border2.size,6)]-1)]=np.eye(border2[np.arange(c,border2.size,6)].size)
-       K[np.ix_(border2[np.arange(c, border2.size, 6)] - 1, border2[np.arange(c, border2.size, 6)] - 1)] -= diag_mat(K[np.ix_(border2[np.arange(c, border2.size, 6)] - 1, border2[np.arange(c, border2.size, 6)] - 1)],analysis_type[0,2])  - np.eye(border2[np.arange(c,border2.size,6)].size)
-
-       if isthereM != 0:
-
-           M[border2[np.arange(c,border2.size,6)]-1,:]=0
-           M[np.ix_(border2[np.arange(c, border2.size, 6)] - 1, border2[np.arange(c, border2.size, 6)] - 1)] -= diag_mat(K[np.ix_(border2[np.arange(c, border2.size, 6)] - 1, border2[np.arange(c, border2.size, 6)] - 1)],analysis_type[0,2])  - np.eye(border2[np.arange(c,border2.size,6)].size)
-
-
-    elif boundaryconditions[1] == 5:
-        K[border2[::6] - 1, :] = 0
-        K[:, border2[::6] - 1] = 0
-
-        if isthereM != 0:
-
-            M[border2[::6] - 1, :] = 0
-            M[:, border2[::6] - 1] = 0
-            M[np.ix_(border2[::6] - 1, border2[::6] - 1)] = np.eye(border2[::6].size)
-            M[border2[1::6] - 1, :] = 0
-            M[:, border2[1::6] - 1] = 0
-            M[np.ix_(border2[1::6] - 1, border2[1::6] - 1)] = np.eye(border2[1::6].size)
-            M[border2[2::6] - 1, :] = 0
-            M[:, border2[2::6] - 1] = 0
-            M[np.ix_(border2[2::6] - 1, border2[2::6] - 1)] = np.eye(border2[2::6].size)
-            M[border2[4::6] - 1, :] = 0
-            M[:, border2[4::6] - 1] = 0
-            M[np.ix_(border2[4::6] - 1, border2[4::6] - 1)] = np.eye(border2[4::6].size)
-
-        F[border2[::6] - 1] = 0
-        K[np.ix_(border2[::6] - 1, border2[::6] - 1)] = np.eye(border2[::6].size)
-        K[border2[1::6] - 1, :] = 0
-        K[:, border2[1::6] - 1] = 0
-        F[border2[1::6] - 1] = 0
-        K[np.ix_(border2[1::6] - 1, border2[1::6] - 1)] = np.eye(border2[1::6].size)
-        K[border2[2::6] - 1, :] = 0
-        K[:, border2[2::6] - 1] = 0
-        F[border2[2::6] - 1] = 0
-        K[np.ix_(border2[2::6] - 1, border2[2::6] - 1)] = np.eye(border2[2::6].size)
-        K[border2[4::6] - 1, :] = 0
-        K[:, border2[4::6] - 1] = 0
-        F[border2[4::6] - 1] = 0
-        K[np.ix_(border2[4::6] - 1, border2[4::6] - 1)] = np.eye(border2[4::6].size)
-
-    elif boundaryconditions[1] == 6:
-        K[border2[::6] - 1, :] = 0
-        K[:, border2[::6] - 1] = 0
-        if isthereM != 0:
-
-            M[border2[::6] - 1, :] = 0
-            M[:, border2[::6] - 1] = 0
-            M[np.ix_(border2[::6] - 1, border2[::6] - 1)] = np.eye(border2[::6].size)
-            M[border2[2::6] - 1, :] = 0
-            M[:, border2[2::6] - 1] = 0
-            M[np.ix_(border2[2::6] - 1, border2[2::6] - 1)] = np.eye(border2[2::6].size)
-            M[border2[4::6] - 1, :] = 0
-            M[:, border2[4::6] - 1] = 0
-            M[np.ix_(border2[4::6] - 1, border2[4::6] - 1)] = np.eye(border2[4::6].size)
-
-        F[border2[::6] - 1] = 0
-        K[np.ix_(border2[::6] - 1, border2[::6] - 1)] = np.eye(border2[::6].size)
-        K[border2[2::6] - 1, :] = 0
-        K[:, border2[2::6] - 1] = 0
-        F[border2[2::6] - 1] = 0
-        K[np.ix_(border2[2::6] - 1, border2[2::6] - 1)] = np.eye(border2[2::6].size)
-        K[border2[4::6] - 1, :] = 0
-        K[:, border2[4::6] - 1] = 0
-        F[border2[4::6] - 1] = 0
-        K[np.ix_(border2[4::6] - 1, border2[4::6] - 1)] = np.eye(border2[4::6].size)
-
-    elif boundaryconditions[1] == 7:
-        K[border2[1::6] - 1, :] = 0
-        K[:, border2[1::6] - 1] = 0
-
-        if isthereM != 0:
-
-            M[border2[1::6] - 1, :] = 0
-            M[:, border2[1::6] - 1] = 0
-            M[np.ix_(border2[1::6] - 1, border2[1::6] - 1)] = np.eye(border2[1::6].size)
-            M[border2[::6] - 1, :] = 0
-            M[:, border2[::6] - 1] = 0
-            M[np.ix_(border2[::6] - 1, border2[::6] - 1)] = np.eye(border2[::6].size)
-            M[border2[3::6] - 1, :] = 0
-            M[:, border2[3::6] - 1] = 0
-            M[np.ix_(border2[3::6] - 1, border2[3::6] - 1)] = np.eye(border2[3::6].size)
-
-        F[border2[1::6] - 1] = 0
-        K[np.ix_(border2[1::6] - 1, border2[1::6] - 1)] = np.eye(border2[1::6].size)
-        K[border2[::6] - 1, :] = 0
-        K[:, border2[::6] - 1] = 0
-        F[border2[::6] - 1] = 0
-        K[np.ix_(border2[::6] - 1, border2[::6] - 1)] = np.eye(border2[::6].size)
-        K[border2[3::6] - 1, :] = 0
-        K[:, border2[3::6] - 1] = 0
-        F[border2[3::6] - 1] = 0
-        K[np.ix_(border2[3::6] - 1, border2[3::6] - 1)] = np.eye(border2[3::6].size)
-
-    elif boundaryconditions[1] == 8:
-        K[border2[1::6] - 1, :] = 0
-        K[:, border2[1::6] - 1] = 0
-
-        if isthereM != 0:
-
-            M[border2[1::6] - 1, :] = 0
-            M[:, border2[1::6] - 1] = 0
-            M[np.ix_(border2[1::6] - 1, border2[1::6] - 1)] = np.eye(border2[1::6].size)
-            M[border2[::6] - 1, :] = 0
-            M[:, border2[::6] - 1] = 0
-            M[np.ix_(border2[::6] - 1, border2[::6] - 1)] = np.eye(border2[::6].size)
-            M[border2[2::6] - 1, :] = 0
-            M[:, border2[2::6] - 1] = 0
-            M[np.ix_(border2[2::6] - 1, border2[2::6] - 1)] = np.eye(border2[2::6].size)
-            M[border2[3::6] - 1, :] = 0
-            M[:, border2[3::6] - 1] = 0
-            M[np.ix_(border2[3::6] - 1, border2[3::6] - 1)] = np.eye(border2[3::6].size)
-
-        F[border2[1::6] - 1] = 0
-        K[np.ix_(border2[1::6] - 1, border2[1::6] - 1)] = np.eye(border2[1::6].size)
-        K[border2[::6] - 1, :] = 0
-        K[:, border2[::6] - 1] = 0
-        F[border2[::6] - 1] = 0
-        K[np.ix_(border2[::6] - 1, border2[::6] - 1)] = np.eye(border2[::6].size)
-        K[border2[2::6] - 1, :] = 0
-        K[:, border2[2::6] - 1] = 0
-        F[border2[2::6] - 1] = 0
-        K[np.ix_(border2[2::6] - 1, border2[2::6] - 1)] = np.eye(border2[2::6].size)
-        K[border2[3::6] - 1, :] = 0
-        K[:, border2[3::6] - 1] = 0
-        F[border2[3::6] - 1] = 0
-        K[np.ix_(border2[3::6] - 1, border2[3::6] - 1)] = np.eye(border2[3::6].size)
-
-
-
-
-
-    if boundaryconditions[2] == 1:
-      F[border3[np.arange(0,border3.size,6)]-1] += BCAssembly(X, T, b3, NX3, 2, x2)
-      F[border3[np.arange(1,border3.size,6)]-1] += BCAssembly(X, T, b3, NY3, 2, x2)
-      if boundaryconditions[1] == 2:
-       K[border3[np.arange(0,6)]-1,:] = 0
-       K[:, border3[np.arange(0,6)]-1] = 0
-       F[border3[np.arange(0,6)]-1] = 0
-       K[np.ix_(border3[np.arange(0,6)]-1, border3[np.arange(0,6)]-1)] = np.eye(6)
-    elif boundaryconditions[2] == 2:
-      K[border3-1,:]=0
-
-      if isthereM != 0:
-
-        M[border3-1,:]=0
-        M[:, border3 - 1] = 0
-        M[np.ix_(border3 - 1, border3 - 1)] = np.eye(border3.size)
-
-      K[:, border3-1]=0
-      F[border3-1] = 0
-      K[np.ix_(border3-1, border3-1)] = np.eye(border3.size)
-
-
-    elif boundaryconditions[2] == 3:
-      F[border3[np.arange(3,border3.size,6)]-1] += BCMAssembly(X, T, b3, MY3, 2, x2, 1)
-      F[border3[np.arange(4,border3.size,6)]-1] += BCMAssembly(X, T, b3, MXY3, 2, x2, 2)
-      if boundaryconditions[1] == 2:
-       K[border2-1,:]=0
-       K[:, border2-1]=0
-       F[border2-1] = 0
-       K[np.ix_(border2-1, border2-1)] = np.eye(border2.size)
-    elif boundaryconditions[2] == 4:
-      srch=np.nonzero(ENFRCDS2[2,:])
-      for c in srch[0]:
-       K[border3[np.arange(c,border3.size,6)]-1,:]=0
-       F[border3[np.arange(c,border3.size,6)]-1]=ENFRCDS1[2, c]
-       #K[np.ix_(border3[np.arange(c,border3.size,6)]-1, border3[np.arange(c,border3.size,6)]-1)]=np.eye(border3[np.arange(c,border3.size,6)].size)
-       K[np.ix_(border3[np.arange(c,border3.size,6)]-1, border3[np.arange(c,border3.size,6)]-1)] -= diag_mat(K[np.ix_(border3[np.arange(c,border3.size,6)]-1, border3[np.arange(c,border3.size,6)]-1)],analysis_type[0,2]) - np.eye(border3[np.arange(c,border3.size,6)].size)
-    elif boundaryconditions[2] == 5:
-        K[border3[::6] - 1, :] = 0
-        K[:, border3[::6] - 1] = 0
-
-        if isthereM != 0:
-
-            M[border3[::6] - 1, :] = 0
-            M[:, border3[::6] - 1] = 0
-            M[np.ix_(border3[::6] - 1, border3[::6] - 1)] = np.eye(border3[::6].size)
-            M[border3[1::6] - 1, :] = 0
-            M[:, border3[1::6] - 1] = 0
-            M[np.ix_(border3[1::6] - 1, border3[1::6] - 1)] = np.eye(border3[1::6].size)
-            M[border3[2::6] - 1, :] = 0
-            M[:, border3[2::6] - 1] = 0
-            M[np.ix_(border3[2::6] - 1, border3[2::6] - 1)] = np.eye(border3[2::6].size)
-            M[border3[3::6] - 1, :] = 0
-            M[:, border3[3::6] - 1] = 0
-            M[np.ix_(border3[3::6] - 1, border3[3::6] - 1)] = np.eye(border3[3::6].size)
-
-        F[border3[::6] - 1] = 0
-        K[np.ix_(border3[::6] - 1, border3[::6] - 1)] = np.eye(border3[::6].size)
-        K[border3[1::6] - 1, :] = 0
-        K[:, border3[1::6] - 1] = 0
-        F[border3[1::6] - 1] = 0
-        K[np.ix_(border3[1::6] - 1, border3[1::6] - 1)] = np.eye(border3[1::6].size)
-        K[border3[2::6] - 1, :] = 0
-        K[:, border3[2::6] - 1] = 0
-        F[border3[2::6] - 1] = 0
-        K[np.ix_(border3[2::6] - 1, border3[2::6] - 1)] = np.eye(border3[2::6].size)
-        K[border3[3::6] - 1, :] = 0
-        K[:, border3[3::6] - 1] = 0
-        F[border3[3::6] - 1] = 0
-        K[np.ix_(border3[3::6] - 1, border3[3::6] - 1)] = np.eye(border3[3::6].size)
-
-
-    elif boundaryconditions[2] == 6:
-        K[border3[1::6] - 1, :] = 0
-        K[:, border3[1::6] - 1] = 0
-        if isthereM != 0:
-
-            M[border3[1::6] - 1, :] = 0
-            M[:, border3[1::6] - 1] = 0
-            M[np.ix_(border3[1::6] - 1, border3[1::6] - 1)] = np.eye(border3[1::6].size)
-            M[border3[2::6] - 1, :] = 0
-            M[:, border3[2::6] - 1] = 0
-            M[np.ix_(border3[2::6] - 1, border3[2::6] - 1)] = np.eye(border3[2::6].size)
-            M[border3[3::6] - 1, :] = 0
-            M[:, border3[3::6] - 1] = 0
-            M[np.ix_(border3[3::6] - 1, border3[3::6] - 1)] = np.eye(border3[3::6].size)
-
-        F[border3[1::6] - 1] = 0
-        K[np.ix_(border3[1::6] - 1, border3[1::6] - 1)] = np.eye(border3[1::6].size)
-        K[border3[2::6] - 1, :] = 0
-        K[:, border3[2::6] - 1] = 0
-        F[border3[2::6] - 1] = 0
-        K[np.ix_(border3[2::6] - 1, border3[2::6] - 1)] = np.eye(border3[2::6].size)
-        K[border3[3::6] - 1, :] = 0
-        K[:, border3[3::6] - 1] = 0
-        F[border3[3::6] - 1] = 0
-        K[np.ix_(border3[3::6] - 1, border3[3::6] - 1)] = np.eye(border3[3::6].size)
-
-    elif boundaryconditions[2] == 7:
-        K[border3[1::6] - 1, :] = 0
-        K[:, border3[1::6] - 1] = 0
-
-        if isthereM != 0:
-
-            M[border3[1::6] - 1, :] = 0
-            M[:, border3[1::6] - 1] = 0
-            M[np.ix_(border3[1::6] - 1, border3[1::6] - 1)] = np.eye(border3[1::6].size)
-            M[border3[::6] - 1, :] = 0
-            M[:, border3[::6] - 1] = 0
-            M[np.ix_(border3[::6] - 1, border3[::6] - 1)] = np.eye(border3[::6].size)
-            M[border3[4::6] - 1, :] = 0
-            M[:, border3[4::6] - 1] = 0
-            M[np.ix_(border3[4::6] - 1, border3[4::6] - 1)] = np.eye(border3[4::6].size)
-
-        F[border3[1::6] - 1] = 0
-        K[np.ix_(border3[1::6] - 1, border3[1::6] - 1)] = np.eye(border3[1::6].size)
-        K[border3[::6] - 1, :] = 0
-        K[:, border3[::6] - 1] = 0
-        F[border3[::6] - 1] = 0
-        K[np.ix_(border3[::6] - 1, border3[::6] - 1)] = np.eye(border3[::6].size)
-        K[border3[4::6] - 1, :] = 0
-        K[:, border3[4::6] - 1] = 0
-        F[border3[4::6] - 1] = 0
-        K[np.ix_(border3[4::6] - 1, border3[4::6] - 1)] = np.eye(border3[4::6].size)
-
-    elif boundaryconditions[2] == 8:
-        K[border3[1::6] - 1, :] = 0
-        K[:, border3[1::6] - 1] = 0
-
-        if isthereM != 0:
-
-            M[border3[1::6] - 1, :] = 0
-            M[:, border3[1::6] - 1] = 0
-            M[np.ix_(border3[1::6] - 1, border3[1::6] - 1)] = np.eye(border3[1::6].size)
-            M[border3[::6] - 1, :] = 0
-            M[:, border3[::6] - 1] = 0
-            M[np.ix_(border3[::6] - 1, border3[::6] - 1)] = np.eye(border3[::6].size)
-            M[border3[2::6] - 1, :] = 0
-            M[:, border3[2::6] - 1] = 0
-            M[np.ix_(border3[2::6] - 1, border3[2::6] - 1)] = np.eye(border3[2::6].size)
-            M[border3[4::6] - 1, :] = 0
-            M[:, border3[4::6] - 1] = 0
-            M[np.ix_(border3[4::6] - 1, border3[4::6] - 1)] = np.eye(border3[4::6].size)
-
-        F[border3[1::6] - 1] = 0
-        K[np.ix_(border3[1::6] - 1, border3[1::6] - 1)] = np.eye(border3[1::6].size)
-        K[border3[::6] - 1, :] = 0
-        K[:, border3[::6] - 1] = 0
-        F[border3[::6] - 1] = 0
-        K[np.ix_(border3[::6] - 1, border3[::6] - 1)] = np.eye(border3[::6].size)
-        K[border3[2::6] - 1, :] = 0
-        K[:, border3[2::6] - 1] = 0
-        F[border3[2::6] - 1] = 0
-        K[np.ix_(border3[2::6] - 1, border3[2::6] - 1)] = np.eye(border3[2::6].size)
-        K[border3[4::6] - 1, :] = 0
-        K[:, border3[4::6] - 1] = 0
-        F[border3[4::6] - 1] = 0
-        K[np.ix_(border3[4::6] - 1, border3[4::6] - 1)] = np.eye(border3[4::6].size)
-
-
-
-
-
-    if boundaryconditions[3] == 1:
-      F[border4[np.arange(0,border4.size,6)]-1] += BCAssembly(X, T, b4, NX4, 1, y2)
-      F[border4[np.arange(1,border4.size,6)]-1] += BCAssembly(X, T, b4, NY4, 1, y2)
-      if boundaryconditions[2] == 2:
-       sz4=border4.size
-       K[border4[np.arange(sz4-1,sz4-7,-1)]-1,:]=0
-       K[:, border4[np.arange(sz4-1,sz4-7,-1)]-1]=0
-       F[border4[np.arange(sz4-1,sz4-7,-1)]-1] = 0
-       K[np.ix_(border4[np.arange(sz4-1,sz4-7,-1)]-1, border4[np.arange(sz4-1,sz4-7,-1)]-1)] = np.eye(6)
-      if boundaryconditions[0] == 2:
-       K[border1[np.arange(0,6)] - 1, :] = 0
-       K[:, border1[np.arange(0,6)]-1] = 0
-       F[border1[np.arange(0,6)]-1] = 0
-       K[np.ix_(border1[np.arange(0,6)] - 1, border1[np.arange(0,6)] - 1)] = np.eye(6)
-    elif boundaryconditions[3] == 2:
-      K[border4-1,:]=0
-
-      if isthereM != 0:
-          M[border4 - 1, :] = 0
-          M[:, border4 - 1] = 0
-          M[np.ix_(border4 - 1, border4 - 1)] = np.eye(border4.size)
-
-      K[:, border4-1]=0
-      F[border4-1] = 0
-      K[np.ix_(border4-1, border4-1)] = np.eye(border4.size)
-
-
-    elif boundaryconditions[3] == 3:
-      F[border4[np.arange(4,border4.size,6)]-1]+= BCMAssembly(X, T, b4, MX4, 1, y2, 2)
-      F[border4[np.arange(3,border4.size,6)]-1]+= BCMAssembly(X, T, b4, MXY4, 1, y2, 1)
-      if boundaryconditions[2] == 2:
-       K[border3[np.arange(0,6)]-1,:]=0
-       K[:, border3[np.arange(0,6)]-1]=0
-       F[border3[np.arange(0,6)]-1] = 0
-       K[np.ix_(border3[np.arange(0,6)]-1, border3[np.arange(0,6)]-1)] = np.eye(6)
-      if boundaryconditions[0] == 2:
-       K[border1[np.arange(0,6)]-1,:]=0
-       K[:, border1[np.arange(0,6)]-1]=0
-       F[border1[np.arange(0,6)]-1] = 0
-       K[np.ix_(border1[np.arange(0,6)]-1, border1[np.arange(0,6)]-1)] = np.eye(6)
-    elif boundaryconditions[3] == 4:
-      srch=np.nonzero(ENFRCDS2[3,:])
-      for c in srch[0]:
-       K[border4[np.arange(c,border4.size,6)]-1,:]=0
-       F[border4[np.arange(c,border4.size,6)]-1,:]=ENFRCDS1[3, c]
-       #K[np.ix_(border4[np.arange(c,border4.size,6)]-1, border4[np.arange(c,border4.size,6)]-1)]=np.eye(border4[np.arange(c,border4.size,6)].size)
-       K[np.ix_(border4[np.arange(c, border4.size, 6)] - 1, border4[np.arange(c, border4.size, 6)] - 1)] -= diag_mat(K[np.ix_(border4[np.arange(c, border4.size, 6)] - 1, border4[np.arange(c, border4.size, 6)] - 1)],analysis_type[0,2]) - np.eye(border4[np.arange(c,border4.size,6)].size)
-
-    elif boundaryconditions[3] == 5:
-        K[border4[::6] - 1, :] = 0
-        K[:, border4[::6] - 1] = 0
-
-        if isthereM != 0:
-
-            M[border4[::6] - 1, :] = 0
-            M[:, border4[::6] - 1] = 0
-            M[np.ix_(border4[::6] - 1, border4[::6] - 1)] = np.eye(border4[::6].size)
-            M[border4[1::6] - 1, :] = 0
-            M[:, border4[1::6] - 1] = 0
-            M[np.ix_(border4[1::6] - 1, border4[1::6] - 1)] = np.eye(border4[1::6].size)
-            M[border4[2::6] - 1, :] = 0
-            M[:, border4[2::6] - 1] = 0
-            M[np.ix_(border4[2::6] - 1, border4[2::6] - 1)] = np.eye(border4[2::6].size)
-            M[border4[4::6] - 1, :] = 0
-            M[:, border4[4::6] - 1] = 0
-            M[np.ix_(border4[4::6] - 1, border4[4::6] - 1)] = np.eye(border4[4::6].size)
-
-        F[border4[::6] - 1] = 0
-        K[np.ix_(border4[::6] - 1, border4[::6] - 1)] = np.eye(border4[::6].size)
-        K[border4[1::6] - 1, :] = 0
-        K[:, border4[1::6] - 1] = 0
-        F[border4[1::6] - 1] = 0
-        K[np.ix_(border4[1::6] - 1, border4[1::6] - 1)] = np.eye(border4[1::6].size)
-
-        K[border4[2::6] - 1, :] = 0
-        K[:, border4[2::6] - 1] = 0
-        F[border4[2::6] - 1] = 0
-        K[np.ix_(border4[2::6] - 1, border4[2::6] - 1)] = np.eye(border4[2::6].size)
-
-        K[border4[4::6] - 1, :] = 0
-        K[:, border4[4::6] - 1] = 0
-
-        F[border4[4::6] - 1] = 0
-        K[np.ix_(border4[4::6] - 1, border4[4::6] - 1)] = np.eye(border4[4::6].size)
-
-    elif boundaryconditions[3] == 6:
-        K[border4[::6] - 1, :] = 0
-        K[:, border4[::6] - 1] = 0
-
-        if isthereM != 0:
-
-            M[border4[::6] - 1, :] = 0
-            M[:, border4[::6] - 1] = 0
-            M[np.ix_(border4[::6] - 1, border4[::6] - 1)] = np.eye(border4[::6].size)
-            M[border4[2::6] - 1, :] = 0
-            M[:, border4[2::6] - 1] = 0
-            M[np.ix_(border4[2::6] - 1, border4[2::6] - 1)] = np.eye(border4[2::6].size)
-            M[border4[4::6] - 1, :] = 0
-            M[:, border4[4::6] - 1] = 0
-            M[np.ix_(border4[4::6] - 1, border4[4::6] - 1)] = np.eye(border4[4::6].size)
-
-        F[border4[::6] - 1] = 0
-        K[np.ix_(border4[::6] - 1, border4[::6] - 1)] = np.eye(border4[::6].size)
-        K[border4[2::6] - 1, :] = 0
-        K[:, border4[2::6] - 1] = 0
-        F[border4[2::6] - 1] = 0
-        K[np.ix_(border4[2::6] - 1, border4[2::6] - 1)] = np.eye(border4[2::6].size)
-
-        K[border4[4::6] - 1, :] = 0
-        K[:, border4[4::6] - 1] = 0
-        F[border4[4::6] - 1] = 0
-        K[np.ix_(border4[4::6] - 1, border4[4::6] - 1)] = np.eye(border4[4::6].size)
-
-    elif boundaryconditions[3] == 7:
-        K[border4[1::6] - 1, :] = 0
-        K[:, border4[1::6] - 1] = 0
-
-        if isthereM != 0:
-
-            M[border4[1::6] - 1, :] = 0
-            M[:, border4[1::6] - 1] = 0
-            M[np.ix_(border4[1::6] - 1, border4[1::6] - 1)] = np.eye(border4[1::6].size)
-            M[border4[::6] - 1, :] = 0
-            M[:, border4[::6] - 1] = 0
-            M[np.ix_(border4[::6] - 1, border4[::6] - 1)] = np.eye(border4[::6].size)
-            M[border4[3::6] - 1, :] = 0
-            M[:, border4[3::6] - 1] = 0
-            M[np.ix_(border4[3::6] - 1, border4[3::6] - 1)] = np.eye(border4[3::6].size)
-
-        F[border4[1::6] - 1] = 0
-        K[np.ix_(border4[1::6] - 1, border4[1::6] - 1)] = np.eye(border4[1::6].size)
-
-        K[border4[::6] - 1, :] = 0
-        K[:, border4[::6] - 1] = 0
-        F[border4[::6] - 1] = 0
-        K[np.ix_(border4[::6] - 1, border4[::6] - 1)] = np.eye(border4[::6].size)
-
-        K[border4[3::6] - 1, :] = 0
-        K[:, border4[3::6] - 1] = 0
-        F[border4[3::6] - 1] = 0
-        K[np.ix_(border4[3::6] - 1, border4[3::6] - 1)] = np.eye(border4[3::6].size)
-
-    elif boundaryconditions[3] == 8:
-        K[border4[1::6] - 1, :] = 0
-        K[:, border4[1::6] - 1] = 0
-
-        if isthereM != 0:
-
-            M[border4[1::6] - 1, :] = 0
-            M[:, border4[1::6] - 1] = 0
-            M[np.ix_(border4[1::6] - 1, border4[1::6] - 1)] = np.eye(border4[1::6].size)
-            M[border4[::6] - 1, :] = 0
-            M[:, border4[::6] - 1] = 0
-            M[np.ix_(border4[::6] - 1, border4[::6] - 1)] = np.eye(border4[::6].size)
-            M[border4[2::6] - 1, :] = 0
-            M[:, border4[2::6] - 1] = 0
-            M[np.ix_(border4[2::6] - 1, border4[2::6] - 1)] = np.eye(border4[2::6].size)
-            M[border4[3::6] - 1, :] = 0
-            M[:, border4[3::6] - 1] = 0
-            M[np.ix_(border4[3::6] - 1, border4[3::6] - 1)] = np.eye(border4[3::6].size)
-
-        F[border4[1::6] - 1] = 0
-        K[np.ix_(border4[1::6] - 1, border4[1::6] - 1)] = np.eye(border4[1::6].size)
-
-        K[border4[::6] - 1, :] = 0
-        K[:, border4[::6] - 1] = 0
-
-        F[border4[::6] - 1] = 0
-        K[np.ix_(border4[::6] - 1, border4[::6] - 1)] = np.eye(border4[::6].size)
-
-        K[border4[2::6] - 1, :] = 0
-        K[:, border4[2::6] - 1] = 0
-
-        F[border4[2::6] - 1] = 0
-        K[np.ix_(border4[2::6] - 1, border4[2::6] - 1)] = np.eye(border4[2::6].size)
-
-        K[border4[3::6] - 1, :] = 0
-        K[:, border4[3::6] - 1] = 0
-
-        F[border4[3::6] - 1] = 0
-        K[np.ix_(border4[3::6] - 1, border4[3::6] - 1)] = np.eye(border4[3::6].size)
-
-
-
-
-
+    ENFRCDS1 = np.array([ENFRCDS[:, np.arange(0,5)]])
+    ENFRCDS2 = np.array([ENFRCDS[:, np.arange(5,10)]])
+    ENFRCDS1 = ENFRCDS1[0]
+    ENFRCDS2 = ENFRCDS2[0]
+    x1 = box[0,0]
+    y1 = box[0,1]
+    x2 = box[1,0]
+    y2 = box[1,1]
+    fixed_coor = box.flatten()
+
+    borderss, border, border_size, everyborder = get_boundaries(X, b, nborders)
+
+    i = 0
+    count_N = 0
+    count_Mom = 0
+    while i < nborders:
+
+        if boundaryconditions[i] == 1:
+            F[border[i][np.arange(0, border[i].size, 6)] - 1] += BCAssembly(X, T, borderss[i], NX[count_N], coor[i%2], fixed_coor[i])
+            F[border[i][np.arange(1, border[i].size, 6)] - 1] += BCAssembly(X, T, borderss[i], NY[count_N], coor[i%2], fixed_coor[i])
+            count_N += 1
+            if boundaryconditions[i-1] == 2:
+                K[border[i][np.arange(0, 6)] - 1, :] = 0
+                K[:, border[i][np.arange(0, 6)] - 1] = 0
+
+                if isthereM != 0:
+                    M[border[i][np.arange(0, 6)] - 1, :] = 0
+                    M[:, border[i][np.arange(0, 6)] - 1] = 0
+                    M[np.ix_(border[i][np.arange(0, 6)] - 1, border[i][np.arange(0, 6)] - 1)] = np.eye(6)
+
+                F[border[i][np.arange(0, 6)] - 1] = 0
+                K[np.ix_(border[i][np.arange(0, 6)] - 1, border[i][np.arange(0, 6)] - 1)] = np.eye(6)
+
+        elif boundaryconditions[i] == 2:
+            K[border[i]-1,:]=0
+            K[:, border[i]-1]=0
+
+            if isthereM != 0:
+
+              M[border[i]-1,:]=0
+              M[:, border[i]-1]=0
+              M[np.ix_(border[i] - 1, border[i] - 1)] = np.eye(border[i].size)
+
+            F[border[i]-1] = 0
+            K[np.ix_(border[i]-1, border[i]-1)] = np.eye(border[i].size)
+
+
+        elif boundaryconditions[i] == 3:
+          F[border[i][np.arange(3, border[i].size, 6)] - 1, :] += BCMAssembly(X, T, borderss[i], Mben[count_Mom], coor[i%2], fixed_coor[i], coor[i%2-1])
+          F[border[i][np.arange(4, border[i].size, 6)] - 1, :] += BCMAssembly(X, T, borderss[i], Mtor[count_Mom], coor[i%2], fixed_coor[i], coor[i%2])
+          count_Mom += 1
+          if boundaryconditions[i-1] == 2:
+              K[border[i-1] - 1, :] = 0
+              K[:, border[i-1] - 1] = 0
+              F[border[i-1] - 1] = 0
+              K[np.ix_(border[i-1] - 1, border[i-1] - 1)] = np.eye(border[i-1].size)
+
+              if isthereM != 0:
+                  M[border[i-1] - 1, :] = 0
+                  M[:, border[i-1] - 1] = 0
+                  M[np.ix_(border[i-1] - 1, border[i-1] - 1)] = np.eye(border[i-1].size)
+
+
+        elif boundaryconditions[i] == 4:
+          srch=np.nonzero(ENFRCDS2[i, :])
+          for c in srch[0]:
+           K[border[i][np.arange(c,border[i].size,6)]-1,:] = 0
+           if isthereM != 0:
+               M[border[i][np.arange(c,border[i].size,6)]-1,:] = 0
+               M[np.ix_(border[i][np.arange(c, border[i].size, 6)] - 1, border[i][np.arange(c, border[i].size, 6)] - 1)] -= diag_mat(M[np.ix_(border[i][np.arange(c,border[i].size,6)]-1, border[i][np.arange(c,border[i].size,6)]-1)],analysis_type[0,2]) - np.eye(border[i][np.arange(c,border[i].size,6)].size)
+
+           F[border[i][np.arange(c,border[i].size,6)]-1]=ENFRCDS1[i, c]
+           #K[np.ix_(border1[np.arange(c,border1.size,6)]-1, border1[np.arange(c,border1.size,6)]-1)]=np.eye(border1[np.arange(c,border1.size,6)].size)
+           K[np.ix_(border[i][np.arange(c, border[i].size, 6)] - 1, border[i][np.arange(c, border[i].size, 6)] - 1)] -= diag_mat(K[np.ix_(border[i][np.arange(c,border[i].size,6)]-1, border[i][np.arange(c,border[i].size,6)]-1)],analysis_type[0,2]) - np.eye(border[i][np.arange(c,border[i].size,6)].size)
+
+        elif boundaryconditions[i] == 5:
+            K[border[i][::6] - 1, :] = 0
+            K[:, border[i][::6] - 1] = 0
+            if isthereM != 0:
+
+                M[border[i][::6] - 1, :] = 0
+                M[:, border[i][::6] - 1] = 0
+                M[np.ix_(border[i][::6] - 1, border[i][::6] - 1)] = np.eye(border[i][::6].size)
+                M[border[i][1::6] - 1, :] = 0
+                M[:, border[i][1::6] - 1] = 0
+                M[np.ix_(border[i][1::6] - 1, border[i][1::6] - 1)] = np.eye(border[i][1::6].size)
+                M[border[i][2::6] - 1, :] = 0
+                M[:, border[i][2::6] - 1] = 0
+                M[np.ix_(border[i][2::6] - 1, border[i][2::6] - 1)] = np.eye(border[i][2::6].size)
+                M[border[i][3::6] - 1, :] = 0
+                M[:, border[i][3::6] - 1] = 0
+                M[np.ix_(border[i][3::6] - 1, border[i][3::6] - 1)] = np.eye(border[i][3::6].size)
+
+            F[border[i][::6] - 1] = 0
+            K[np.ix_(border[i][::6] - 1, border[i][::6] - 1)] = np.eye(border[i][::6].size)
+            K[border[i][1::6] - 1, :] = 0
+            K[:, border[i][1::6] - 1] = 0
+            F[border[i][1::6] - 1] = 0
+            K[np.ix_(border[i][1::6] - 1, border[i][1::6] - 1)] = np.eye(border[i][1::6].size)
+            K[border[i][2::6] - 1, :] = 0
+            K[:, border[i][2::6] - 1] = 0
+            F[border[i][2::6] - 1] = 0
+            K[np.ix_(border[i][2::6] - 1, border[i][2::6] - 1)] = np.eye(border[i][2::6].size)
+            K[border[i][3::6] - 1, :] = 0
+            K[:, border[i][3::6] - 1] = 0
+            F[border[i][3::6] - 1] = 0
+            K[np.ix_(border[i][3::6] - 1, border[i][3::6] - 1)] = np.eye(border[i][3::6].size)
+
+        elif boundaryconditions[i] == 6:
+            K[border[i][1::6] - 1, :] = 0
+            K[:, border[i][1::6] - 1] = 0
+            if isthereM != 0:
+
+                M[border[i][1::6] - 1, :] = 0
+                M[:, border[i][1::6] - 1] = 0
+                M[np.ix_(border[i][1::6] - 1, border[i][1::6] - 1)] = np.eye(border[i][1::6].size)
+                M[border[i][2::6] - 1, :] = 0
+                M[:, border[i][2::6] - 1] = 0
+                M[np.ix_(border[i][2::6] - 1, border[i][2::6] - 1)] = np.eye(border[i][2::6].size)
+                M[border[i][3::6] - 1, :] = 0
+                M[:, border[i][3::6] - 1] = 0
+                M[np.ix_(border[i][3::6] - 1, border[i][3::6] - 1)] = np.eye(border[i][3::6].size)
+
+            F[border[i][1::6] - 1] = 0
+            K[np.ix_(border[i][1::6] - 1, border[i][1::6] - 1)] = np.eye(border[i][1::6].size)
+            K[border[i][2::6] - 1, :] = 0
+            K[:, border[i][2::6] - 1] = 0
+            F[border[i][2::6] - 1] = 0
+            K[np.ix_(border[i][2::6] - 1, border[i][2::6] - 1)] = np.eye(border[i][2::6].size)
+            K[border[i][3::6] - 1, :] = 0
+            K[:, border[i][3::6] - 1] = 0
+            F[border[i][3::6] - 1] = 0
+            K[np.ix_(border[i][3::6] - 1, border[i][3::6] - 1)] = np.eye(border[i][3::6].size)
+
+        elif boundaryconditions[i] == 7:
+            K[border[i][1::6] - 1, :] = 0
+            K[:, border[i][1::6] - 1] = 0
+
+            if isthereM != 0:
+
+                M[border[i][1::6] - 1, :] = 0
+                M[:, border[i][1::6] - 1] = 0
+                M[np.ix_(border[i][1::6] - 1, border[i][1::6] - 1)] = np.eye(border[i][1::6].size)
+                M[border[i][::6] - 1, :] = 0
+                M[:, border[i][::6] - 1] = 0
+                M[np.ix_(border[i][::6] - 1, border[i][::6] - 1)] = np.eye(border[i][::6].size)
+                M[border[i][4::6] - 1, :] = 0
+                M[:, border[i][4::6] - 1] = 0
+                M[np.ix_(border[i][4::6] - 1, border[i][4::6] - 1)] = np.eye(border[i][4::6].size)
+
+            F[border[i][1::6] - 1] = 0
+            K[np.ix_(border[i][1::6] - 1, border[i][1::6] - 1)] = np.eye(border[i][1::6].size)
+            K[border[i][::6] - 1, :] = 0
+            K[:, border[i][::6] - 1] = 0
+            F[border[i][::6] - 1] = 0
+            K[np.ix_(border[i][::6] - 1, border[i][::6] - 1)] = np.eye(border[i][::6].size)
+            K[border[i][4::6] - 1, :] = 0
+            K[:, border[i][4::6] - 1] = 0
+            F[border[i][4::6] - 1] = 0
+            K[np.ix_(border[i][4::6] - 1, border[i][4::6] - 1)] = np.eye(border[i][4::6].size)
+
+        elif boundaryconditions[i] == 8:
+            K[border[i][1::6] - 1, :] = 0
+            K[:, border[i][1::6] - 1] = 0
+
+            if isthereM != 0:
+
+                M[border[i][1::6] - 1, :] = 0
+                M[:, border[i][1::6] - 1] = 0
+                M[np.ix_(border[i][1::6] - 1, border[i][1::6] - 1)] = np.eye(border[i][1::6].size)
+                M[border[i][::6] - 1, :] = 0
+                M[:, border[i][::6] - 1] = 0
+                M[np.ix_(border[i][::6] - 1, border[i][::6] - 1)] = np.eye(border[i][::6].size)
+                M[border[i][2::6] - 1, :] = 0
+                M[:, border[i][2::6] - 1] = 0
+                M[np.ix_(border[i][2::6] - 1, border[i][2::6] - 1)] = np.eye(border[i][2::6].size)
+                M[border[i][4::6] - 1, :] = 0
+                M[:, border[i][4::6] - 1] = 0
+                M[np.ix_(border[i][4::6] - 1, border[i][4::6] - 1)] = np.eye(border[i][4::6].size)
+
+            F[border[i][1::6] - 1] = 0
+            K[np.ix_(border[i][1::6] - 1, border[i][1::6] - 1)] = np.eye(border[i][1::6].size)
+            K[border[i][::6] - 1, :] = 0
+            K[:, border[i][::6] - 1] = 0
+            F[border[i][::6] - 1] = 0
+            K[np.ix_(border[i][::6] - 1, border[i][::6] - 1)] = np.eye(border[i][::6].size)
+            K[border[i][2::6] - 1, :] = 0
+            K[:, border[i][2::6] - 1] = 0
+            F[border[i][2::6] - 1] = 0
+            K[np.ix_(border[i][2::6] - 1, border[i][2::6] - 1)] = np.eye(border[i][2::6].size)
+            K[border[i][4::6] - 1, :] = 0
+            K[:, border[i][4::6] - 1] = 0
+            F[border[i][4::6] - 1] = 0
+            K[np.ix_(border[i][4::6] - 1, border[i][4::6] - 1)] = np.eye(border[i][4::6].size)
+
+        i+=1
 
     K[np.ix_(np.arange(5,K.shape[0],6), np.arange(5,K.shape[0],6))]=np.eye(int(K.shape[0] / 6))
     if isthereM != 0:
@@ -1047,811 +409,229 @@ def applying_Fix_q(total_loading, X, T, b, box, F, analysis_type, Nincr1, *args)
         boundary_load = total_loading['Bc']
         surface_nodal_load = total_loading['surf_node']
 
-        NX1 = boundary_load['NX1']
-        NY1 = boundary_load['NY1']
-        NX2 = boundary_load['NX2']
-        NY2 = boundary_load['NY2']
-        NX3 = boundary_load['NX3']
-        NY3 = boundary_load['NY3']
-        NX4 = boundary_load['NX4']
-        NY4 = boundary_load['NY4']
-        MY1 = boundary_load['MY1']
-        MXY1 = boundary_load['MXY1']
-        MX2 = boundary_load['MX2']
-        MXY2 = boundary_load['MXY2']
-        MY3 = boundary_load['MY3']
-        MXY3 = boundary_load['MXY3']
-        MX4 = boundary_load['MX4']
-        MXY4 = boundary_load['MXY4']
+        NX = boundary_load['NX']
+        NY = boundary_load['NY']
+        Mben = boundary_load['Mbending']
+        Mtor = boundary_load['Mtorsion']
         boundaryconditions = boundary_load['boundaryconditions']
         ENFRCDS = boundary_load['ENFRCDS']
 
-        ind = 0
-        while ind < 4:
-            i = 0
-            while i < b.shape[1]:
-                if b[ind, i] == 0:
-                    if ind == 0:
-                        b1 = b[ind, np.arange(0, i)]
-                    elif ind == 1:
-                        b2 = b[ind, np.arange(0, i)]
-                    elif ind == 2:
-                        b3 = b[ind, np.arange(0, i)]
-                    elif ind == 3:
-                        b4 = b[ind, np.arange(0, i)]
-                    break
-                elif b[ind, i] != 0 and i == b.shape[1] - 1:
-                    if ind == 0:
-                        b1 = b[ind, np.arange(0, i + 1)]
-                    elif ind == 1:
-                        b2 = b[ind, np.arange(0, i + 1)]
-                    elif ind == 2:
-                        b3 = b[ind, np.arange(0, i + 1)]
-                    elif ind == 3:
-                        b4 = b[ind, np.arange(0, i + 1)]
-                    break
-                i += 1
-            ind += 1
+        coor = [2, 1]
 
-        ii = 0
-        while ii < b1.size:
-            min = ii
-            kk = ii + 1
-            while kk < b1.size:
-                if X[b1[kk] - 1, 1] < X[b1[min] - 1, 1]:
-                    min = kk
+        ENFRCDS1 = np.array([ENFRCDS[:, np.arange(0, 5)]])
+        ENFRCDS2 = np.array([ENFRCDS[:, np.arange(5, 10)]])
+        ENFRCDS1 = ENFRCDS1[0]/Nincr
 
-                kk += 1
-            rempl = b1[min]
-            b1[min] = b1[ii]
-            b1[ii] = rempl
-            ii += 1
+        ENFRCDS2 = ENFRCDS2[0]
+        x1 = box[0, 0]
+        y1 = box[0, 1]
+        x2 = box[1, 0]
+        y2 = box[1, 1]
+        fixed_coor = box.flatten()
 
-        ii = 0
-        while ii < b2.size:
-            min = ii
-            kk = ii + 1
-            while kk < b2.size:
-                if X[b2[kk] - 1, 0] < X[b2[min] - 1, 0]:
-                    min = kk
+        borderss, border, border_size, everyborder = get_boundaries(X, b, nborders)
 
-                kk += 1
-            rempl = b2[min]
-            b2[min] = b2[ii]
-            b2[ii] = rempl
-            ii += 1
+        i = 0
+        count_N = 0
+        count_Mom = 0
+        while i < nborders:
 
-        ii = 0
-        while ii < b3.size:
-            min = ii
-            kk = ii + 1
-            while kk < b3.size:
-                if X[b3[kk] - 1, 1] < X[b3[min] - 1, 1]:
-                    min = kk
+            if boundaryconditions[i] == 1:
+                F[border[i][np.arange(0, border[i].size, 6)] - 1] += BCAssembly(X, T, borderss[i], NX[i], coor[i%2], fixed_coor[i])
+                F[border[i][np.arange(1, border[i].size, 6)] - 1] += BCAssembly(X, T, borderss[i], NY[i], coor[i%2], fixed_coor[i])
+                count_N += 1
 
-                kk += 1
-            rempl = b3[min]
-            b3[min] = b3[ii]
-            b3[ii] = rempl
-            ii += 1
+                if boundaryconditions[i-1] == 2:
 
-        ii = 0
-        while ii < b4.size:
-            min = ii
-            kk = ii + 1
-            while kk < b4.size:
-                if X[b4[kk] - 1, 0] < X[b4[min] - 1, 0]:
-                    min = kk
-                kk += 1
+                    if isthereM != 0:
+                        M[border[i][np.arange(0, 6)] - 1, :] = 0
+                        M[:, border[i][np.arange(0, 6)] - 1] = 0
+                        M[np.ix_(border[i][np.arange(0, 6)] - 1, border[i][np.arange(0, 6)] - 1)] = np.eye(6)
 
-            rempl = b4[min]
-            b4[min] = b4[ii]
-            b4[ii] = rempl
-            ii += 1
+                    F[border[i][np.arange(0, 6)] - 1] = 0
 
-            ENFRCDS1 = np.array([ENFRCDS[:, np.arange(0, 5)]])
-            ENFRCDS2 = np.array([ENFRCDS[:, np.arange(5, 10)]])
-            ENFRCDS1 = ENFRCDS1[0]/Nincr
-            #load_step = ENFRCDS1
-            #if curr_incr != 0:
-            #    i=0
-            #    while i<curr_incr:
-            #        ENFRCDS1 += load_step
-            #        i+=1
-            ENFRCDS2 = ENFRCDS2[0]
-            x1 = box[0, 0]
-            y1 = box[0, 1]
-            x2 = box[1, 0]
-            y2 = box[1, 1]
+            elif boundaryconditions[i] == 2:
 
-        border1 = np.zeros((1, 6 * b1.size))
-        ii = 0
-        while ii < b1.size:
-            border1[0, np.arange(6 * ii, 6 * ii + 6)] = np.arange(6 * b1[ii] - 5, 6 * b1[ii] + 1)
-            ii += 1
-        border1 = border1.astype(int)
-        border1 = border1[0]
+                if isthereM != 0:
+                    M[border[i] - 1, :] = 0
+                    M[:, border[i] - 1] = 0
+                    M[np.ix_(border[i] - 1, border[i] - 1)] = np.eye(border[i].size)
 
-        border2 = np.zeros((1, 6 * b2.size))
-        ii = 0
-        while ii < b2.size:
-            border2[0, np.arange(6 * ii, 6 * ii + 6)] = np.arange(6 * b2[ii] - 5, 6 * b2[ii] + 1)
-            ii += 1
-        border2 = border2.astype(int)
-        border2 = border2[0]
-
-        border3 = np.zeros((1, 6 * b3.size))
-        ii = 0
-        while ii < b3.size:
-            border3[0, np.arange(6 * ii, 6 * ii + 6)] = np.arange(6 * b3[ii] - 5, 6 * b3[ii] + 1)
-            ii += 1
-        border3 = border3.astype(int)
-        border3 = border3[0]
-
-        border4 = np.zeros((1, 6 * b4.size))
-        ii = 0
-        while ii < b4.size:
-            border4[0, np.arange(6 * ii, 6 * ii + 6)] = np.arange(6 * b4[ii] - 5, 6 * b4[ii] + 1)
-            ii += 1
-        border4 = border4.astype(int)
-        border4 = border4[0]
-
-        border_size = max(border1.shape[0], border2.shape[0], border3.shape[0], border4.shape[0])
-        everyborder = np.zeros((4, border_size))
-        everyborder[0, :] = np.concatenate((border1, np.zeros((1, border_size - border1.shape[0]))), axis=None)
-        everyborder[1, :] = np.concatenate((border2, np.zeros((1, border_size - border2.shape[0]))), axis=None)
-        everyborder[2, :] = np.concatenate((border3, np.zeros((1, border_size - border3.shape[0]))), axis=None)
-        everyborder[3, :] = np.concatenate((border4, np.zeros((1, border_size - border4.shape[0]))), axis=None)
-        everyborder = everyborder.astype(int)
+                F[border[i] - 1] = 0
 
 
-        if boundaryconditions[0] == 1:
-            F[border1[np.arange(0, border1.size, 6)] - 1] += BCAssembly(X, T, b1, NX1, 2, x1)
-            F[border1[np.arange(1, border1.size, 6)] - 1] += BCAssembly(X, T, b1, NY1, 2, x1)
-        elif boundaryconditions[0] == 2:
+            elif boundaryconditions[i] == 3:
+                F[border[i][np.arange(3, border[i].size, 6)] - 1, :] += BCMAssembly(X, T, borderss[i], Mben[i], coor[i%2], fixed_coor[i], coor[i%2-1])
+                F[border[i][np.arange(4, border[i].size, 6)] - 1, :] += BCMAssembly(X, T, borderss[i], Mtor[i], coor[i%2], fixed_coor[i], coor[i%2])
+                count_Mom += 1
 
-            if isthereM != 0:
-                M[border1 - 1, :] = 0
-                M[:, border1 - 1] = 0
-                M[np.ix_(border1 - 1, border1 - 1)] = np.eye(border1.size)
+                if boundaryconditions[i-1] == 2:
 
-            F[border1 - 1] = 0
+                    F[border[i-1] - 1] = 0
 
-
-        elif boundaryconditions[0] == 3:
-            F[border1[np.arange(3, border1.size, 6)] - 1, :] += BCMAssembly(X, T, b1, MY1, 2, x1, 1)
-            F[border1[np.arange(4, border1.size, 6)] - 1, :] += BCMAssembly(X, T, b1, MXY1, 2, x1, 2)
-        #elif boundaryconditions[0] == 4:
-        #    srch = np.nonzero(ENFRCDS2[0, :])
-        #    for c in srch[0]:
-        #        F[border1[np.arange(c, border1.size, 6)] - 1] = ENFRCDS1[0, c]
-        #        if isthereM != 0:
-        #            M[border1[np.arange(c, border1.size, 6)] - 1, :] = 0
-        #            M[np.ix_(border1[np.arange(c, border1.size, 6)] - 1,
-        #                     border1[np.arange(c, border1.size, 6)] - 1)] -= diag_mat(M[np.ix_(
-        #                border1[np.arange(c, border1.size, 6)] - 1,
-        #                border1[np.arange(c, border1.size, 6)] - 1)],analysis_type[0,2]) - np.eye(
-        #                border1[np.arange(c, border1.size, 6)].size)
+                    if isthereM != 0:
+                        M[border[i-1] - 1, :] = 0
+                        M[:, border[i-1] - 1] = 0
+                        M[np.ix_(border[i-1] - 1, border[i-1] - 1)] = np.eye(border[i-1].size)
 
 
+            elif boundaryconditions[i] == 5:
 
-        elif boundaryconditions[0] == 5:
+                if isthereM != 0:
+                    M[border[i][::6] - 1, :] = 0
+                    M[:, border[i][::6] - 1] = 0
+                    M[np.ix_(border[i][::6] - 1, border[i][i][::6] - 1)] = np.eye(border[i][::6].size)
+                    M[border[i][1::6] - 1, :] = 0
+                    M[:, border[i][1::6] - 1] = 0
+                    M[np.ix_(border[i][1::6] - 1, border[i][1::6] - 1)] = np.eye(border[i][1::6].size)
+                    M[border[i][2::6] - 1, :] = 0
+                    M[:, border[i][2::6] - 1] = 0
+                    M[np.ix_(border[i][2::6] - 1, border[i][2::6] - 1)] = np.eye(border[i][2::6].size)
+                    M[border[i][3::6] - 1, :] = 0
+                    M[:, border[i][3::6] - 1] = 0
+                    M[np.ix_(border[i][3::6] - 1, border[i][3::6] - 1)] = np.eye(border[i][3::6].size)
 
-            if isthereM != 0:
-                M[border1[::6] - 1, :] = 0
-                M[:, border1[::6] - 1] = 0
-                M[np.ix_(border1[::6] - 1, border1[::6] - 1)] = np.eye(border1[::6].size)
-                M[border1[1::6] - 1, :] = 0
-                M[:, border1[1::6] - 1] = 0
-                M[np.ix_(border1[1::6] - 1, border1[1::6] - 1)] = np.eye(border1[1::6].size)
-                M[border1[2::6] - 1, :] = 0
-                M[:, border1[2::6] - 1] = 0
-                M[np.ix_(border1[2::6] - 1, border1[2::6] - 1)] = np.eye(border1[2::6].size)
-                M[border1[3::6] - 1, :] = 0
-                M[:, border1[3::6] - 1] = 0
-                M[np.ix_(border1[3::6] - 1, border1[3::6] - 1)] = np.eye(border1[3::6].size)
+                F[border[i][::6] - 1] = 0
 
-            F[border1[::6] - 1] = 0
+                F[border[i][1::6] - 1] = 0
 
-            F[border1[1::6] - 1] = 0
+                F[border[i][2::6] - 1] = 0
 
-            F[border1[2::6] - 1] = 0
+                F[border[i][3::6] - 1] = 0
 
-            F[border1[3::6] - 1] = 0
+            elif boundaryconditions[i] == 6:
 
-        elif boundaryconditions[0] == 6:
+                if isthereM != 0:
+                    M[border[i][1::6] - 1, :] = 0
+                    M[:, border[i][1::6] - 1] = 0
+                    M[np.ix_(border[i][1::6] - 1, border[i][1::6] - 1)] = np.eye(border[i][1::6].size)
+                    M[border[i][2::6] - 1, :] = 0
+                    M[:, border[i][2::6] - 1] = 0
+                    M[np.ix_(border[i][2::6] - 1, border[i][2::6] - 1)] = np.eye(border[i][2::6].size)
+                    M[border[i][3::6] - 1, :] = 0
+                    M[:, border[i][3::6] - 1] = 0
+                    M[np.ix_(border[i][3::6] - 1, border[i][3::6] - 1)] = np.eye(border[i][3::6].size)
 
-            if isthereM != 0:
-                M[border1[1::6] - 1, :] = 0
-                M[:, border1[1::6] - 1] = 0
-                M[np.ix_(border1[1::6] - 1, border1[1::6] - 1)] = np.eye(border1[1::6].size)
-                M[border1[2::6] - 1, :] = 0
-                M[:, border1[2::6] - 1] = 0
-                M[np.ix_(border1[2::6] - 1, border1[2::6] - 1)] = np.eye(border1[2::6].size)
-                M[border1[3::6] - 1, :] = 0
-                M[:, border1[3::6] - 1] = 0
-                M[np.ix_(border1[3::6] - 1, border1[3::6] - 1)] = np.eye(border1[3::6].size)
+                F[border[i][1::6] - 1] = 0
 
-            F[border1[1::6] - 1] = 0
+                F[border[i][2::6] - 1] = 0
 
-            F[border1[2::6] - 1] = 0
+                F[border[i][3::6] - 1] = 0
 
-            F[border1[3::6] - 1] = 0
-
-        elif boundaryconditions[0] == 7:
-
-
-            if isthereM != 0:
-                M[border1[1::6] - 1, :] = 0
-                M[:, border1[1::6] - 1] = 0
-                M[np.ix_(border1[1::6] - 1, border1[1::6] - 1)] = np.eye(border1[1::6].size)
-                M[border1[::6] - 1, :] = 0
-                M[:, border1[::6] - 1] = 0
-                M[np.ix_(border1[::6] - 1, border1[::6] - 1)] = np.eye(border1[::6].size)
-                M[border1[4::6] - 1, :] = 0
-                M[:, border1[4::6] - 1] = 0
-                M[np.ix_(border1[4::6] - 1, border1[4::6] - 1)] = np.eye(border1[4::6].size)
-
-            F[border1[1::6] - 1] = 0
-
-            F[border1[::6] - 1] = 0
-
-            F[border1[4::6] - 1] = 0
-
-        elif boundaryconditions[0] == 8:
-
-
-            if isthereM != 0:
-                M[border1[1::6] - 1, :] = 0
-                M[:, border1[1::6] - 1] = 0
-                M[np.ix_(border1[1::6] - 1, border1[1::6] - 1)] = np.eye(border1[1::6].size)
-                M[border1[::6] - 1, :] = 0
-                M[:, border1[::6] - 1] = 0
-                M[np.ix_(border1[::6] - 1, border1[::6] - 1)] = np.eye(border1[::6].size)
-                M[border1[2::6] - 1, :] = 0
-                M[:, border1[2::6] - 1] = 0
-                M[np.ix_(border1[2::6] - 1, border1[2::6] - 1)] = np.eye(border1[2::6].size)
-                M[border1[4::6] - 1, :] = 0
-                M[:, border1[4::6] - 1] = 0
-                M[np.ix_(border1[4::6] - 1, border1[4::6] - 1)] = np.eye(border1[4::6].size)
-
-            F[border1[1::6] - 1] = 0
-
-            F[border1[::6] - 1] = 0
-
-            F[border1[2::6] - 1] = 0
-
-            F[border1[4::6] - 1] = 0
-
-        if boundaryconditions[1] == 1:
-            F[border2[np.arange(0, border2.size, 6)] - 1, :] += BCAssembly(X, T, b2, NX2, 1, y1)
-            F[border2[np.arange(1, border2.size, 6)] - 1, :] += BCAssembly(X, T, b2, NY2, 1, y1)
-            if boundaryconditions[0] == 2:
+            elif boundaryconditions[i] == 7:
 
 
                 if isthereM != 0:
-                    M[border2[np.arange(0, 6)] - 1, :] = 0
-                    M[:, border2[np.arange(0, 6)] - 1] = 0
-                    M[np.ix_(border2[np.arange(0, 6)] - 1, border2[np.arange(0, 6)] - 1)] = np.eye(6)
+                    M[border[i][1::6] - 1, :] = 0
+                    M[:, border[i][1::6] - 1] = 0
+                    M[np.ix_(border[i][1::6] - 1, border[i][1::6] - 1)] = np.eye(border[i][1::6].size)
+                    M[border[i][::6] - 1, :] = 0
+                    M[:, border[i][::6] - 1] = 0
+                    M[np.ix_(border[i][::6] - 1, border[i][::6] - 1)] = np.eye(border[i][::6].size)
+                    M[border[i][4::6] - 1, :] = 0
+                    M[:, border[i][4::6] - 1] = 0
+                    M[np.ix_(border[i][4::6] - 1, border[i][4::6] - 1)] = np.eye(border[i][4::6].size)
 
-                F[border2[np.arange(0, 6)] - 1] = 0
+                F[border[i][1::6] - 1] = 0
 
-        elif boundaryconditions[1] == 2:
+                F[border[i][::6] - 1] = 0
 
+                F[border[i][4::6] - 1] = 0
 
-            if isthereM != 0:
-                M[border2 - 1, :] = 0
-                M[:, border2 - 1] = 0
-                M[np.ix_(border2 - 1, border2 - 1)] = np.eye(border2.size)
+            elif boundaryconditions[i] == 8:
 
-            F[border2 - 1] = 0
-
-
-        elif boundaryconditions[1] == 3:
-            F[border2[np.arange(4, border2.size, 6)] - 1] += BCMAssembly(X, T, b2, MX2, 1, y1, 2)
-            F[border2[np.arange(3, border2.size, 6)] - 1] += BCMAssembly(X, T, b2, MXY2, 1, y1, 1)
-            if boundaryconditions[0] == 2:
-
-                F[border1 - 1] = 0
 
                 if isthereM != 0:
-                    M[border1 - 1, :] = 0
-                    M[:, border1 - 1] = 0
-                    M[np.ix_(border1 - 1, border1 - 1)] = np.eye(border1.size)
-        #elif boundaryconditions[1] == 4:
-        #    srch = np.nonzero(ENFRCDS2[1, :])
-        #    for c in srch[0]:
-        #        F[border2[np.arange(c, border2.size, 6)] - 1] = ENFRCDS1[1, c]
-        #        if isthereM != 0:
-        #            M[border2[np.arange(c, border2.size, 6)] - 1, :] = 0
-        #            M[np.ix_(border2[np.arange(c, border2.size, 6)] - 1,
-        #                     border2[np.arange(c, border2.size, 6)] - 1)] -= diag_mat(M[np.ix_(
-        #                border2[np.arange(c, border2.size, 6)] - 1,
-        #                border2[np.arange(c, border2.size, 6)] - 1)],analysis_type[0,2]) - np.eye(
-        #                border2[np.arange(c, border2.size, 6)].size)
-
-
-        elif boundaryconditions[1] == 5:
-
-
-            if isthereM != 0:
-                M[border2[::6] - 1, :] = 0
-                M[:, border2[::6] - 1] = 0
-                M[np.ix_(border2[::6] - 1, border2[::6] - 1)] = np.eye(border2[::6].size)
-                M[border2[1::6] - 1, :] = 0
-                M[:, border2[1::6] - 1] = 0
-                M[np.ix_(border2[1::6] - 1, border2[1::6] - 1)] = np.eye(border2[1::6].size)
-                M[border2[2::6] - 1, :] = 0
-                M[:, border2[2::6] - 1] = 0
-                M[np.ix_(border2[2::6] - 1, border2[2::6] - 1)] = np.eye(border2[2::6].size)
-                M[border2[4::6] - 1, :] = 0
-                M[:, border2[4::6] - 1] = 0
-                M[np.ix_(border2[4::6] - 1, border2[4::6] - 1)] = np.eye(border2[4::6].size)
-
-            F[border2[::6] - 1] = 0
-
-            F[border2[1::6] - 1] = 0
-
-            F[border2[2::6] - 1] = 0
-
-            F[border2[4::6] - 1] = 0
-
-        elif boundaryconditions[1] == 6:
-
-            if isthereM != 0:
-                M[border2[::6] - 1, :] = 0
-                M[:, border2[::6] - 1] = 0
-                M[np.ix_(border2[::6] - 1, border2[::6] - 1)] = np.eye(border2[::6].size)
-                M[border2[2::6] - 1, :] = 0
-                M[:, border2[2::6] - 1] = 0
-                M[np.ix_(border2[2::6] - 1, border2[2::6] - 1)] = np.eye(border2[2::6].size)
-                M[border2[4::6] - 1, :] = 0
-                M[:, border2[4::6] - 1] = 0
-                M[np.ix_(border2[4::6] - 1, border2[4::6] - 1)] = np.eye(border2[4::6].size)
-
-            F[border2[::6] - 1] = 0
-
-            F[border2[2::6] - 1] = 0
-
-            F[border2[4::6] - 1] = 0
-
-        elif boundaryconditions[1] == 7:
-
-
-            if isthereM != 0:
-                M[border2[1::6] - 1, :] = 0
-                M[:, border2[1::6] - 1] = 0
-                M[np.ix_(border2[1::6] - 1, border2[1::6] - 1)] = np.eye(border2[1::6].size)
-                M[border2[::6] - 1, :] = 0
-                M[:, border2[::6] - 1] = 0
-                M[np.ix_(border2[::6] - 1, border2[::6] - 1)] = np.eye(border2[::6].size)
-                M[border2[3::6] - 1, :] = 0
-                M[:, border2[3::6] - 1] = 0
-                M[np.ix_(border2[3::6] - 1, border2[3::6] - 1)] = np.eye(border2[3::6].size)
-
-            F[border2[1::6] - 1] = 0
-
-            F[border2[::6] - 1] = 0
-
-            F[border2[3::6] - 1] = 0
-
-        elif boundaryconditions[1] == 8:
-
-
-            if isthereM != 0:
-                M[border2[1::6] - 1, :] = 0
-                M[:, border2[1::6] - 1] = 0
-                M[np.ix_(border2[1::6] - 1, border2[1::6] - 1)] = np.eye(border2[1::6].size)
-                M[border2[::6] - 1, :] = 0
-                M[:, border2[::6] - 1] = 0
-                M[np.ix_(border2[::6] - 1, border2[::6] - 1)] = np.eye(border2[::6].size)
-                M[border2[2::6] - 1, :] = 0
-                M[:, border2[2::6] - 1] = 0
-                M[np.ix_(border2[2::6] - 1, border2[2::6] - 1)] = np.eye(border2[2::6].size)
-                M[border2[3::6] - 1, :] = 0
-                M[:, border2[3::6] - 1] = 0
-                M[np.ix_(border2[3::6] - 1, border2[3::6] - 1)] = np.eye(border2[3::6].size)
-
-            F[border2[1::6] - 1] = 0
-
-            F[border2[::6] - 1] = 0
-
-            F[border2[2::6] - 1] = 0
-
-            F[border2[3::6] - 1] = 0
-
-        if boundaryconditions[2] == 1:
-            F[border3[np.arange(0, border3.size, 6)] - 1] += BCAssembly(X, T, b3, NX3, 2, x2)
-            F[border3[np.arange(1, border3.size, 6)] - 1] += BCAssembly(X, T, b3, NY3, 2, x2)
-            if boundaryconditions[1] == 2:
-
-                F[border3[np.arange(0, 6)] - 1] = 0
-        elif boundaryconditions[2] == 2:
-
-            if isthereM != 0:
-                M[border3 - 1, :] = 0
-                M[:, border3 - 1] = 0
-                M[np.ix_(border3 - 1, border3 - 1)] = np.eye(border3.size)
-
-            F[border3 - 1] = 0
-
-
-        elif boundaryconditions[2] == 3:
-            F[border3[np.arange(3, border3.size, 6)] - 1] += BCMAssembly(X, T, b3, MY3, 2, x2, 1)
-            F[border3[np.arange(4, border3.size, 6)] - 1] += BCMAssembly(X, T, b3, MXY3, 2, x2, 2)
-            if boundaryconditions[1] == 2:
-                F[border2 - 1] = 0
-
-        #elif boundaryconditions[2] == 4:
-        #    srch = np.nonzero(ENFRCDS2[2, :])
-        #    for c in srch[0]:
-        #        F[border3[np.arange(c, border3.size, 6)] - 1] = ENFRCDS1[2, c]
-        #        if isthereM != 0:
-        #            M[border3[np.arange(c, border3.size, 6)] - 1, :] = 0
-        #            M[np.ix_(border3[np.arange(c, border3.size, 6)] - 1,
-        #                     border3[np.arange(c, border3.size, 6)] - 1)] -= diag_mat(M[np.ix_(
-        #                border3[np.arange(c, border3.size, 6)] - 1,
-        #                border3[np.arange(c, border3.size, 6)] - 1)],analysis_type[0,2]) - np.eye(
-        #                border3[np.arange(c, border3.size, 6)].size)
-
-
-        elif boundaryconditions[2] == 5:
-
-
-            if isthereM != 0:
-                M[border3[::6] - 1, :] = 0
-                M[:, border3[::6] - 1] = 0
-                M[np.ix_(border3[::6] - 1, border3[::6] - 1)] = np.eye(border3[::6].size)
-                M[border3[1::6] - 1, :] = 0
-                M[:, border3[1::6] - 1] = 0
-                M[np.ix_(border3[1::6] - 1, border3[1::6] - 1)] = np.eye(border3[1::6].size)
-                M[border3[2::6] - 1, :] = 0
-                M[:, border3[2::6] - 1] = 0
-                M[np.ix_(border3[2::6] - 1, border3[2::6] - 1)] = np.eye(border3[2::6].size)
-                M[border3[3::6] - 1, :] = 0
-                M[:, border3[3::6] - 1] = 0
-                M[np.ix_(border3[3::6] - 1, border3[3::6] - 1)] = np.eye(border3[3::6].size)
-
-            F[border3[::6] - 1] = 0
-
-            F[border3[1::6] - 1] = 0
-
-            F[border3[2::6] - 1] = 0
-
-            F[border3[3::6] - 1] = 0
-
-
-        elif boundaryconditions[2] == 6:
-
-            if isthereM != 0:
-                M[border3[1::6] - 1, :] = 0
-                M[:, border3[1::6] - 1] = 0
-                M[np.ix_(border3[1::6] - 1, border3[1::6] - 1)] = np.eye(border3[1::6].size)
-                M[border3[2::6] - 1, :] = 0
-                M[:, border3[2::6] - 1] = 0
-                M[np.ix_(border3[2::6] - 1, border3[2::6] - 1)] = np.eye(border3[2::6].size)
-                M[border3[3::6] - 1, :] = 0
-                M[:, border3[3::6] - 1] = 0
-                M[np.ix_(border3[3::6] - 1, border3[3::6] - 1)] = np.eye(border3[3::6].size)
-
-            F[border3[1::6] - 1] = 0
-
-            F[border3[2::6] - 1] = 0
-
-            F[border3[3::6] - 1] = 0
-
-        elif boundaryconditions[2] == 7:
-
-
-            if isthereM != 0:
-                M[border3[1::6] - 1, :] = 0
-                M[:, border3[1::6] - 1] = 0
-                M[np.ix_(border3[1::6] - 1, border3[1::6] - 1)] = np.eye(border3[1::6].size)
-                M[border3[::6] - 1, :] = 0
-                M[:, border3[::6] - 1] = 0
-                M[np.ix_(border3[::6] - 1, border3[::6] - 1)] = np.eye(border3[::6].size)
-                M[border3[4::6] - 1, :] = 0
-                M[:, border3[4::6] - 1] = 0
-                M[np.ix_(border3[4::6] - 1, border3[4::6] - 1)] = np.eye(border3[4::6].size)
-
-            F[border3[1::6] - 1] = 0
-
-            F[border3[::6] - 1] = 0
-
-            F[border3[4::6] - 1] = 0
-
-        elif boundaryconditions[2] == 8:
-
-
-            if isthereM != 0:
-                M[border3[1::6] - 1, :] = 0
-                M[:, border3[1::6] - 1] = 0
-                M[np.ix_(border3[1::6] - 1, border3[1::6] - 1)] = np.eye(border3[1::6].size)
-                M[border3[::6] - 1, :] = 0
-                M[:, border3[::6] - 1] = 0
-                M[np.ix_(border3[::6] - 1, border3[::6] - 1)] = np.eye(border3[::6].size)
-                M[border3[2::6] - 1, :] = 0
-                M[:, border3[2::6] - 1] = 0
-                M[np.ix_(border3[2::6] - 1, border3[2::6] - 1)] = np.eye(border3[2::6].size)
-                M[border3[4::6] - 1, :] = 0
-                M[:, border3[4::6] - 1] = 0
-                M[np.ix_(border3[4::6] - 1, border3[4::6] - 1)] = np.eye(border3[4::6].size)
-
-            F[border3[1::6] - 1] = 0
-
-            F[border3[::6] - 1] = 0
-
-            F[border3[2::6] - 1] = 0
-
-            F[border3[4::6] - 1] = 0
-
-        if boundaryconditions[3] == 1:
-            F[border4[np.arange(0, border4.size, 6)] - 1] += BCAssembly(X, T, b4, NX4, 1, y2)
-            F[border4[np.arange(1, border4.size, 6)] - 1] += BCAssembly(X, T, b4, NY4, 1, y2)
-            if boundaryconditions[2] == 2:
-                sz4 = border4.size
-
-                F[border4[np.arange(sz4 - 1, sz4 - 7, -1)] - 1] = 0
-
-            if boundaryconditions[0] == 2:
-
-                F[border1[np.arange(0, 6)] - 1] = 0
-        elif boundaryconditions[3] == 2:
-
-            if isthereM != 0:
-                M[border4 - 1, :] = 0
-                M[:, border4 - 1] = 0
-                M[np.ix_(border4 - 1, border4 - 1)] = np.eye(border4.size)
-
-            F[border4 - 1] = 0
-
-
-        elif boundaryconditions[3] == 3:
-            F[border4[np.arange(4, border4.size, 6)] - 1] += BCMAssembly(X, T, b4, MX4, 1, y2, 2)
-            F[border4[np.arange(3, border4.size, 6)] - 1] += BCMAssembly(X, T, b4, MXY4, 1, y2, 1)
-            if boundaryconditions[2] == 2:
-
-                F[border3[np.arange(0, 6)] - 1] = 0
-            if boundaryconditions[0] == 2:
-
-                F[border1[np.arange(0, 6)] - 1] = 0
-
-
-        #elif boundaryconditions[3] == 4:
-        #    srch = np.nonzero(ENFRCDS2[3, :])
-        #    for c in srch[0]:
-        #        F[border4[np.arange(c, border4.size, 6)] - 1] = ENFRCDS1[3, c]
-        #        if isthereM != 0:
-        #            M[border4[np.arange(c, border4.size, 6)] - 1, :] = 0
-        #            M[np.ix_(border4[np.arange(c, border4.size, 6)] - 1,
-        #                     border4[np.arange(c, border4.size, 6)] - 1)] -= diag_mat(M[np.ix_(
-        #                border4[np.arange(c, border4.size, 6)] - 1,
-        #                border4[np.arange(c, border4.size, 6)] - 1)],analysis_type[0,2]) - np.eye(
-        #                border4[np.arange(c, border4.size, 6)].size)
-
-
-        elif boundaryconditions[3] == 5:
-
-
-            if isthereM != 0:
-                M[border4[::6] - 1, :] = 0
-                M[:, border4[::6] - 1] = 0
-                M[np.ix_(border4[::6] - 1, border4[::6] - 1)] = np.eye(border4[::6].size)
-                M[border4[1::6] - 1, :] = 0
-                M[:, border4[1::6] - 1] = 0
-                M[np.ix_(border4[1::6] - 1, border4[1::6] - 1)] = np.eye(border4[1::6].size)
-                M[border4[2::6] - 1, :] = 0
-                M[:, border4[2::6] - 1] = 0
-                M[np.ix_(border4[2::6] - 1, border4[2::6] - 1)] = np.eye(border4[2::6].size)
-                M[border4[4::6] - 1, :] = 0
-                M[:, border4[4::6] - 1] = 0
-                M[np.ix_(border4[4::6] - 1, border4[4::6] - 1)] = np.eye(border4[4::6].size)
-
-            F[border4[::6] - 1] = 0
-
-            F[border4[1::6] - 1] = 0
-
-            F[border4[2::6] - 1] = 0
-
-
-            F[border4[4::6] - 1] = 0
-
-        elif boundaryconditions[3] == 6:
-
-
-            if isthereM != 0:
-                M[border4[::6] - 1, :] = 0
-                M[:, border4[::6] - 1] = 0
-                M[np.ix_(border4[::6] - 1, border4[::6] - 1)] = np.eye(border4[::6].size)
-                M[border4[2::6] - 1, :] = 0
-                M[:, border4[2::6] - 1] = 0
-                M[np.ix_(border4[2::6] - 1, border4[2::6] - 1)] = np.eye(border4[2::6].size)
-                M[border4[4::6] - 1, :] = 0
-                M[:, border4[4::6] - 1] = 0
-                M[np.ix_(border4[4::6] - 1, border4[4::6] - 1)] = np.eye(border4[4::6].size)
-
-            F[border4[::6] - 1] = 0
-
-            F[border4[2::6] - 1] = 0
-
-
-            F[border4[4::6] - 1] = 0
-
-        elif boundaryconditions[3] == 7:
-
-
-            if isthereM != 0:
-                M[border4[1::6] - 1, :] = 0
-                M[:, border4[1::6] - 1] = 0
-                M[np.ix_(border4[1::6] - 1, border4[1::6] - 1)] = np.eye(border4[1::6].size)
-                M[border4[::6] - 1, :] = 0
-                M[:, border4[::6] - 1] = 0
-                M[np.ix_(border4[::6] - 1, border4[::6] - 1)] = np.eye(border4[::6].size)
-                M[border4[3::6] - 1, :] = 0
-                M[:, border4[3::6] - 1] = 0
-                M[np.ix_(border4[3::6] - 1, border4[3::6] - 1)] = np.eye(border4[3::6].size)
-
-            F[border4[1::6] - 1] = 0
-
-
-            F[border4[::6] - 1] = 0
-
-
-            F[border4[3::6] - 1] = 0
-
-        elif boundaryconditions[3] == 8:
-
-
-            if isthereM != 0:
-                M[border4[1::6] - 1, :] = 0
-                M[:, border4[1::6] - 1] = 0
-                M[np.ix_(border4[1::6] - 1, border4[1::6] - 1)] = np.eye(border4[1::6].size)
-                M[border4[::6] - 1, :] = 0
-                M[:, border4[::6] - 1] = 0
-                M[np.ix_(border4[::6] - 1, border4[::6] - 1)] = np.eye(border4[::6].size)
-                M[border4[2::6] - 1, :] = 0
-                M[:, border4[2::6] - 1] = 0
-                M[np.ix_(border4[2::6] - 1, border4[2::6] - 1)] = np.eye(border4[2::6].size)
-                M[border4[3::6] - 1, :] = 0
-                M[:, border4[3::6] - 1] = 0
-                M[np.ix_(border4[3::6] - 1, border4[3::6] - 1)] = np.eye(border4[3::6].size)
-
-            F[border4[1::6] - 1] = 0
-
-
-            F[border4[::6] - 1] = 0
-
-            F[border4[2::6] - 1] = 0
-
-
-            F[border4[3::6] - 1] = 0
+                    M[border[i][1::6] - 1, :] = 0
+                    M[:, border[i][1::6] - 1] = 0
+                    M[np.ix_(border[i][1::6] - 1, border[i][1::6] - 1)] = np.eye(border[i][1::6].size)
+                    M[border[i][::6] - 1, :] = 0
+                    M[:, border[i][::6] - 1] = 0
+                    M[np.ix_(border[i][::6] - 1, border[i][::6] - 1)] = np.eye(border[i][::6].size)
+                    M[border[i][2::6] - 1, :] = 0
+                    M[:, border[i][2::6] - 1] = 0
+                    M[np.ix_(border[i][2::6] - 1, border[i][2::6] - 1)] = np.eye(border[i][2::6].size)
+                    M[border[i][4::6] - 1, :] = 0
+                    M[:, border[i][4::6] - 1] = 0
+                    M[np.ix_(border[i][4::6] - 1, border[i][4::6] - 1)] = np.eye(border[i][4::6].size)
+
+                F[border[i][1::6] - 1] = 0
+
+                F[border[i][::6] - 1] = 0
+
+                F[border[i][2::6] - 1] = 0
+
+                F[border[i][4::6] - 1] = 0
+
+            i += 1
 
 
         return F
 
 
-def get_boundaries(X, b, box):
+def get_boundaries(X, b, nborders):
+
+    borderss = []
     ind = 0
-    while ind < 4:
+    while ind < nborders:
         i = 0
         while i < b.shape[1]:
             if b[ind, i] == 0:
-                if ind == 0:
-                    b1 = b[ind, np.arange(0, i)]
-                elif ind == 1:
-                    b2 = b[ind, np.arange(0, i)]
-                elif ind == 2:
-                    b3 = b[ind, np.arange(0, i)]
-                elif ind == 3:
-                    b4 = b[ind, np.arange(0, i)]
+                borderss.append(b[ind, np.arange(0, i)])
                 break
             elif b[ind, i] != 0 and i == b.shape[1] - 1:
-                if ind == 0:
-                    b1 = b[ind, np.arange(0, i + 1)]
-                elif ind == 1:
-                    b2 = b[ind, np.arange(0, i + 1)]
-                elif ind == 2:
-                    b3 = b[ind, np.arange(0, i + 1)]
-                elif ind == 3:
-                    b4 = b[ind, np.arange(0, i + 1)]
+                borderss.append(b[ind, np.arange(0, i + 1)])
                 break
             i += 1
         ind += 1
 
-    ii = 0
-    while ii < b1.size:
-        min = ii
-        kk = ii + 1
-        while kk < b1.size:
-            if X[b1[kk] - 1, 1] < X[b1[min] - 1, 1]:
-                min = kk
+    ind = 0
+    while ind < nborders:
+        ii = 0
+        while ii < borderss[ind].size:
+            min = ii
+            kk = ii + 1
+            while kk < borderss[ind].size:
+                if X[borderss[ind][kk] - 1, 1] < X[borderss[ind][min] - 1, 1]:
+                    min = kk
 
-            kk += 1
-        rempl = b1[min]
-        b1[min] = b1[ii]
-        b1[ii] = rempl
-        ii += 1
+                kk += 1
+            rempl = borderss[ind][min]
+            borderss[ind][min] = borderss[ind][ii]
+            borderss[ind][ii] = rempl
+            ii += 1
 
-    ii = 0
-    while ii < b2.size:
-        min = ii
-        kk = ii + 1
-        while kk < b2.size:
-            if X[b2[kk] - 1, 0] < X[b2[min] - 1, 0]:
-                min = kk
+        ind += 1
 
-            kk += 1
-        rempl = b2[min]
-        b2[min] = b2[ii]
-        b2[ii] = rempl
-        ii += 1
+    border = []
+    ind = 0
+    while ind < nborders:
+        interm_border = np.zeros((1, 6 * borderss[ind].size))
+        ii = 0
+        while ii < borderss[ind].size:
+            interm_border[0, np.arange(6 * ii, 6 * ii + 6)] = np.arange(6 * borderss[ind][ii] - 5,
+                                                                        6 * borderss[ind][ii] + 1)
+            ii += 1
+        interm_border = interm_border.astype(int)
+        interm_border = interm_border[0]
 
-    ii = 0
-    while ii < b3.size:
-        min = ii
-        kk = ii + 1
-        while kk < b3.size:
-            if X[b3[kk] - 1, 1] < X[b3[min] - 1, 1]:
-                min = kk
+        border.append(interm_border)
+        ind += 1
 
-            kk += 1
-        rempl = b3[min]
-        b3[min] = b3[ii]
-        b3[ii] = rempl
-        ii += 1
+    border_size = 0
+    i = 0
+    while i < len(border):
+        if border[i].shape[0] > border_size:
+            border_size = border[i].shape[0]
+        i += 1
 
-    ii = 0
-    while ii < b4.size:
-        min = ii
-        kk = ii + 1
-        while kk < b4.size:
-            if X[b4[kk] - 1, 0] < X[b4[min] - 1, 0]:
-                min = kk
-            kk += 1
+    everyborder = np.zeros((nborders, border_size))
+    i = 0
+    while i < everyborder.shape[0]:
+        everyborder[i, :] = np.concatenate((border[i], np.zeros((1, border_size - border[i].shape[0]))), axis=None)
+        i += 1
 
-        rempl = b4[min]
-        b4[min] = b4[ii]
-        b4[ii] = rempl
-        ii += 1
+    everyborder = everyborder.astype(int)
 
 
-    x1 = box[0, 0]
-    y1 = box[0, 1]
-    x2 = box[1, 0]
-    y2 = box[1, 1]
-
-    border1 = np.zeros((1, 6 * b1.size))
-    ii = 0
-    while ii < b1.size:
-        border1[0, np.arange(6 * ii, 6 * ii + 6)] = np.arange(6 * b1[ii] - 5, 6 * b1[ii] + 1)
-        ii += 1
-    border1 = border1.astype(int)
-    border1 = border1[0]
-
-    border2 = np.zeros((1, 6 * b2.size))
-    ii = 0
-    while ii < b2.size:
-        border2[0, np.arange(6 * ii, 6 * ii + 6)] = np.arange(6 * b2[ii] - 5, 6 * b2[ii] + 1)
-        ii += 1
-    border2 = border2.astype(int)
-    border2 = border2[0]
-
-    border3 = np.zeros((1, 6 * b3.size))
-    ii = 0
-    while ii < b3.size:
-        border3[0, np.arange(6 * ii, 6 * ii + 6)] = np.arange(6 * b3[ii] - 5, 6 * b3[ii] + 1)
-        ii += 1
-    border3 = border3.astype(int)
-    border3 = border3[0]
-
-    border4 = np.zeros((1, 6 * b4.size))
-    ii = 0
-    while ii < b4.size:
-        border4[0, np.arange(6 * ii, 6 * ii + 6)] = np.arange(6 * b4[ii] - 5, 6 * b4[ii] + 1)
-        ii += 1
-    border4 = border4.astype(int)
-    border4 = border4[0]
-
-    bnd = [border1, border2, border3, border4]
-
-    return bnd
+    return borderss, border, border_size, everyborder

@@ -70,7 +70,6 @@ if analysis_type[0,0] != 3:
     print()
 
     total_loading = {'Bc':boundary_load, 'surf_node':surface_nodal_load}
-    print()
 
     transient = 0
 

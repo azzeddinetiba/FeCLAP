@@ -52,16 +52,16 @@ def get_boundaryconditions(analysis_type):
     MX4 = lambda x: 0
     MXY4 = lambda x: 0"""
 
-    NX = np.zeros(nborders, 2)
-    NY = np.zeros(nborders, 2)
-    Mben = np.zeros(nborders, 2)
-    Mtor = np.zeros(nborders, 2)
+    NX = []
+    NY = []
+    Mben = []
+    Mtor = []
 
     coor = ["y", "x"]
 
 
     boundaryconditions = np.array([0,0,0,0])
-    ENFRCDS = np.zeros((4, 10))
+    ENFRCDS = np.zeros((nborders, 10))
     BC = 9
     if analysis_type[0,0]==3:
      condition = np.array([0,2,5,6,7,8])
@@ -69,7 +69,8 @@ def get_boundaryconditions(analysis_type):
      condition = np.arange(0,9)
 
     ii = 0
-    while ii<nborders:
+    while ii < nborders:
+        BC = 9
         while not np.any(np.equal(BC, condition)):
          if analysis_type[0,0] == 3:
                 BC = int(input('Choose boundary conditions (x=x1) :  Fixed 2 / Pinned Support (Oyz Plane) 5 / Roller Support (Oyz Plane) 6 /  Roller Support (Oxz Plane) 7 /  Pinned Support (Oxz Plane) 8 / Exit 0 '))
@@ -80,18 +81,18 @@ def get_boundaryconditions(analysis_type):
          if BC == 1:
           boundaryconditions[ii] = 1
           Nx = input('Value [ Ox  ] (N/m) :')
-          NX[ii] = eval("lambda "+coor[ii%2]+":" + Nx)
+          NX.append(eval("lambda "+coor[ii%2]+":" + Nx))
           Ny = input('Value [ Oy  ] (N/m) :')
-          NY[ii] = eval("lambda "+coor[ii%2]+":" + Ny)
+          NY.append(eval("lambda "+coor[ii%2]+":" + Ny))
           print('\n')
          if BC == 2:
           boundaryconditions[ii] = 2
          if BC == 3:
           boundaryconditions[ii] = 3
           Mbn = input("Value M"+coor[ii%2]+" (N) (Bending) :")
-          Mben[ii] = eval("lambda "+coor[ii%2]+":" + Mbn)
+          Mben.append(eval("lambda "+coor[ii%2]+":" + Mbn))
           Mtr = input('Value Mxy (torsion) (N) :')
-          Mtor[ii] = eval("lambda "+coor[ii%2]+":" + Mtr)
+          Mtor.append(eval("lambda "+coor[ii%2]+":" + Mtr))
           print('\n')
          if BC == 4:
           boundaryconditions[ii] = 4
@@ -106,7 +107,7 @@ def get_boundaryconditions(analysis_type):
          if np.any(np.equal(BC, np.arange(5,9))):
            boundaryconditions[0] = BC
 
-        ii+=1
+         ii+=1
 
 
     ENFRCDS[:, np.arange(0,5)]=ENFRCDS[:, [0, 1, 2, 4, 3]]

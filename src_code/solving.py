@@ -146,9 +146,9 @@ def FEM(total_loading,X,T,b,Ngauss,box,analysis_type,transient,material_param, *
         modal_indexes = yyy
 
         modes = modes.real
-        indices = np.argsort(w)
+        indices = np.argsort(np.abs(w))
         modes = modes[:,indices]
-        w = np.sort(w)
+        w = np.sort(np.abs(w))
 
         freq = (np.sqrt(w))*(1/(2 * m.pi))
         freq = freq.real

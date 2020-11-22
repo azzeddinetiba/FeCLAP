@@ -7,133 +7,133 @@ Increment : 1
 iteration : 1
 Computing Internal forces  
 
-Residual: 2.697670651847706e-13 
+Residual: 2.686175188369914e-13 
 
 Increment : 2
 iteration : 0
 Computing Internal forces  
 
-Residual: 0.49999999999999367 
+Residual: 0.33333333333333526 
 
 Increment : 2
 iteration : 1
 Computing Internal forces  
 
-Residual: 1.9525910155061004e-13 
+Residual: 7.080764721050134e-14 
 
 Increment : 3
 iteration : 0
 Computing Internal forces  
 
-Residual: 0.33333333333332804 
+Residual: 0.16666666666666774 
 
 Increment : 3
 iteration : 1
 Computing Internal forces  
 
-Residual: 7.217458819127729e-14 
+Residual: 3.7128370020204645e-14 
 
 Increment : 4
 iteration : 0
 Computing Internal forces  
 
-Residual: 0.24999999999999983 
+Residual: 0.10000000000000063 
 
 Increment : 4
 iteration : 1
 Computing Internal forces  
 
-Residual: 1.0291806150427771e-13 
+Residual: 2.5308390975898202e-14 
 
 Increment : 5
 iteration : 0
 Computing Internal forces  
 
-Residual: 0.1999999999999967 
+Residual: 0.06666666666666686 
 
 Increment : 5
 iteration : 1
 Computing Internal forces  
 
-Residual: 5.0909801265823815e-14 
+Residual: 1.917965275672206e-14 
 
 Increment : 6
 iteration : 0
 Computing Internal forces  
 
-Residual: 0.16666666666666757 
+Residual: 0.04761904761904704 
 
 Increment : 6
 iteration : 1
 Computing Internal forces  
 
-Residual: 4.24921799606516e-14 
+Residual: 1.2260679511663755e-14 
 
 Increment : 7
 iteration : 0
 Computing Internal forces  
 
-Residual: 0.14285714285714213 
+Residual: 0.035714285714286316 
 
 Increment : 7
 iteration : 1
 Computing Internal forces  
 
-Residual: 4.1935307143681126e-14 
+Residual: 9.288436496515355e-15 
 
 Increment : 8
 iteration : 0
 Computing Internal forces  
 
-Residual: 0.12500000000000036 
+Residual: 0.02777777777777795 
 
 Increment : 8
 iteration : 1
 Computing Internal forces  
 
-Residual: 2.718283354052136e-14 
+Residual: 5.96028631557156e-15 
 
 Increment : 9
 iteration : 0
 Computing Internal forces  
 
-Residual: 0.11111111111111183 
+Residual: 0.022222222222222286 
 
 Increment : 9
 iteration : 1
 Computing Internal forces  
 
-Residual: 2.8642899362324666e-14 
+Residual: 5.5866857494074685e-15 
 
 Increment : 10
 iteration : 0
 Computing Internal forces  
 
-Residual: 0.10000000000000064 
+Residual: 0.018181818181818552 
 
 Increment : 10
 iteration : 1
 Computing Internal forces  
 
-Residual: 3.0828494999372015e-14 
+Residual: 5.651286357261237e-15 
 
 Increment : 11
 iteration : 0
 Computing Internal forces  
 
-Residual: 0.09090909090909102 
+Residual: 0.015151515151515327 
 
 Increment : 11
 iteration : 1
 Computing Internal forces  
 
-Residual: 1.6537730845990833e-14 
+Residual: 3.106677021346528e-15 
 
 Increment : 12
 iteration : 0
 Computing Internal forces  
 
-Residual: 0.08333333333333315 
+Residual: 0.012820512820512856 
 
 Plasticity occurring in the layer 2, spotted at the element number, 127
 Increment : 12
@@ -141,13 +141,13 @@ iteration : 1
 Computing the new stiffness matrix
 Computing Internal forces  
 
-Residual: 0.006654980326398995 
+Residual: 0.0010238431271388639 
 
 Increment : 13
 iteration : 0
 Computing Internal forces  
 
-Residual: 0.08147772294677587 
+Residual: 0.011639674706682373 
 
 Plasticity occurring in the layer 2, spotted at the element number, 77
 Plasticity occurring in the layer 2, spotted at the element number, 127
@@ -156,13 +156,13 @@ iteration : 1
 Computing the new stiffness matrix
 Computing Internal forces  
 
-Residual: 0.043087420685677426 
+Residual: 0.00615534581223964 
 
 Increment : 14
 iteration : 0
 Computing Internal forces  
 
-Residual: 0.11135505141748987 
+Residual: 0.014847340188998658 
 
 Plasticity occurring in the layer 2, spotted at the element number, 77
 Plasticity occurring in the layer 2, spotted at the element number, 127
@@ -171,20 +171,13 @@ iteration : 1
 Computing the new stiffness matrix
 Computing Internal forces  
 
-Residual: 0.05926792881428157 
-
-Increment : 14
-iteration : 2
-Computing the new stiffness matrix
-Computing Internal forces  
-
-Residual: 0.019619244972224097 
+Residual: 0.007902390508570792 
 
 Increment : 15
 iteration : 0
 Computing Internal forces  
 
-Residual: 0.052968462546614956 
+Residual: 0.015209785670948953 
 
 Plasticity occurring in the layer 2, spotted at the element number, 77
 Plasticity occurring in the layer 2, spotted at the element number, 127
@@ -193,13 +186,13 @@ iteration : 1
 Computing the new stiffness matrix
 Computing Internal forces  
 
-Residual: 0.029566751074620624 
+Residual: 0.008532905917122595 
 
 Increment : 16
 iteration : 0
 Computing Internal forces  
 
-Residual: 0.08924259554582092 
+Residual: 0.014838007226940316 
 
 Plasticity occurring in the layer 2, spotted at the element number, 77
 Plasticity occurring in the layer 2, spotted at the element number, 127
@@ -208,13 +201,13 @@ iteration : 1
 Computing the new stiffness matrix
 Computing Internal forces  
 
-Residual: 0.0485570616565795 
+Residual: 0.007901387958277455 
 
 Increment : 17
 iteration : 0
 Computing Internal forces  
 
-Residual: 0.10394185947591929 
+Residual: 0.013488968602802564 
 
 Plasticity occurring in the layer 2, spotted at the element number, 77
 Plasticity occurring in the layer 2, spotted at the element number, 127
@@ -223,20 +216,13 @@ iteration : 1
 Computing the new stiffness matrix
 Computing Internal forces  
 
-Residual: 0.054305737607796604 
-
-Increment : 17
-iteration : 2
-Computing the new stiffness matrix
-Computing Internal forces  
-
-Residual: 0.021342755113651336 
+Residual: 0.007710489926401348 
 
 Increment : 18
 iteration : 0
 Computing Internal forces  
 
-Residual: 0.04064097349932383 
+Residual: 0.012689525741378622 
 
 Plasticity occurring in the layer 2, spotted at the element number, 77
 Plasticity occurring in the layer 2, spotted at the element number, 127
@@ -245,13 +231,13 @@ iteration : 1
 Computing the new stiffness matrix
 Computing Internal forces  
 
-Residual: 0.022471470810479583 
+Residual: 0.0068860489232177476 
 
 Increment : 19
 iteration : 0
 Computing Internal forces  
 
-Residual: 0.07249308636449735 
+Residual: 0.011395482168272027 
 
 Plasticity occurring in the layer 2, spotted at the element number, 77
 Plasticity occurring in the layer 2, spotted at the element number, 127
@@ -260,15 +246,14 @@ iteration : 1
 Computing the new stiffness matrix
 Computing Internal forces  
 
-Residual: 0.04056249087496618 
+Residual: 0.00612068690853083 
 
 Increment : 20
 iteration : 0
 Computing Internal forces  
 
-Residual: 0.08802191813392299 
+Residual: 0.010221002922927816 
 
-Plasticity occurring in the layer 2, spotted at the element number, 35
 Plasticity occurring in the layer 2, spotted at the element number, 77
 Plasticity occurring in the layer 2, spotted at the element number, 127
 Increment : 20
@@ -276,13 +261,13 @@ iteration : 1
 Computing the new stiffness matrix
 Computing Internal forces  
 
-Residual: 0.04861713242765305 
+Residual: 0.005874861094711232 
 
 Increment : 21
 iteration : 0
 Computing Internal forces  
 
-Residual: 0.09348343063682622 
+Residual: 0.009618924287110238 
 
 Plasticity occurring in the layer 2, spotted at the element number, 35
 Plasticity occurring in the layer 2, spotted at the element number, 77
@@ -292,20 +277,13 @@ iteration : 1
 Computing the new stiffness matrix
 Computing Internal forces  
 
-Residual: 0.05251741037414214 
-
-Increment : 21
-iteration : 2
-Computing the new stiffness matrix
-Computing Internal forces  
-
-Residual: 0.014986165175560704 
+Residual: 0.005687992474536289 
 
 Increment : 22
 iteration : 0
 Computing Internal forces  
 
-Residual: 0.0347087990952849 
+Residual: 0.009113713755417361 
 
 Plasticity occurring in the layer 2, spotted at the element number, 35
 Plasticity occurring in the layer 2, spotted at the element number, 77
@@ -315,30 +293,29 @@ iteration : 1
 Computing the new stiffness matrix
 Computing Internal forces  
 
-Residual: 0.020252889513053148 
+Residual: 0.005127180774436787 
 
 Increment : 23
 iteration : 0
 Computing Internal forces  
 
-Residual: 0.06218425922084987 
+Residual: 0.008289462368748723 
 
 Plasticity occurring in the layer 2, spotted at the element number, 35
 Plasticity occurring in the layer 2, spotted at the element number, 77
 Plasticity occurring in the layer 2, spotted at the element number, 127
-Plasticity occurring in the layer 2, spotted at the element number, 128
 Increment : 23
 iteration : 1
 Computing the new stiffness matrix
 Computing Internal forces  
 
-Residual: 0.03525580525783763 
+Residual: 0.004675940486207103 
 
 Increment : 24
 iteration : 0
 Computing Internal forces  
 
-Residual: 0.07517989844410279 
+Residual: 0.007602008400159012 
 
 Plasticity occurring in the layer 2, spotted at the element number, 35
 Plasticity occurring in the layer 2, spotted at the element number, 77
@@ -349,13 +326,13 @@ iteration : 1
 Computing the new stiffness matrix
 Computing Internal forces  
 
-Residual: 0.04145636335919795 
+Residual: 0.004426927186259543 
 
 Increment : 25
 iteration : 0
 Computing Internal forces  
 
-Residual: 0.07953938635816123 
+Residual: 0.007134713228741319 
 
 Plasticity occurring in the layer 2, spotted at the element number, 35
 Plasticity occurring in the layer 2, spotted at the element number, 75
@@ -367,13 +344,13 @@ iteration : 1
 Computing the new stiffness matrix
 Computing Internal forces  
 
-Residual: 0.04440361107373874 
+Residual: 0.003962295027759238 
 
 Increment : 26
 iteration : 0
 Computing Internal forces  
 
-Residual: 0.08091508638113651 
+Residual: 0.006493772313662021 
 
 Plasticity occurring in the layer 2, spotted at the element number, 35
 Plasticity occurring in the layer 2, spotted at the element number, 75
@@ -385,13 +362,13 @@ iteration : 1
 Computing the new stiffness matrix
 Computing Internal forces  
 
-Residual: 0.045264738628801794 
+Residual: 0.0036362483613860156 
 
 Increment : 27
 iteration : 0
 Computing Internal forces  
 
-Residual: 0.08039740023334634 
+Residual: 0.0060011767360604994 
 
 Plasticity occurring in the layer 2, spotted at the element number, 35
 Plasticity occurring in the layer 2, spotted at the element number, 75
@@ -403,13 +380,13 @@ iteration : 1
 Computing the new stiffness matrix
 Computing Internal forces  
 
-Residual: 0.04516585839073173 
+Residual: 0.0033690058190583637 
 
 Increment : 28
 iteration : 0
 Computing Internal forces  
 
-Residual: 0.07903233449294289 
+Residual: 0.005580563771277348 
 
 Plasticity occurring in the layer 2, spotted at the element number, 35
 Plasticity occurring in the layer 2, spotted at the element number, 75
@@ -421,13 +398,13 @@ iteration : 1
 Computing the new stiffness matrix
 Computing Internal forces  
 
-Residual: 0.04543639081891716 
+Residual: 0.003212860223532677 
 
 Increment : 29
 iteration : 0
 Computing Internal forces  
 
-Residual: 0.07810147719016491 
+Residual: 0.005279124594967031 
 
 Plasticity occurring in the layer 2, spotted at the element number, 33
 Plasticity occurring in the layer 2, spotted at the element number, 35
@@ -440,13 +417,13 @@ iteration : 1
 Computing the new stiffness matrix
 Computing Internal forces  
 
-Residual: 0.044659730367931465 
+Residual: 0.003021430619721997 
 
 Increment : 30
 iteration : 0
 Computing Internal forces  
 
-Residual: 0.07621570001670043 
+Residual: 0.004957371202454136 
 
 Plasticity occurring in the layer 2, spotted at the element number, 33
 Plasticity occurring in the layer 2, spotted at the element number, 35
@@ -460,13 +437,13 @@ iteration : 1
 Computing the new stiffness matrix
 Computing Internal forces  
 
-Residual: 0.04509593297703475 
+Residual: 0.002933709091059436 
 
 Increment : 31
 iteration : 0
 Computing Internal forces  
 
-Residual: 0.07553384709051206 
+Residual: 0.004743099379559531 
 
 Plasticity occurring in the layer 2, spotted at the element number, 33
 Plasticity occurring in the layer 2, spotted at the element number, 35
@@ -482,4 +459,4 @@ iteration : 1
 Computing the new stiffness matrix
 Computing Internal forces  
 
-Residual: 0.04246332497204121 
+Residual: 0.002667803091912262 

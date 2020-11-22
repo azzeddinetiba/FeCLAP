@@ -111,12 +111,12 @@ git clone https://github.com/azzeddinetiba/FeCLAP.git
 python setup.py build
 python setup.py install
 ```
-* Create and add to _FeCLAP\NonLinearModule\\_ or _FeCLAP\NonLinearModule-1.0-py3.8-win-amd64.egg\NonLinearModule\\\_
-the file ```\__init\__.py``` (Folder names vary depending on the python version, and the environment used) with:
+* Create and add to *FeCLAP\NonLinearModule\\* or *FeCLAP\NonLinearModule-1.0-py3.8-win-amd64.egg\NonLinearModule\\*
+the file ```\__init__.py``` (Folder names vary depending on the python version, and the environment used) with:
 ```python
 from .NonLinearModule import * 
 ```
-
+The program needs ffmpeg installed (change the directory where ffmpeg is installed in line **12** in *Main.py*) to generate mode shapes animations.
 <!-- USAGE EXAMPLES -->
 ## Usage
 
