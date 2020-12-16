@@ -116,7 +116,7 @@ the file ```\__init__.py``` (Folder names vary depending on the python version, 
 ```python
 from .NonLinearModule import * 
 ```
-The program needs ffmpeg installed (change the directory where ffmpeg is installed in line **12** in *Main.py*) to generate mode shapes animations.
+The program needs ffmpeg installed (change the directory where ffmpeg is installed in line **12** in *Main.py*) to save mode shapes animations.
 <!-- USAGE EXAMPLES -->
 ## Usage
 
