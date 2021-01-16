@@ -35,22 +35,6 @@ def get_plies(analysis_type):
 
 def get_boundaryconditions(analysis_type):
 
-    """ NX1 = lambda y: 0
-    NY1 = lambda y: 0
-    NX2 = lambda x: 0
-    NY2 = lambda x: 0
-    NX3 = lambda y: 0
-    NY3 = lambda y: 0
-    NX4 = lambda x: 0
-    NY4 = lambda x: 0
-    MY1 = lambda y: 0
-    MXY1 = lambda y: 0
-    MX2 = lambda x: 0
-    MXY2 = lambda x: 0
-    MY3 = lambda y: 0
-    MXY3 = lambda y: 0
-    MX4 = lambda x: 0
-    MXY4 = lambda x: 0"""
 
     NX = []
     NY = []

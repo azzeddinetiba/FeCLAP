@@ -12,7 +12,12 @@ import src_code.postProc_visuals
 mpl.rcParams['animation.ffmpeg_path'] = 'C:\\ffmpeg\\bin\\ffmpeg.exe'
 
 print(
-    '\nA small solver for the static (linear and perfectly plastic) modal and transient analysis of laminate composite plates using the Kirchoff-Love theory of thin plates and the lmainate composites theory\nThe supported geometry is a rectangular plate with or without one hole\n\nTIBA Azzeddine  -  2020\n')
+'A small solver for the static (linear and perfectly plastic) modal and transient analysis of laminate composite plates using the Kirchoff-Love theory of thin plates and the lmainate composites theory\n'
+    'The supported geometry is a rectangular plate with or without one hole\n'
+    '\n    FeCLAP  Copyright (C) 2020  TIBA Azzeddine \nThis program comes with ABSOLUTELY NO WARRANTY;\n'
+    'This is free software, and you are welcome to redistribute it under certain conditions\n'
+    
+    '\nTIBA Azzeddine  -  2020\n')
 
 
 # Allowing the user to input the geometry and materials
