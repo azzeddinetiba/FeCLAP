@@ -60,7 +60,7 @@
 
 This is a personal project small solver for the **F**inite **e**lement analysis of **C**omposite **LA**minate **P**lates = **_FeCLAP_** for rectangular geometries.
 This solver supports **static, modal, transient and non linear analysis** using a perfectly elasto-plastic model.
-Only triangular mesh from _distmesh_ is available, and only rectangular geometries.
+Only triangular mesh (Argyris elements for bending and Linear Lagrange elements for membrane displacement are supported currently) from _distmesh_ is available, and only rectangular geometries.
 The plastic model used is based on a Tsai-Hill yield function, with no plastic hardening.
 
 <!-- GETTING STARTED -->
